@@ -1,0 +1,36 @@
+# CSCI 3495 — reproducible course environment
+# Usage:
+#   docker compose -f docker/docker-compose.yml build
+#   docker compose -f docker/docker-compose.yml up -d ollama        # start local LLM server
+#   docker compose -f docker/docker-compose.yml run --rm course bash # work inside the image
+services:
+  # Local, free, open-source LLM inference server. No API keys required.
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # GPUs are optional; the course is designed to run CPU-only.
+
+  # The course environment: Python 3.12 + full NLP/LLM stack.
+  course:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: csci3495-nlp:latest
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ..:/workspace            # mount the whole repo
+      - hf_cache:/home/student/.cache/huggingface
+    ports:
+      - "8888:8888"              # JupyterLab
+    stdin_open: true
+    tty: true
+
+volumes:
+  ollama_models:
+  hf_cache:

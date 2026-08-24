@@ -1,0 +1,39 @@
+# CSCI 3495 — pinned course dependencies (CPU-only; no GPU required)
+# Versions current as of 2026-07 (coordinated bump: torch 2.12.x + transformers 5.x).
+# NOTE: transformers 5.13.x requires tokenizers <=0.23.0,>=0.22.0 -> pin 0.22.2 (0.23.0 stable not released).
+# Core scientific stack
+numpy==2.5.1
+scipy==1.18.0
+pandas==3.0.3
+scikit-learn==1.9.0
+matplotlib==3.10.7
+
+# Classical NLP
+nltk==3.9.2
+regex==2025.11.3
+
+# Deep learning (CPU wheels installed via Dockerfile --index-url)
+torch==2.12.1
+
+# Transformers / Hugging Face ecosystem
+transformers==5.13.0
+datasets==5.0.0
+tokenizers==0.22.2
+accelerate==1.14.0
+evaluate==0.4.6
+sentence-transformers==5.6.0
+peft==0.19.1
+
+# Local LLM inference
+ollama==0.6.2
+
+# Retrieval / RAG
+faiss-cpu==1.14.3
+
+# Notebooks & utilities
+jupyterlab==4.5.0
+tqdm==4.67.1
+ipywidgets==8.1.7
+
+# Testing
+pytest==9.1.1
