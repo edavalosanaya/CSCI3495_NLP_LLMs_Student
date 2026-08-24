@@ -17,11 +17,27 @@ Lecture (~30 min), break (5), setup (~25 min), pair scavenger hunt (~10 min)
 
 ---
 
-# Ice breaker: Find Your Training Data
+# Ice breaker: you will argue both sides
 
-<!-- img: visuals/icebreaker-bingo.png -->
-<!-- caption: Nine squares, nine different classmates. Sheets are on your desk; you have eight minutes. -->
-<!-- source: handout at weeks/week-01/class-01/icebreaker-bingo.md -->
+<!-- img: visuals/debate-format.png -->
+<!-- caption: Two motions, two rounds, and you switch teams in between. Nobody defends the same position twice. -->
+<!-- source: original figure -->
+
+---
+
+# Round 1: on balance, AI and LLMs have made society better
+
+<!-- img: visuals/debate-round-1.png -->
+<!-- caption: Left half of the room argues for, right half argues against. Four minutes, then we stop. -->
+<!-- source: original figure -->
+
+---
+
+# Round 2: AI and LLMs have made us measurably more productive
+
+<!-- img: visuals/debate-round-2.png -->
+<!-- caption: Same room, new motion, and everyone changes sides. If you argued for, you now argue against. -->
+<!-- source: original figure -->
 
 ---
 
@@ -155,7 +171,7 @@ Open both now. We will walk the semester end to end.
 # Grade breakdown
 
 <!-- img: visuals/assessment-donut.png -->
-<!-- caption: Project 35, Homeworks 27, Quizzes 15, Participation 8, Final 8, Midterm 7. Details in the syllabus. -->
+<!-- caption: Project 35, Quizzes 27, Homeworks 15, Participation 8, Final 8, Midterm 7. Details in the syllabus. -->
 <!-- source: syllabus/SYLLABUS.md -->
 
 ---
