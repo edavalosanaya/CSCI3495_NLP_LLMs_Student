@@ -18,6 +18,11 @@ Run the tests with:
     docker compose -f docker/docker-compose.yml run --rm course \
         python -m pytest homeworks/hw6/tests -q
 """
+# Each TODO below names its README step. Check one step with:
+#     python -m pytest homeworks/hw6/tests -q -k step3      (or step1, step2, ...)
+# and the whole assignment with:
+#     python -m pytest homeworks/hw6/tests -q
+
 from __future__ import annotations
 
 import re
@@ -25,7 +30,7 @@ from dataclasses import dataclass
 
 
 # ---------------------------------------------------------------------------
-# Task 1, Safe tools.
+# Step 1, Safe tools.
 # ---------------------------------------------------------------------------
 def calculator(expression: str) -> str:
     """Evaluate a basic arithmetic expression and return the result as a string.
@@ -36,7 +41,7 @@ def calculator(expression: str) -> str:
     On a malformed expression or division by zero, return a string starting with
     "Error".
     """
-    # TODO: implement a SAFE evaluator (no eval/exec).
+    # TODO (STEP 1): implement a SAFE evaluator (no eval/exec).
     raise NotImplementedError
 
 
@@ -57,7 +62,7 @@ def search(query: str) -> str:
     a key also counts as matched if it appears as a substring of the query.
     If nothing matches, return "No results found.".
     """
-    # TODO: implement keyword search over CORPUS.
+    # TODO (STEP 2): implement keyword search over CORPUS.
     raise NotImplementedError
 
 
@@ -66,7 +71,7 @@ TOOLS = {"calculator": calculator, "search": search}
 
 
 # ---------------------------------------------------------------------------
-# Task 2, Parse a ReAct step from model text.
+# Step 2, Parse a ReAct step from model text.
 # ---------------------------------------------------------------------------
 @dataclass
 class Step:
@@ -101,24 +106,27 @@ def parse_step(text: str) -> Step:
         ``action_input`` are stripped strings (action_input may be "").
       * Labels may be surrounded by extra whitespace/newlines.
     """
-    # TODO: implement robust parsing (regex per label is fine).
+    # TODO (STEP 3): implement robust parsing (regex per label is fine).
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 3, Run a tool and format the observation.
+# Step 3, Run a tool and format the observation.
 # ---------------------------------------------------------------------------
 def run_tool(step: Step) -> str:
     """Dispatch ``step.action`` to the matching tool in TOOLS with
-    ``step.action_input`` and return its string result. If the tool name is
-    unknown, return a string starting with "Error: unknown tool".
+    ``step.action_input`` and return its string result.
+
+    If the tool name is unknown, return a string starting with
+    ``Error: unknown tool`` that also LISTS the available tool names, so the
+    model can correct itself on its next turn. Never raise.
     """
-    # TODO: implement dispatch via the TOOLS registry.
+    # TODO (STEP 4): implement dispatch via the TOOLS registry.
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 4, The ReAct loop.
+# Step 4, The ReAct loop.
 # ---------------------------------------------------------------------------
 SYSTEM_PROMPT = """You are a ReAct agent. Solve the question using tools.
 On each turn respond in this exact format:
@@ -143,7 +151,7 @@ def build_react_prompt(question: str, history: list[str]) -> str:
     running transcript of prior Thought/Action/Observation lines (``history``).
     Return a single string ending in a cue for the model's next turn.
     """
-    # TODO: implement
+    # TODO (STEP 5): implement
     raise NotImplementedError
 
 
@@ -165,7 +173,7 @@ def react_loop(question: str, llm, max_steps: int = 5) -> dict:
        'steps': <number of llm calls made>,
        'history': <the transcript list>}
     """
-    # TODO: implement the loop.
+    # TODO (STEP 6): implement the loop.
     raise NotImplementedError
 
 

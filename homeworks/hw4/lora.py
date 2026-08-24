@@ -18,6 +18,11 @@ Run the tests with:
     docker compose -f docker/docker-compose.yml run --rm course \
         python -m pytest homeworks/hw4/tests -q
 """
+# Each TODO below names its README step. Check one step with:
+#     python -m pytest homeworks/hw4/tests -q -k step3      (or step1, step2, ...)
+# and the whole assignment with:
+#     python -m pytest homeworks/hw4/tests -q
+
 from __future__ import annotations
 
 import torch
@@ -25,7 +30,7 @@ import torch.nn as nn
 
 
 # ---------------------------------------------------------------------------
-# Task 1, A LoRA-adapted linear layer (implement the math yourself).
+# Step 1, A LoRA-adapted linear layer (implement the math yourself).
 # ---------------------------------------------------------------------------
 class LoRALinear(nn.Module):
     """A frozen `nn.Linear` wrapped with a trainable low-rank LoRA update.
@@ -45,19 +50,19 @@ class LoRALinear(nn.Module):
 
     def __init__(self, base: nn.Linear, r: int = 4, alpha: float = 8.0) -> None:
         super().__init__()
-        # TODO: store base (frozen), r, alpha, scaling = alpha / r.
-        # TODO: create nn.Parameter A of shape (r, in_features), init N(0, 0.02).
-        # TODO: create nn.Parameter B of shape (out_features, r), init zeros.
-        # TODO: freeze base.weight and base.bias (requires_grad = False).
+        # TODO (STEP 1): store base (frozen), r, alpha, scaling = alpha / r.
+        # TODO (STEP 1): create nn.Parameter A of shape (r, in_features), init N(0, 0.02).
+        # TODO (STEP 1): create nn.Parameter B of shape (out_features, r), init zeros.
+        # TODO (STEP 1): freeze base.weight and base.bias (requires_grad = False).
         raise NotImplementedError
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO: return base(x) + scaling * (x @ A.T @ B.T)
+        # TODO (STEP 1): return base(x) + scaling * (x @ A.T @ B.T)
         raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 2, Inject LoRA into an existing model and report trainable params.
+# Step 2, Inject LoRA into an existing model and report trainable params.
 # ---------------------------------------------------------------------------
 def inject_lora(model: nn.Module, target: str, r: int = 4, alpha: float = 8.0) -> nn.Module:
     """Replace every direct child module named ``target`` that is an nn.Linear
@@ -67,7 +72,7 @@ def inject_lora(model: nn.Module, target: str, r: int = 4, alpha: float = 8.0) -
     Hint: iterate ``model.named_children()``; if a child is an nn.Linear and its
     attribute name == target, ``setattr`` a LoRALinear; otherwise recurse.
     """
-    # TODO: implement recursive replacement.
+    # TODO (STEP 2): implement recursive replacement.
     raise NotImplementedError
 
 
@@ -77,12 +82,12 @@ def count_trainable_parameters(model: nn.Module) -> tuple[int, int]:
     trainable = sum of numel() for params with requires_grad == True.
     total     = sum of numel() over all params.
     """
-    # TODO: implement
+    # TODO (STEP 3): implement
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 3, A tiny model + toy task you can fine-tune on a CPU in seconds.
+# Step 3, A tiny model + toy task you can fine-tune on a CPU in seconds.
 # ---------------------------------------------------------------------------
 class TinyClassifier(nn.Module):
     """A minimal 2-layer MLP "pretrained" backbone + classification head.
@@ -110,7 +115,7 @@ def make_toy_dataset(n: int = 256, in_dim: int = 16, seed: int = 0) -> tuple[tor
     Label = 1 if the sum of the first half of features > sum of the second half.
     Returns (X float32 [n, in_dim], y long [n]).
     """
-    # TODO: use a torch.Generator(seed) so the data is deterministic.
+    # TODO (STEP 4): use a torch.Generator(seed) so the data is deterministic.
     raise NotImplementedError
 
 
@@ -131,5 +136,5 @@ def train_lora(
       * record the loss (float) BEFORE each step's update
     Returns the list of per-epoch loss values (length == epochs).
     """
-    # TODO: implement the training loop and return the loss history.
+    # TODO (STEP 5): implement the training loop and return the loss history.
     raise NotImplementedError

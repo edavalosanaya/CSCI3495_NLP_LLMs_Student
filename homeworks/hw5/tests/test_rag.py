@@ -53,18 +53,18 @@ def make_index():
 
 
 # --- Task 1: tokenize + TF-IDF retriever -----------------------------------
-def test_tokenize():
+def test_step1_tokenize():
     assert rag.tokenize("Hello, WORLD! 42") == ["hello", "world", "42"]
 
 
-def test_cosine_basics():
+def test_step1_cosine_basics():
     assert rag.cosine({"a": 1.0}, {}) == 0.0
     assert rag.cosine({"a": 1.0, "b": 0.0}, {"a": 2.0}) == pytest.approx(1.0)
     # orthogonal
     assert rag.cosine({"a": 1.0}, {"b": 1.0}) == 0.0
 
 
-def test_index_builds_idf_and_vectors():
+def test_step2_index_builds_idf_and_vectors():
     idx = make_index()
     assert len(idx.vectors) == len(CORPUS)
     # "paris" appears in 2 of 5 docs => idf = ln(6/3)+1
@@ -73,7 +73,7 @@ def test_index_builds_idf_and_vectors():
     assert idx.idf["paris"] == pytest.approx(math.log(6 / 3) + 1.0)
 
 
-def test_search_returns_relevant_doc():
+def test_step3_search_returns_relevant_doc():
     idx = make_index()
     hits = idx.search("What is the capital of France?", k=3)
     assert hits, "expected at least one hit"
@@ -84,14 +84,14 @@ def test_search_returns_relevant_doc():
     assert scores == sorted(scores, reverse=True)
 
 
-def test_search_irrelevant_query_low_or_empty():
+def test_step3_search_irrelevant_query_low_or_empty():
     idx = make_index()
     hits = idx.search("xylophone zebra quantum", k=3)
     assert hits == []  # no overlapping terms -> nothing retrieved
 
 
 # --- Task 2: chunking ------------------------------------------------------
-def test_chunk_overlap_and_coverage():
+def test_step4_chunk_overlap_and_coverage():
     words = " ".join(f"w{i}" for i in range(25))
     chunks = rag.chunk_text(words, max_words=10, overlap=4)
     # step = 6: starts at 0,6,12,18,24
@@ -106,14 +106,14 @@ def test_chunk_overlap_and_coverage():
     assert seen == {f"w{i}" for i in range(25)}
 
 
-def test_chunk_empty_and_validation():
+def test_step4_chunk_empty_and_validation():
     assert rag.chunk_text("", max_words=10, overlap=2) == []
     with pytest.raises(ValueError):
         rag.chunk_text("a b c", max_words=5, overlap=5)
 
 
 # --- Task 3: grounded prompt assembly --------------------------------------
-def test_prompt_is_grounded_and_numbered():
+def test_step5_prompt_is_grounded_and_numbered():
     prompt = rag.build_prompt("Where is the Eiffel Tower?", [CORPUS[0], CORPUS[2]])
     low = prompt.lower()
     assert "only" in low and "i don't know" in low  # grounding instruction
@@ -122,13 +122,13 @@ def test_prompt_is_grounded_and_numbered():
     assert "step by step" not in low  # cot off by default
 
 
-def test_prompt_cot_adds_reasoning_cue():
+def test_step5_prompt_cot_adds_reasoning_cue():
     prompt = rag.build_prompt("Why?", [CORPUS[1]], cot=True)
     assert "step by step" in prompt.lower()
 
 
 # --- Task 4: end-to-end with a MOCK generator (no Ollama) ------------------
-def test_rag_answer_pipeline_with_mock():
+def test_step6_rag_answer_pipeline_with_mock():
     idx = make_index()
     captured = {}
 
@@ -155,10 +155,24 @@ def test_rag_answer_pipeline_with_mock():
     os.environ.get("HW5_LIVE_OLLAMA") != "1",
     reason="set HW5_LIVE_OLLAMA=1 to run the live Ollama generation test",
 )
-def test_rag_answer_live_ollama():
+def test_step6_rag_answer_live_ollama():
     idx = make_index()
     try:
         out = rag.rag_answer(idx, "What is the capital of France?", k=2)
     except Exception as e:  # noqa: BLE001 - Ollama not running / model missing
         pytest.skip(f"Ollama unavailable: {e}")
     assert isinstance(out["answer"], str) and out["answer"]
+
+
+def test_step5_build_prompt_with_no_passages_still_asks_the_question():
+    """Retrieval can come back empty; the prompt must not crash or lose the question."""
+    p = rag.build_prompt("what is BPE?", [])
+    assert "what is BPE?" in p
+    assert isinstance(p, str) and p.strip()
+
+
+def test_step3_search_respects_k():
+    idx = rag.TfidfIndex().build(
+        ["alpha beta", "beta gamma", "gamma delta", "delta epsilon"])
+    assert len(idx.search("beta", k=1)) <= 1
+    assert len(idx.search("beta", k=10)) <= 4, "cannot return more docs than exist"

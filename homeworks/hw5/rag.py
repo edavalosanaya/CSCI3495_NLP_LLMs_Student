@@ -18,6 +18,11 @@ Run the tests with:
     docker compose -f docker/docker-compose.yml run --rm course \
         python -m pytest homeworks/hw5/tests -q
 """
+# Each TODO below names its README step. Check one step with:
+#     python -m pytest homeworks/hw5/tests -q -k step3      (or step1, step2, ...)
+# and the whole assignment with:
+#     python -m pytest homeworks/hw5/tests -q
+
 from __future__ import annotations
 
 import math
@@ -27,11 +32,11 @@ from dataclasses import dataclass, field
 
 
 # ---------------------------------------------------------------------------
-# Task 1, Tokenization & a TF-IDF vector-space retriever (offline).
+# Step 1, Tokenization & a TF-IDF vector-space retriever (offline).
 # ---------------------------------------------------------------------------
 def tokenize(text: str) -> list[str]:
     """Lowercase and split into alphanumeric word tokens (regex \\w+)."""
-    # TODO: implement
+    # TODO (STEP 1): implement
     raise NotImplementedError
 
 
@@ -57,13 +62,13 @@ class TfidfIndex:
         A document vector maps each of its terms to ``tf * idf(term)``.
         Returns self.
         """
-        # TODO: populate self.docs, self.idf, self.vectors
+        # TODO (STEP 2): populate self.docs, self.idf, self.vectors
         raise NotImplementedError
 
     def _vectorize_query(self, query: str) -> dict[str, float]:
         """Turn a query into a tf-idf vector using the index's idf (terms not
         in the vocabulary get idf 0 / are ignored)."""
-        # TODO: implement
+        # TODO (STEP 3): implement
         raise NotImplementedError
 
     def search(self, query: str, k: int = 3) -> list[tuple[int, float]]:
@@ -71,19 +76,19 @@ class TfidfIndex:
         similarity descending. Ties broken by lower doc_index. Documents with
         zero similarity may be omitted. Cosine of two zero vectors is 0.0.
         """
-        # TODO: implement cosine similarity ranking
+        # TODO (STEP 3): implement cosine similarity ranking
         raise NotImplementedError
 
 
 def cosine(a: dict[str, float], b: dict[str, float]) -> float:
     """Cosine similarity between two sparse term->weight vectors. 0.0 if either
     has zero norm."""
-    # TODO: implement
+    # TODO (STEP 1): implement
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 2, Chunking a long document into passages.
+# Step 2, Chunking a long document into passages.
 # ---------------------------------------------------------------------------
 def chunk_text(text: str, max_words: int = 40, overlap: int = 10) -> list[str]:
     """Split ``text`` into overlapping word-windows.
@@ -93,12 +98,12 @@ def chunk_text(text: str, max_words: int = 40, overlap: int = 10) -> list[str]:
     The final partial chunk is included. Requires 0 <= overlap < max_words.
     Returns a list of chunk strings (words joined by single spaces).
     """
-    # TODO: implement
+    # TODO (STEP 4): implement
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 3, Grounded prompt assembly (with optional chain-of-thought).
+# Step 3, Grounded prompt assembly (with optional chain-of-thought).
 # ---------------------------------------------------------------------------
 def build_prompt(query: str, passages: list[str], cot: bool = False) -> str:
     """Assemble a grounded RAG prompt.
@@ -115,12 +120,12 @@ def build_prompt(query: str, passages: list[str], cot: bool = False) -> str:
     the tests check for the grounding instruction, the numbered citations, the
     question text, and the step-by-step cue when cot=True.)
     """
-    # TODO: implement
+    # TODO (STEP 5): implement
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 4, End-to-end RAG (retrieve -> prompt -> generate).
+# Step 4, End-to-end RAG (retrieve -> prompt -> generate).
 # ---------------------------------------------------------------------------
 def generate(prompt: str, model: str = "qwen2.5:0.5b") -> str:
     """Call a local Ollama model and return its text response.
@@ -153,5 +158,5 @@ def rag_answer(
     ``generate_fn`` is injected so tests can pass a mock (the default calls the
     real Ollama ``generate``).
     """
-    # TODO: implement, calling generate_fn(prompt, model=model)
+    # TODO (STEP 6): implement, calling generate_fn(prompt, model=model)
     raise NotImplementedError

@@ -45,18 +45,18 @@ pytestmark = pytest.mark.skipif(
 # --------------------------------------------------------------------------
 # Task 1, softmax
 # --------------------------------------------------------------------------
-def test_softmax_sums_to_one():
+def test_step1_softmax_sums_to_one():
     x = np.array([[1.0, 2.0, 3.0], [0.0, 0.0, 0.0]])
     s = T.softmax(x, axis=-1)
     assert np.allclose(s.sum(axis=-1), 1.0)
 
 
-def test_softmax_uniform_on_equal_logits():
+def test_step1_softmax_uniform_on_equal_logits():
     s = T.softmax(np.zeros(4))
     assert np.allclose(s, 0.25)
 
 
-def test_softmax_numerically_stable():
+def test_step1_softmax_numerically_stable():
     # Large logits must not overflow.
     s = T.softmax(np.array([1000.0, 1000.0, 1000.0]))
     assert np.allclose(s, 1 / 3)
@@ -66,7 +66,7 @@ def test_softmax_numerically_stable():
 # --------------------------------------------------------------------------
 # Task 2, scaled dot-product attention
 # --------------------------------------------------------------------------
-def test_attention_weights_sum_to_one():
+def test_step2_attention_weights_sum_to_one():
     rng = np.random.default_rng(0)
     Q = rng.standard_normal((3, 4))
     K = rng.standard_normal((5, 4))
@@ -78,7 +78,7 @@ def test_attention_weights_sum_to_one():
     assert np.all(w >= 0.0)
 
 
-def test_attention_known_value_uniform():
+def test_step2_attention_known_value_uniform():
     # Identical keys -> equal scores -> uniform weights -> output is mean of V.
     Q = np.array([[1.0, 0.0]])
     K = np.array([[0.0, 0.0], [0.0, 0.0], [0.0, 0.0]])
@@ -88,7 +88,7 @@ def test_attention_known_value_uniform():
     assert np.allclose(out, [[2.0]])  # mean of 1,2,3
 
 
-def test_causal_mask_blocks_future():
+def test_step3_causal_mask_blocks_future():
     m = T.causal_mask(3)
     assert m.shape == (3, 3)
     # diagonal and below are 0
@@ -97,7 +97,7 @@ def test_causal_mask_blocks_future():
     assert m[0, 1] < -1e8 and m[0, 2] < -1e8 and m[1, 2] < -1e8
 
 
-def test_causal_attention_ignores_future():
+def test_step3_causal_attention_ignores_future():
     rng = np.random.default_rng(1)
     n = 4
     Q = rng.standard_normal((n, 3))
@@ -123,7 +123,7 @@ def _make_mha(d_model=4, num_heads=2, seed=0):
     return T.MultiHeadAttention(d_model, num_heads, Wq, Wk, Wv, Wo)
 
 
-def test_split_combine_roundtrip():
+def test_step4_split_combine_roundtrip():
     mha = _make_mha()
     x = np.arange(3 * 4, dtype=np.float64).reshape(3, 4)
     heads = mha._split_heads(x)
@@ -132,7 +132,7 @@ def test_split_combine_roundtrip():
     assert np.allclose(back, x)
 
 
-def test_mha_output_shape_and_weights():
+def test_step5_mha_output_shape_and_weights():
     mha = _make_mha(d_model=4, num_heads=2)
     x = np.random.default_rng(2).standard_normal((5, 4))
     out, w = mha.forward(x)
@@ -141,7 +141,7 @@ def test_mha_output_shape_and_weights():
     assert np.allclose(w.sum(axis=-1), 1.0)
 
 
-def test_mha_causal_mask_applies_per_head():
+def test_step5_mha_causal_mask_applies_per_head():
     mha = _make_mha(d_model=4, num_heads=2)
     n = 4
     x = np.random.default_rng(3).standard_normal((n, 4))
@@ -153,7 +153,7 @@ def test_mha_causal_mask_applies_per_head():
                 assert w[h, i, j] < 1e-6
 
 
-def test_mha_single_head_matches_plain_attention():
+def test_step5_mha_single_head_matches_plain_attention():
     # With one head, MHA = (xWq, xWk, xWv) -> attention -> @ Wo.
     d = 3
     rng = np.random.default_rng(7)
@@ -168,13 +168,13 @@ def test_mha_single_head_matches_plain_attention():
 # --------------------------------------------------------------------------
 # Task 4, positional encoding
 # --------------------------------------------------------------------------
-def test_positional_encoding_shape_and_range():
+def test_step6_positional_encoding_shape_and_range():
     pe = T.positional_encoding(10, 8)
     assert pe.shape == (10, 8)
     assert np.all(pe <= 1.0 + 1e-9) and np.all(pe >= -1.0 - 1e-9)
 
 
-def test_positional_encoding_known_values():
+def test_step6_positional_encoding_known_values():
     pe = T.positional_encoding(3, 4)
     # pos=0: sin(0)=0, cos(0)=1 across all channels
     assert np.allclose(pe[0, 0::2], 0.0)
@@ -184,7 +184,7 @@ def test_positional_encoding_known_values():
     assert math.isclose(pe[1, 1], math.cos(1.0), rel_tol=1e-9)
 
 
-def test_positional_encoding_distinct_positions():
+def test_step6_positional_encoding_distinct_positions():
     pe = T.positional_encoding(5, 8)
     # Different positions get different encodings.
     assert not np.allclose(pe[0], pe[1])
@@ -193,7 +193,7 @@ def test_positional_encoding_distinct_positions():
 # --------------------------------------------------------------------------
 # Task 5, layer norm, FFN, encoder block
 # --------------------------------------------------------------------------
-def test_layer_norm_zero_mean_unit_var():
+def test_step7_layer_norm_zero_mean_unit_var():
     x = np.array([[1.0, 2.0, 3.0, 4.0]])
     g = np.ones(4)
     b = np.zeros(4)
@@ -203,7 +203,7 @@ def test_layer_norm_zero_mean_unit_var():
     assert abs(float(y.var()) - 1.0) < 1e-3
 
 
-def test_layer_norm_affine():
+def test_step7_layer_norm_affine():
     x = np.array([[1.0, 2.0, 3.0, 4.0]])
     g = np.full(4, 2.0)
     b = np.full(4, 5.0)
@@ -212,11 +212,11 @@ def test_layer_norm_affine():
     assert math.isclose(float(y.mean()), 5.0, abs_tol=1e-5)
 
 
-def test_relu():
+def test_step7_relu():
     assert np.allclose(T.relu(np.array([-1.0, 0.0, 2.0])), [0.0, 0.0, 2.0])
 
 
-def test_feedforward_shape():
+def test_step7_feedforward_shape():
     d, hidden = 4, 6
     rng = np.random.default_rng(0)
     ffn = T.FeedForward(
@@ -227,7 +227,7 @@ def test_feedforward_shape():
     assert out.shape == (3, d)
 
 
-def test_encoder_block_shape_preserved():
+def test_step8_encoder_block_shape_preserved():
     d, heads, hidden, seq = 4, 2, 8, 5
     rng = np.random.default_rng(123)
     mha = T.MultiHeadAttention(
@@ -247,7 +247,7 @@ def test_encoder_block_shape_preserved():
     assert np.all(np.isfinite(out))
 
 
-def test_encoder_block_layernorm_output():
+def test_step8_encoder_block_layernorm_output():
     # Post-LN block: the final output rows should be ~zero-mean (gamma=1,beta=0).
     d, heads, hidden, seq = 4, 2, 8, 4
     rng = np.random.default_rng(9)
@@ -264,3 +264,23 @@ def test_encoder_block_layernorm_output():
     )
     out = block.forward(rng.standard_normal((seq, d)))
     assert np.allclose(out.mean(axis=-1), 0.0, atol=1e-6)
+
+
+def test_step3_causal_mask_shape_and_values():
+    m = T.causal_mask(4)
+    assert m.shape == (4, 4)
+    # Row i may see columns 0..i and nothing after.
+    for i in range(4):
+        assert np.all(np.isfinite(m[i, : i + 1])), "past and present must be visible"
+        assert np.all(m[i, i + 1 :] < -1e8), "the future must be masked out"
+
+
+def test_step4_split_heads_puts_heads_first():
+    """(seq, d_model) -> (num_heads, seq, d_head), and each head sees its own slice."""
+    d_model, num_heads, seq = 8, 2, 3
+    mha = _make_mha(d_model, num_heads)
+    x = np.arange(seq * d_model, dtype=float).reshape(seq, d_model)
+    heads = mha._split_heads(x)
+    assert heads.shape == (num_heads, seq, d_model // num_heads)
+    # head 0 gets the first d_head channels of every position
+    assert np.allclose(heads[0], x[:, : d_model // num_heads])

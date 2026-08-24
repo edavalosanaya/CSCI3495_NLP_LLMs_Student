@@ -1,7 +1,7 @@
 # HW2: Text Classification & Word Embeddings
 
 **Out:** Week 4, Class 1 · **Due:** Week 5, Class 1 (start of class)
-**Weight:** 5% of course grade · **Individual assignment** · **Estimated time:** 5-7 hours
+**100 points** · **Weight:** 2.5% of the course grade · **Individual assignment** · **Estimated time:** 5-7 hours
 
 ---
 
@@ -41,81 +41,245 @@ You will work in **NumPy + the Python standard library**. For Part A's graded fu
 implement the math yourself, do **not** call scikit-learn's classifiers.
 
 ## Files
+
 ```
 hw2/
   text_clf_embed.py        # <- YOU implement the TODOs here
-  test_text_clf_embed.py   # public tests
+  test_text_clf_embed.py   # the tests each step below refers to
   README.md                # this handout
 ```
 
-## Tasks
+## How this homework works
 
-### Part A: Naive Bayes & evaluation (50 pts)
-1. **`tokenize(text)`**, lowercase, split into `[a-z0-9']+` tokens.
-2. **`NaiveBayesClassifier.fit(docs, labels)`**, learn sorted `classes_`, sorted `vocab_`,
-   `log_prior_` per class, and `log_likelihood_[c]` (a NumPy array of `log P(w|c)` aligned
-   with `vocab_`) using add-1 smoothing. P(w|c) over the vocabulary must sum to 1 per class.
-3. **`predict_log_scores` / `predict`**, score each class in log space and return the
-   argmax. Out-of-vocabulary words at test time are ignored.
-4. **`precision_recall_f1(y_true, y_pred, positive)`**, binary P/R/F1 (return `0.0` for any
-   zero-denominator case).
+This handout is a sequence of steps. Each step is one function, and **each step
+ends with a test you can run**, so you always know whether you are done before
+you move on. Work them in order: later steps import earlier ones.
 
-### Part B: Word embeddings (35 pts)
-5. **`cosine_similarity(a, b)`**, return `0.0` if either vector is the zero vector.
-6. **`nearest_neighbors(word, embeddings, k)`**, top-`k` words by cosine similarity,
-   excluding the query word; sort by similarity descending, ties broken alphabetically.
-7. **`analogy(a, b, c, embeddings, k)`**, compute `emb[b] − emb[a] + emb[c]` and return the
-   nearest word(s), **excluding** `a`, `b`, `c`.
-8. **`bias_score(word, group_a, group_b, embeddings)`**, mean cosine similarity to group A
-   minus mean to group B (a mini-WEAT association score).
-
-### Part C: Short written reflection (15 pts)
-In a `REFLECTION.md` (≤ 250 words) answer:
-- **(a)** Why does Naive Bayes work *well* on this small, lexically-separable dataset, and
-  what is one realistic text domain where its independence assumption hurts it?
-- **(b)** Explain *why* analogies can be solved by vector arithmetic, what does the
-  difference `king − man` approximately represent?
-- **(c)** Your `bias_score` for a real embedding set might show, say, "nurse" closer to
-  female words. Name one concrete downstream harm if such embeddings feed a hiring model,
-  and one mitigation.
-
-## Deliverables
-- Completed `text_clf_embed.py` passing the public tests.
-- `REFLECTION.md` (Part C).
-- AI-use disclosure (see below).
-
-## Grading rubric (100 pts)
-| Component | Points |
-|---|---:|
-| `tokenize` | 5 |
-| `NaiveBayesClassifier.fit` (vocab, priors, smoothed likelihoods) | 20 |
-| `predict_log_scores` / `predict` (correct argmax, OOV handling) | 15 |
-| `precision_recall_f1` | 10 |
-| `cosine_similarity` (incl. zero-vector guard) | 8 |
-| `nearest_neighbors` (ordering + tie-breaks) | 10 |
-| `analogy` (correct vector math + exclusions) | 12 |
-| `bias_score` | 5 |
-| Reflection (Part C) | 15 |
-| **Total** | **100** |
-
-## How to run & test
-All code runs in the course Docker image (CPU-only, no network):
+From the repository root, inside the course image:
 
 ```bash
-# Run the public tests against YOUR code:
-docker compose -f docker/docker-compose.yml run --rm course \
-    python -m pytest homeworks/hw2 -q
-
-# (Instructor / self-check) against the reference solution:
-docker compose -f docker/docker-compose.yml run --rm \
-    -e HW2_FROM=solution course \
+docker compose -f docker/docker-compose.yml run --rm --no-deps course \
     python -m pytest homeworks/hw2 -q
 ```
 
-Before you implement anything the suite **skips** (expected). Target: **14/14 passing**.
+That is a mouthful to retype, so make a shortcut for the session:
+
+```bash
+alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q'
+```
+
+Then:
+
+```bash
+hw -k step3      # check ONLY step 3
+hw               # run every step
+```
+
+If you already work inside the container (`... run --rm --no-deps course bash`),
+drop the docker prefix and just use `python -m pytest homeworks/hw2 -q`.
+
+**Before you write anything, every test skips.** That is expected: the suite
+detects the unfinished starter and skips rather than drowning you in failures.
+The moment step 1 is implemented the tests start running for real.
+
+**Total when you are finished: `16 passed`.**
+
+### Step 0, Orientation (0 pts)
+
+Nothing to write yet.
+
+Read `text_clf_embed.py` top to bottom. Note `_TOKEN_RE` at the top and the
+attributes `NaiveBayesClassifier` promises in its docstring (`vocab_`, `classes_`,
+`log_prior_`, `log_likelihood_`), because the tests check those names exactly. Then:
+
+```bash
+hw
+```
+
+You should get `16 skipped`.
+
+### Step 1, `tokenize` (5 pts)
+
+**Write** `tokenize(text)`: lowercase, then apply `_TOKEN_RE`. Punctuation is dropped here, unlike HW1.
+
+**Done when** `hw -k step1` prints `1 passed, 15 deselected`.
+
+**Check it by hand**
+
+```python
+>>> from text_clf_embed import tokenize
+>>> tokenize("Wow!! Great, great movie.")
+['wow', 'great', 'great', 'movie']
+```
+
+**Why it matters.** Note that `great` appears twice. Naive Bayes is a *bag of words with counts*, not a set, and the repeat is real evidence. Deduplicating here quietly changes the model.
+
+### Step 2, `NaiveBayesClassifier.fit` (20 pts)
+
+**Write** `fit(docs, labels)`. Build the sorted vocabulary `vocab_`, the class list `classes_`, the log priors `log_prior_`, and `log_likelihood_[c]`, a NumPy array of `log P(w|c)` aligned with `vocab_`, using add-1 smoothing. For each class, `P(w|c)` over the vocabulary must sum to 1.
+
+**Done when** `hw -k step2` prints `2 passed, 14 deselected`.
+
+**Check it by hand**
+
+```python
+>>> docs = ["great movie", "great film", "awful movie", "awful boring film"]
+>>> labels = ["pos", "pos", "neg", "neg"]
+>>> clf = NaiveBayesClassifier().fit(docs, labels)
+>>> sorted(clf.vocab_)
+['awful', 'boring', 'film', 'great', 'movie']
+>>> {k: round(v, 4) for k, v in clf.log_prior_.items()}
+{'neg': -0.6931, 'pos': -0.6931}
+>>> round(float(np.exp(clf.log_likelihood_['pos']).sum()), 6)
+1.0
+```
+
+**Why it matters.** Two classes with two documents each gives `log(0.5) = -0.6931` for both priors. If your priors are not equal here, you are counting documents wrong before you even reach the likelihoods.
+
+### Step 3, `_features`, `predict_log_scores`, `predict` (15 pts)
+
+**Write** the three prediction methods. `_features` turns a document into a counts vector over `vocab_`; `predict_log_scores` returns `{class: log P(c) + counts . log P(w|c)}`; `predict` takes the argmax for each document. Words outside `vocab_` are simply ignored, not treated as errors.
+
+**Done when** `hw -k step3` prints `3 passed, 13 deselected`.
+
+**Check it by hand**
+
+```python
+>>> docs = ["great movie", "great film", "awful movie", "awful boring film"]
+>>> labels = ["pos", "pos", "neg", "neg"]
+>>> clf = NaiveBayesClassifier().fit(docs, labels)
+>>> clf.predict(["great film", "awful movie"])
+['pos', 'neg']
+>>> clf.predict(["great film about aardvarks"])   # OOV word is ignored
+['pos']
+```
+
+**Why it matters.** Working in log space turns the product over words into a sum, which is what keeps a 200-word document from underflowing to zero. It is the same reason HW1 summed logs.
+
+### Step 4, `precision_recall_f1` (10 pts)
+
+**Write** `precision_recall_f1(y_true, y_pred, positive)`. Return the three numbers for the given positive class. When the denominator is zero, return `0.0` rather than dividing.
+
+**Done when** `hw -k step4` prints `2 passed, 14 deselected`.
+
+**Check it by hand**
+
+```python
+>>> from text_clf_embed import precision_recall_f1
+>>> y_true = ["pos", "pos", "neg", "neg"]
+>>> y_pred = ["pos", "neg", "neg", "neg"]
+>>> tuple(round(x, 4) for x in precision_recall_f1(y_true, y_pred, "pos"))
+(1.0, 0.5, 0.6667)
+```
+
+**Why it matters.** Precision 1.0 with recall 0.5 is the classic shape of a cautious classifier: everything it flagged was right, and it missed half the real positives. Accuracy would have reported 0.75 and hidden that entirely.
+
+### Step 5, `cosine_similarity` (8 pts)
+
+**Write** `cosine_similarity(a, b)` as `dot(a, b) / (||a|| * ||b||)`, returning `0.0` if either vector is all zeros rather than dividing by zero.
+
+**Done when** `hw -k step5` prints `2 passed, 14 deselected`.
+
+**Check it by hand**
+
+```python
+>>> import numpy as np
+>>> from text_clf_embed import cosine_similarity
+>>> round(cosine_similarity(np.array([1., 0.]), np.array([1., 1.])), 4)
+0.7071
+>>> cosine_similarity(np.array([0., 0.]), np.array([1., 1.]))
+0.0
+```
+
+**Why it matters.** 0.7071 is cos(45 degrees). Dividing by the norms is what makes this a measure of *direction*, so a long document and a short one about the same topic still score as similar.
+
+### Step 6, `nearest_neighbors` (10 pts)
+
+**Write** `nearest_neighbors(word, embeddings, k)`: the `k` most cosine-similar words, **excluding the query itself**, sorted by similarity descending with ties broken alphabetically.
+
+**Done when** `hw -k step6` prints `2 passed, 14 deselected`.
+
+**Check it by hand**
+
+```python
+>>> E = {"king": np.array([1., 1.]), "queen": np.array([1., 3.]),
+...      "man": np.array([0., 0.]), "woman": np.array([0., 2.]),
+...      "apple": np.array([-3., 0.5])}
+>>> [(w, round(s, 4)) for w, s in nearest_neighbors("king", E, k=2)]
+[('queen', 0.8944), ('woman', 0.7071)]
+```
+
+**Why it matters.** The tie-break is not pedantry: on real embeddings many pairs score identically to float precision, and without a deterministic rule your output changes between runs and the tests flicker.
+
+### Step 7, `analogy` (12 pts)
+
+**Write** `analogy(a, b, c, embeddings, k)`, solving *a is to b as c is to ?*. Build `v = emb[b] - emb[a] + emb[c]`, then return the `k` nearest words by cosine, **excluding a, b and c**.
+
+**Done when** `hw -k step7` prints `2 passed, 14 deselected`.
+
+**Check it by hand**
+
+```python
+>>> E = {"king": np.array([1., 1.]), "queen": np.array([1., 3.]),
+...      "man": np.array([0., 0.]), "woman": np.array([0., 2.]),
+...      "apple": np.array([-3., 0.5])}
+>>> [(w, round(s, 4)) for w, s in analogy("man", "king", "woman", E, k=1)]
+[('queen', 1.0)]
+```
+
+**Why it matters.** This is the Mikolov result you read about, reduced to arithmetic you can check by hand. The exclusion matters: without it the nearest vector to `king - man + woman` is usually `king` itself, and the demo collapses.
+
+### Step 8, `bias_score` (5 pts)
+
+**Write** `bias_score(word, group_a, group_b, embeddings)`: the mean cosine similarity of `word` to group A minus its mean similarity to group B. Positive means more associated with A.
+
+**Done when** `hw -k step8` prints `2 passed, 14 deselected`.
+
+**Check it by hand**
+
+```python
+>>> E = {"king": np.array([1., 1.]), "queen": np.array([1., 3.]),
+...      "man": np.array([0., 0.]), "woman": np.array([0., 2.]),
+...      "apple": np.array([-3., 0.5])}
+>>> round(bias_score("king", ["man"], ["woman"], E), 4)
+-0.7071
+```
+
+**Why it matters.** This is a miniature WEAT, the same shape as the published embedding-bias measures. The sign is the whole result, and it comes straight out of vectors nobody labelled for gender.
+
+### Step 9, Run the whole thing (0 pts)
+
+```bash
+hw
+```
+
+Every step green means `16 passed`. If a step you finished earlier has gone red,
+you broke it with a later change; fix that before you submit.
+
+## Written reflection (15 pts)
+
+Answer in the module docstring or a short `REFLECTION.md`, a paragraph each:
+
+1. Your Naive Bayes ignores word order entirely. Give a sentence pair it must classify
+   identically but a human would not, and say what would be needed to fix that.
+2. Step 8 gave you a number. What does it license you to claim, and what does it not?
+   Be specific about what a single `bias_score` can and cannot show.
+3. Naive Bayes assumes words are conditionally independent given the class, which is
+   plainly false. Explain in your own words why the classifier still works.
+
+## What to submit
+
+- `text_clf_embed.py` with every TODO filled in and `hw` fully green.
+- Your reflection (in the module docstring or `REFLECTION.md`).
+- The `AI-USE:` note described below.
+
+Partial credit follows the tests: each step is worth the points listed above, and a
+step whose tests pass earns them. Code that does not import earns at most the
+reflection points, so submit something that runs even if it is incomplete.
 
 ## AI-use disclosure (required)
-Per the syllabus AI-use policy: **(a)** disclose any AI assistance in your file header
-(which tool, for what), **(b)** be able to explain every line you submit, and **(c)** write
-the reflection in your own words. Add an `AI-USE:` note in your header. Undisclosed AI use
-is an academic-integrity violation.
+
+Per the syllabus, you may use LLM tools as coding assistants, but you must
+**disclose** it (which tool, for what), be able to **explain every line** you
+submit, and write the reflection in your own words. Put a short `AI-USE:` note
+in your file header. Undisclosed AI use is an academic-integrity violation.

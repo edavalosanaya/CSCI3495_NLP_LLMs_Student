@@ -61,11 +61,11 @@ TRAIN_LABELS = ["pos", "pos", "pos", "pos", "neg", "neg", "neg", "neg"]
 # --------------------------------------------------------------------------
 # Part A, preprocessing & Naive Bayes
 # --------------------------------------------------------------------------
-def test_tokenize():
+def test_step1_tokenize():
     assert m.tokenize("I LOVE NLP!!!") == ["i", "love", "nlp"]
 
 
-def test_nb_fit_attributes():
+def test_step2_nb_fit_attributes():
     clf = m.NaiveBayesClassifier().fit(TRAIN_DOCS, TRAIN_LABELS)
     assert clf.classes_ == ["neg", "pos"]
     assert "love" in clf.vocab_ and "hate" in clf.vocab_
@@ -77,7 +77,7 @@ def test_nb_fit_attributes():
     assert np.all(arr <= 0.0)
 
 
-def test_nb_likelihood_normalizes():
+def test_step2_nb_likelihood_normalizes():
     # P(w|c) over the vocab must sum to 1 for each class.
     clf = m.NaiveBayesClassifier().fit(TRAIN_DOCS, TRAIN_LABELS)
     for c in clf.classes_:
@@ -85,26 +85,26 @@ def test_nb_likelihood_normalizes():
         assert math.isclose(total, 1.0, rel_tol=1e-9)
 
 
-def test_nb_predicts_training_set():
+def test_step3_nb_predicts_training_set():
     clf = m.NaiveBayesClassifier().fit(TRAIN_DOCS, TRAIN_LABELS)
     preds = clf.predict(TRAIN_DOCS)
     assert preds == TRAIN_LABELS
 
 
-def test_nb_generalizes_to_held_out():
+def test_step3_nb_generalizes_to_held_out():
     clf = m.NaiveBayesClassifier().fit(TRAIN_DOCS, TRAIN_LABELS)
     assert clf.predict(["i love this wonderful great film"]) == ["pos"]
     assert clf.predict(["this awful boring terrible movie"]) == ["neg"]
 
 
-def test_nb_handles_oov_words():
+def test_step3_nb_handles_oov_words():
     clf = m.NaiveBayesClassifier().fit(TRAIN_DOCS, TRAIN_LABELS)
     # Out-of-vocabulary words are ignored, not crashing.
     out = clf.predict(["zzzz love wonderful qqqq"])
     assert out == ["pos"]
 
 
-def test_precision_recall_f1():
+def test_step4_precision_recall_f1():
     y_true = ["pos", "pos", "neg", "neg", "pos"]
     y_pred = ["pos", "neg", "neg", "pos", "pos"]
     # positive=pos: TP=2 (idx0,4), FP=1 (idx3), FN=1 (idx1)
@@ -114,7 +114,7 @@ def test_precision_recall_f1():
     assert math.isclose(f, 2 / 3, rel_tol=1e-9)
 
 
-def test_f1_zero_when_no_positive_preds():
+def test_step4_f1_zero_when_no_positive_preds():
     p, r, f = m.precision_recall_f1(["pos", "neg"], ["neg", "neg"], "pos")
     assert p == 0.0 and r == 0.0 and f == 0.0
 
@@ -135,7 +135,7 @@ EMB = {
 }
 
 
-def test_cosine_basic():
+def test_step5_cosine_basic():
     a = np.array([1.0, 0.0])
     assert math.isclose(m.cosine_similarity(a, a), 1.0, rel_tol=1e-12)
     assert math.isclose(
@@ -144,11 +144,11 @@ def test_cosine_basic():
     )
 
 
-def test_cosine_zero_vector():
+def test_step5_cosine_zero_vector():
     assert m.cosine_similarity(np.array([0.0, 0.0]), np.array([1.0, 2.0])) == 0.0
 
 
-def test_nearest_neighbors_excludes_self_and_orders():
+def test_step6_nearest_neighbors_excludes_self_and_orders():
     nn = m.nearest_neighbors("man", EMB, k=2)
     words = [w for w, _ in nn]
     assert "man" not in words
@@ -160,21 +160,45 @@ def test_nearest_neighbors_excludes_self_and_orders():
     assert "boy" in words or "king" in words
 
 
-def test_analogy_king_man_woman_queen():
+def test_step7_analogy_king_man_woman_queen():
     # king - man + woman ~= queen
     result = m.analogy("man", "king", "woman", EMB, k=1)
     assert result[0][0] == "queen"
 
 
-def test_analogy_excludes_inputs():
+def test_step7_analogy_excludes_inputs():
     result = m.analogy("man", "king", "woman", EMB, k=5)
     returned = {w for w, _ in result}
     assert returned.isdisjoint({"man", "king", "woman"})
 
 
-def test_bias_score_sign():
+def test_step8_bias_score_sign():
     # 'king' should associate more with the male group than the female group.
     score = m.bias_score("king", ["man", "boy"], ["woman", "girl"], EMB)
     assert score > 0.0
     score2 = m.bias_score("queen", ["man", "boy"], ["woman", "girl"], EMB)
     assert score2 < 0.0
+
+
+def test_step6_nearest_neighbors_respects_k_and_breaks_ties_alphabetically():
+    """Two words equidistant from the query must come back in alphabetical order."""
+    emb = {
+        "query": np.array([1.0, 0.0]),
+        "zeta":  np.array([1.0, 1.0]),   # same angle as "alpha"
+        "alpha": np.array([2.0, 2.0]),   # same direction as zeta, different length
+        "far":   np.array([-1.0, 0.0]),
+    }
+    out = m.nearest_neighbors("query", emb, k=2)
+    assert len(out) == 2
+    assert [w for w, _ in out] == ["alpha", "zeta"]      # tie -> alphabetical
+    assert "query" not in [w for w, _ in out]            # never returns itself
+
+
+def test_step8_bias_score_is_zero_for_a_symmetric_word():
+    """A word sitting exactly between the two groups has no association either way."""
+    emb = {
+        "neutral": np.array([1.0, 0.0]),
+        "a1": np.array([1.0, 1.0]),
+        "b1": np.array([1.0, -1.0]),     # mirror image of a1 about the query
+    }
+    assert m.bias_score("neutral", ["a1"], ["b1"], emb) == pytest.approx(0.0)

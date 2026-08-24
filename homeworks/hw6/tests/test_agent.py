@@ -50,11 +50,11 @@ pytestmark = pytest.mark.skipif(
         ("2 * -3", "-6"),
     ],
 )
-def test_calculator_ok(expr, expected):
+def test_step1_calculator_ok(expr, expected):
     assert agent.calculator(expr) == expected
 
 
-def test_calculator_is_safe_and_errors():
+def test_step1_calculator_is_safe_and_errors():
     # division by zero -> Error, not an exception
     assert agent.calculator("1 / 0").startswith("Error")
     # malformed -> Error
@@ -63,7 +63,7 @@ def test_calculator_is_safe_and_errors():
     assert agent.calculator("__import__('os').system('echo hi')").startswith("Error")
 
 
-def test_search_finds_and_misses():
+def test_step2_search_finds_and_misses():
     # "france" matches the France entry, which states its capital is Paris.
     assert "Paris" in agent.search("What is the capital of France?")
     assert "Guido" in agent.search("who created python")
@@ -73,7 +73,7 @@ def test_search_finds_and_misses():
 
 
 # --- Task 2: parsing -------------------------------------------------------
-def test_parse_action_step():
+def test_step3_parse_action_step():
     text = "Thought: I should compute it.\nAction: calculator\nAction Input: 2 + 2"
     step = agent.parse_step(text)
     assert step.final_answer is None
@@ -82,13 +82,13 @@ def test_parse_action_step():
     assert "compute" in step.thought
 
 
-def test_parse_final_answer_wins():
+def test_step3_parse_final_answer_wins():
     text = "Thought: done.\nAction: search\nAction Input: x\nFinal Answer: 42"
     step = agent.parse_step(text)
     assert step.final_answer == "42"
 
 
-def test_parse_is_case_insensitive_and_trims():
+def test_step3_parse_is_case_insensitive_and_trims():
     text = "thought:  reasoning here \naction:  search \naction input:  paris "
     step = agent.parse_step(text)
     assert step.action == "search"
@@ -97,7 +97,7 @@ def test_parse_is_case_insensitive_and_trims():
 
 
 # --- Task 3: dispatch ------------------------------------------------------
-def test_run_tool_dispatch():
+def test_step4_run_tool_dispatch():
     s = agent.Step(action="calculator", action_input="6 * 7")
     assert agent.run_tool(s) == "42"
     s2 = agent.Step(action="bogus", action_input="x")
@@ -115,7 +115,7 @@ def make_scripted_llm(turns):
     return _llm
 
 
-def test_react_loop_uses_tool_then_answers():
+def test_step6_react_loop_uses_tool_then_answers():
     turns = [
         "Thought: I need to multiply.\nAction: calculator\nAction Input: 6 * 7",
         "Thought: Now I know.\nFinal Answer: 42",
@@ -127,7 +127,7 @@ def test_react_loop_uses_tool_then_answers():
     assert any("Observation: 42" in line for line in out["history"])
 
 
-def test_react_loop_multi_tool():
+def test_step6_react_loop_multi_tool():
     turns = [
         "Thought: look it up.\nAction: search\nAction Input: capital of France",
         "Thought: got it.\nFinal Answer: Paris",
@@ -138,7 +138,7 @@ def test_react_loop_multi_tool():
     assert any("capital is Paris" in line for line in out["history"])
 
 
-def test_react_loop_respects_max_steps():
+def test_step6_react_loop_respects_max_steps():
     # Never produces a Final Answer -> stops at max_steps with answer None.
     loop_turn = "Thought: keep going.\nAction: calculator\nAction Input: 1 + 1"
     out = agent.react_loop("loop forever", make_scripted_llm([loop_turn] * 10), max_steps=3)
@@ -146,7 +146,7 @@ def test_react_loop_respects_max_steps():
     assert out["steps"] == 3
 
 
-def test_build_react_prompt_includes_question_and_tools():
+def test_step5_build_react_prompt_includes_question_and_tools():
     p = agent.build_react_prompt("Q?", ["Thought: a", "Observation: b"])
     assert "Q?" in p
     assert "calculator" in p and "search" in p
@@ -158,10 +158,23 @@ def test_build_react_prompt_includes_question_and_tools():
     os.environ.get("HW6_LIVE_OLLAMA") != "1",
     reason="set HW6_LIVE_OLLAMA=1 to run the live Ollama agent test",
 )
-def test_react_loop_live_ollama():
+def test_step6_react_loop_live_ollama():
     try:
         llm = agent.ollama_llm()
         out = agent.react_loop("What is 21 * 2?", llm, max_steps=5)
     except Exception as e:  # noqa: BLE001
         pytest.skip(f"Ollama unavailable: {e}")
     assert isinstance(out, dict) and "answer" in out
+
+
+def test_step3_parse_step_on_unlabelled_text():
+    """A model that ignores the format must not crash the loop."""
+    s = agent.parse_step("I think the answer might be 42 but I am not sure.")
+    assert s.action is None and s.final_answer is None
+
+
+def test_step4_run_tool_reports_unknown_tools_instead_of_raising():
+    out = agent.run_tool(agent.Step(thought=None, action="teleport",
+                                    action_input="home", final_answer=None))
+    assert isinstance(out, str)
+    assert "teleport" in out.lower() or "unknown" in out.lower()

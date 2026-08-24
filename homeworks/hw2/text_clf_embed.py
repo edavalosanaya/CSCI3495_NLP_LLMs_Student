@@ -15,6 +15,11 @@ scikit-learn's classifiers for Part A, implement the math yourself. (You MAY
 use sklearn elsewhere for your own experiments, but the graded functions below
 must be your own NumPy.)
 """
+# Each TODO below names its README step. Check one step with:
+#     python -m pytest homeworks/hw2 -q -k step3      (or step1, step2, ...)
+# and the whole assignment with:
+#     python -m pytest homeworks/hw2 -q
+
 from __future__ import annotations
 
 import math
@@ -31,7 +36,7 @@ _TOKEN_RE = re.compile(r"[a-z0-9']+")
 # ---------------------------------------------------------------------------
 def tokenize(text: str) -> list[str]:
     """Lowercase and split into alphanumeric/apostrophe word tokens."""
-    # TODO: return _TOKEN_RE.findall(text.lower())
+    # TODO (STEP 1): return _TOKEN_RE.findall(text.lower())
     raise NotImplementedError
 
 
@@ -69,22 +74,22 @@ class NaiveBayesClassifier:
                  P(w | c) = (count(w, c) + 1) / (total_words_in_c + |V|)
              Store log P(w | c) as a NumPy array aligned with vocab_.
         """
-        # TODO: implement
+        # TODO (STEP 2): implement
         raise NotImplementedError
 
     def _features(self, doc: str) -> np.ndarray:
         """Return a length-|V| count vector for one document (OOV words ignored)."""
-        # TODO: build a counts vector using self._index
+        # TODO (STEP 3): build a counts vector using self._index
         raise NotImplementedError
 
     def predict_log_scores(self, doc: str) -> dict:
         """Return {class: log_prior + sum(count_w * log P(w|class))} for a doc."""
-        # TODO: implement
+        # TODO (STEP 3): implement
         raise NotImplementedError
 
     def predict(self, docs: list[str]) -> list:
         """Return the argmax class for each document."""
-        # TODO: implement
+        # TODO (STEP 3): implement
         raise NotImplementedError
 
 
@@ -95,7 +100,7 @@ def precision_recall_f1(y_true: list, y_pred: list, positive) -> tuple[float, fl
     recall    = TP / (TP + FN)   (0.0 if denominator is 0)
     f1        = 2 * P * R / (P + R)  (0.0 if P + R == 0)
     """
-    # TODO: implement
+    # TODO (STEP 4): implement
     raise NotImplementedError
 
 
@@ -104,7 +109,7 @@ def precision_recall_f1(y_true: list, y_pred: list, positive) -> tuple[float, fl
 # ===========================================================================
 def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     """Cosine similarity between two 1-D vectors. Returns 0.0 if either is zero."""
-    # TODO: implement (dot / (||a|| * ||b||))
+    # TODO (STEP 5): implement (dot / (||a|| * ||b||))
     raise NotImplementedError
 
 
@@ -116,7 +121,7 @@ def nearest_neighbors(
     ``embeddings`` maps word -> vector. Result is a list of (word, similarity)
     sorted by similarity descending. Ties broken alphabetically by word.
     """
-    # TODO: implement
+    # TODO (STEP 6): implement
     raise NotImplementedError
 
 
@@ -130,7 +135,7 @@ def analogy(
     Result is a list of (word, similarity) sorted by similarity descending,
     ties broken alphabetically.
     """
-    # TODO: implement
+    # TODO (STEP 7): implement
     raise NotImplementedError
 
 
@@ -150,5 +155,5 @@ def bias_score(
     A positive score means ``word`` is more associated with group A. This is the
     core idea behind embedding-bias measurements (e.g. WEAT).
     """
-    # TODO: implement
+    # TODO (STEP 8): implement
     raise NotImplementedError

@@ -50,53 +50,53 @@ CORPUS = [
 
 
 # -- Task 1: preprocessing -------------------------------------------------
-def test_tokenize():
+def test_step1_tokenize():
     assert lm.tokenize("Hi, NLP!") == ["hi", ",", "nlp", "!"]
 
 
-def test_tokenize_lowercases_and_counts():
+def test_step1_tokenize_lowercases_and_counts():
     assert lm.tokenize("NLP is FUN") == ["nlp", "is", "fun"]
 
 
-def test_sentences_split_and_strip_punct():
+def test_step2_sentences_split_and_strip_punct():
     out = lm.sentences("Hi there. NLP rocks!")
     assert out == [["hi", "there"], ["nlp", "rocks"]]
 
 
-def test_sentences_drop_empty():
+def test_step2_sentences_drop_empty():
     assert lm.sentences("...!!!") == []
 
 
 # -- Task 2: padding & ngrams ---------------------------------------------
-def test_pad_bigram():
+def test_step3_pad_bigram():
     m = lm.NGramLM(n=2)
     assert m.pad(["a", "b"]) == [lm.BOS, "a", "b", lm.EOS]
 
 
-def test_pad_trigram():
+def test_step3_pad_trigram():
     m = lm.NGramLM(n=3)
     assert m.pad(["a"]) == [lm.BOS, lm.BOS, "a", lm.EOS]
 
 
-def test_pad_unigram():
+def test_step3_pad_unigram():
     m = lm.NGramLM(n=1)
     assert m.pad(["a", "b"]) == ["a", "b", lm.EOS]
 
 
-def test_ngrams_bigram():
+def test_step3_ngrams_bigram():
     m = lm.NGramLM(n=2)
     assert m.ngrams([lm.BOS, "a", lm.EOS]) == [(lm.BOS, "a"), ("a", lm.EOS)]
 
 
 # -- Task 2: counts & vocab -----------------------------------------------
-def test_fit_vocab_includes_specials_excludes_bos():
+def test_step4_fit_vocab_includes_specials_excludes_bos():
     m = lm.NGramLM(n=2).fit(CORPUS)
     assert lm.EOS in m.vocab and lm.UNK in m.vocab
     assert lm.BOS not in m.vocab
     assert "sam" in m.vocab
 
 
-def test_fit_counts_bigram():
+def test_step4_fit_counts_bigram():
     m = lm.NGramLM(n=2).fit(CORPUS)
     # "i am" appears: (i,am) in sent0, (i,am) in sent1 -> 2 times
     assert m.ngram_counts[("i", "am")] == 2
@@ -105,14 +105,14 @@ def test_fit_counts_bigram():
 
 
 # -- Task 2: probabilities (add-k) ----------------------------------------
-def test_prob_is_distribution_over_vocab():
+def test_step5_prob_is_distribution_over_vocab():
     m = lm.NGramLM(n=2, k=1.0).fit(CORPUS)
     ctx = ("i",)
     total = sum(m.prob(w, ctx) for w in m.vocab)
     assert math.isclose(total, 1.0, rel_tol=1e-9)
 
 
-def test_prob_add_k_known_value():
+def test_step5_prob_add_k_known_value():
     m = lm.NGramLM(n=2, k=1.0).fit(CORPUS)
     v = len(m.vocab)
     # P(am | i) = (count(i,am)+1) / (count(i)+1*V) = (2+1)/(3+V)
@@ -120,7 +120,7 @@ def test_prob_add_k_known_value():
     assert math.isclose(m.prob("am", ("i",)), expected, rel_tol=1e-12)
 
 
-def test_prob_unknown_token_maps_to_unk():
+def test_step5_prob_unknown_token_maps_to_unk():
     m = lm.NGramLM(n=2, k=1.0).fit(CORPUS)
     # An unseen word must still get nonzero probability via smoothing/UNK.
     assert m.prob("zzz", ("i",)) > 0.0
@@ -128,20 +128,20 @@ def test_prob_unknown_token_maps_to_unk():
     assert m.prob("am", ("qqq",)) > 0.0
 
 
-def test_unigram_prob_distribution():
+def test_step5_unigram_prob_distribution():
     m = lm.NGramLM(n=1, k=1.0).fit(CORPUS)
     total = sum(m.prob(w, ()) for w in m.vocab)
     assert math.isclose(total, 1.0, rel_tol=1e-9)
 
 
 # -- Task 2: sentence logprob & perplexity --------------------------------
-def test_sentence_logprob_negative():
+def test_step6_sentence_logprob_negative():
     m = lm.NGramLM(n=2).fit(CORPUS)
     lp = m.sentence_logprob(["i", "am", "sam"])
     assert lp < 0.0
 
 
-def test_sentence_logprob_matches_sum_of_logs():
+def test_step6_sentence_logprob_matches_sum_of_logs():
     m = lm.NGramLM(n=2).fit(CORPUS)
     sent = ["i", "am"]
     padded = m.pad(sent)
@@ -151,13 +151,13 @@ def test_sentence_logprob_matches_sum_of_logs():
     assert math.isclose(m.sentence_logprob(sent), manual, rel_tol=1e-12)
 
 
-def test_perplexity_positive_finite():
+def test_step7_perplexity_positive_finite():
     m = lm.NGramLM(n=2).fit(CORPUS)
     pp = m.perplexity(CORPUS)
     assert pp > 1.0 and math.isfinite(pp)
 
 
-def test_lower_k_lowers_train_perplexity():
+def test_step7_lower_k_lowers_train_perplexity():
     # Less smoothing fits the training data more tightly -> lower perplexity.
     hi = lm.NGramLM(n=2, k=1.0).fit(CORPUS).perplexity(CORPUS)
     lo = lm.NGramLM(n=2, k=0.01).fit(CORPUS).perplexity(CORPUS)
@@ -165,15 +165,31 @@ def test_lower_k_lowers_train_perplexity():
 
 
 # -- Task 2: generation ----------------------------------------------------
-def test_generate_is_reproducible():
+def test_step8_generate_is_reproducible():
     m = lm.NGramLM(n=2).fit(CORPUS)
     a = m.generate(max_len=10, seed=0)
     b = m.generate(max_len=10, seed=0)
     assert a == b
 
 
-def test_generate_excludes_specials_and_respects_max_len():
+def test_step8_generate_excludes_specials_and_respects_max_len():
     m = lm.NGramLM(n=2).fit(CORPUS)
     out = m.generate(max_len=8, seed=1)
     assert lm.BOS not in out and lm.EOS not in out
     assert len(out) <= 8
+
+
+def test_step3_ngrams_trigram_and_short_input():
+    """A trigram window over a padded sentence, and the degenerate case."""
+    model = lm.NGramLM(n=3)
+    padded = model.pad(["a", "b"])                   # ["<s>","<s>","a","b","</s>"]
+    assert model.ngrams(padded) == [
+        ("<s>", "<s>", "a"), ("<s>", "a", "b"), ("a", "b", "</s>")]
+    # Fewer tokens than the window means no n-grams at all, not a crash.
+    assert model.ngrams(["a", "b"]) == []
+
+
+def test_step4_map_sends_unseen_tokens_to_unk():
+    model = lm.NGramLM(n=2).fit([["the", "cat", "sat"]])
+    assert model._map("cat") == "cat"
+    assert model._map("aardvark") == lm.UNK

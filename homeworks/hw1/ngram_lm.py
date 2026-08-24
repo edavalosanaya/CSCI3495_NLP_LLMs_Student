@@ -10,6 +10,11 @@ Do NOT change the public function/method signatures, the tests rely on them.
 
 You may use only the Python standard library (re, math, collections, random).
 """
+# Each TODO below names its README step. Check one step with:
+#     python -m pytest homeworks/hw1 -q -k step3      (or step1, step2, ...)
+# and the whole assignment with:
+#     python -m pytest homeworks/hw1 -q
+
 from __future__ import annotations
 
 import math
@@ -25,7 +30,7 @@ UNK = "<unk>"  # unknown / out-of-vocabulary token
 
 
 # ---------------------------------------------------------------------------
-# Task 1, Preprocessing
+# Step 1, Preprocessing
 # ---------------------------------------------------------------------------
 def tokenize(text: str) -> list[str]:
     """Lowercase `text` and split it into word/punctuation tokens.
@@ -39,7 +44,7 @@ def tokenize(text: str) -> list[str]:
     Example:
         tokenize("Hi, NLP!") -> ["hi", ",", "nlp", "!"]
     """
-    # TODO: implement using re.findall with the pattern r"\w+|[^\w\s]"
+    # TODO (STEP 1): implement using re.findall with the pattern r"\w+|[^\w\s]"
     raise NotImplementedError
 
 
@@ -53,12 +58,12 @@ def sentences(text: str) -> list[list[str]]:
     Example:
         sentences("Hi there. NLP rocks!") -> [["hi", "there"], ["nlp", "rocks"]]
     """
-    # TODO: split on [.!?]+ , tokenize each piece, drop empties
+    # TODO (STEP 2): split on [.!?]+ , tokenize each piece, drop empties
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 2, The n-gram model
+# Step 2, The n-gram model
 # ---------------------------------------------------------------------------
 class NGramLM:
     """An n-gram language model with add-k (Laplace) smoothing.
@@ -88,7 +93,7 @@ class NGramLM:
         For a trigram model (n=3): ["a"] -> ["<s>", "<s>", "a", "</s>"].
         A unigram model (n=1) adds no BOS, only the trailing EOS.
         """
-        # TODO: return [BOS]*(self.n - 1) + tokens + [EOS]
+        # TODO (STEP 3): return [BOS]*(self.n - 1) + tokens + [EOS]
         raise NotImplementedError
 
     def ngrams(self, tokens: list[str]) -> list[tuple[str, ...]]:
@@ -96,7 +101,7 @@ class NGramLM:
 
         Example (n=2): ["<s>","a","</s>"] -> [("<s>","a"), ("a","</s>")]
         """
-        # TODO: slide a window of length self.n over tokens
+        # TODO (STEP 3): slide a window of length self.n over tokens
         raise NotImplementedError
 
     # -- training --------------------------------------------------------
@@ -112,13 +117,13 @@ class NGramLM:
 
         Returns self (so you can chain ``NGramLM(2).fit(corpus)``).
         """
-        # TODO: implement
+        # TODO (STEP 4): implement
         raise NotImplementedError
 
     # -- probabilities ---------------------------------------------------
     def _map(self, token: str) -> str:
         """Map an out-of-vocabulary token to UNK; otherwise return it as-is."""
-        # TODO: return token if token in self.vocab else UNK
+        # TODO (STEP 4): return token if token in self.vocab else UNK
         raise NotImplementedError
 
     def prob(self, token: str, context: tuple[str, ...]) -> float:
@@ -134,7 +139,7 @@ class NGramLM:
         is the empty tuple and ``context_counts[()]`` holds the total number
         of tokens observed.
         """
-        # TODO: implement add-k smoothing
+        # TODO (STEP 5): implement add-k smoothing
         raise NotImplementedError
 
     def sentence_logprob(self, tokens: list[str]) -> float:
@@ -144,7 +149,7 @@ class NGramLM:
         position that has a full context (i.e. every n-gram produced by
         ``ngrams`` on the padded sequence). Use math.log (natural log).
         """
-        # TODO: implement
+        # TODO (STEP 6): implement
         raise NotImplementedError
 
     # -- evaluation ------------------------------------------------------
@@ -156,7 +161,7 @@ class NGramLM:
         i.e. the number of n-grams scored (each non-BOS position, including
         the EOS marker). Use natural log with math.exp to invert.
         """
-        # TODO: accumulate total log-prob and total predicted-token count
+        # TODO (STEP 7): accumulate total log-prob and total predicted-token count
         raise NotImplementedError
 
     # -- generation ------------------------------------------------------
@@ -171,5 +176,5 @@ class NGramLM:
 
         Use a local ``random.Random(seed)`` instance for reproducibility.
         """
-        # TODO: implement weighted sampling with random.Random(seed)
+        # TODO (STEP 8): implement weighted sampling with random.Random(seed)
         raise NotImplementedError

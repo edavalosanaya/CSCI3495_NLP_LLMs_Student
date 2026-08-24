@@ -15,13 +15,18 @@ Conventions
 - Use float64 internally for numerical stability in the tests.
 - Do NOT use torch.nn or any framework attention; implement the math yourself.
 """
+# Each TODO below names its README step. Check one step with:
+#     python -m pytest homeworks/hw3 -q -k step3      (or step1, step2, ...)
+# and the whole assignment with:
+#     python -m pytest homeworks/hw3 -q
+
 from __future__ import annotations
 
 import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# Task 1, Softmax
+# Step 1, Softmax
 # ---------------------------------------------------------------------------
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
     """Numerically-stable softmax along ``axis``.
@@ -29,12 +34,12 @@ def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
     Subtract the per-slice max before exponentiating so large logits don't
     overflow. Output sums to 1 along ``axis``.
     """
-    # TODO: implement (subtract max, exp, normalize)
+    # TODO (STEP 1): implement (subtract max, exp, normalize)
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 2, Scaled dot-product attention
+# Step 2, Scaled dot-product attention
 # ---------------------------------------------------------------------------
 def scaled_dot_product_attention(
     Q: np.ndarray,
@@ -58,7 +63,7 @@ def scaled_dot_product_attention(
         output: (..., n_q, d_v)
         weights: (..., n_q, n_k), the attention probabilities (rows sum to 1).
     """
-    # TODO: compute scores = Q @ K^T / sqrt(d_k); add mask if given;
+    # TODO (STEP 2): compute scores = Q @ K^T / sqrt(d_k); add mask if given;
     #       weights = softmax(scores, axis=-1); output = weights @ V
     raise NotImplementedError
 
@@ -69,12 +74,12 @@ def causal_mask(seq_len: int) -> np.ndarray:
     Entry (i, j) is 0.0 if j <= i (token i may attend to token j) and a large
     negative number (-1e9) if j > i (no attending to the future).
     """
-    # TODO: build with np.triu / np.tril
+    # TODO (STEP 3): build with np.triu / np.tril
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 3, Multi-head attention
+# Step 3, Multi-head attention
 # ---------------------------------------------------------------------------
 class MultiHeadAttention:
     """Multi-head self-attention with explicit weight matrices.
@@ -101,13 +106,13 @@ class MultiHeadAttention:
 
     def _split_heads(self, x: np.ndarray) -> np.ndarray:
         """(seq, d_model) -> (num_heads, seq, d_head)."""
-        # TODO: reshape to (seq, num_heads, d_head) then transpose to
+        # TODO (STEP 4): reshape to (seq, num_heads, d_head) then transpose to
         #       (num_heads, seq, d_head)
         raise NotImplementedError
 
     def _combine_heads(self, x: np.ndarray) -> np.ndarray:
         """(num_heads, seq, d_head) -> (seq, d_model). Inverse of _split_heads."""
-        # TODO: transpose to (seq, num_heads, d_head) then reshape to (seq, d_model)
+        # TODO (STEP 4): transpose to (seq, num_heads, d_head) then reshape to (seq, d_model)
         raise NotImplementedError
 
     def forward(
@@ -124,12 +129,12 @@ class MultiHeadAttention:
 
         Returns (output: (seq, d_model), weights: (num_heads, seq, seq)).
         """
-        # TODO: implement
+        # TODO (STEP 5): implement
         raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 4, Positional encoding
+# Step 4, Positional encoding
 # ---------------------------------------------------------------------------
 def positional_encoding(seq_len: int, d_model: int) -> np.ndarray:
     """Sinusoidal positional encodings (Vaswani et al., 2017, Eq. 3.5).
@@ -139,12 +144,12 @@ def positional_encoding(seq_len: int, d_model: int) -> np.ndarray:
 
     Returns an array of shape (seq_len, d_model). Assume d_model is even.
     """
-    # TODO: implement (build pos column, div_term, fill even/odd channels)
+    # TODO (STEP 6): implement (build pos column, div_term, fill even/odd channels)
     raise NotImplementedError
 
 
 # ---------------------------------------------------------------------------
-# Task 5, Building blocks: LayerNorm, FFN, and an encoder block
+# Step 5, Building blocks: LayerNorm, FFN, and an encoder block
 # ---------------------------------------------------------------------------
 def layer_norm(x: np.ndarray, gamma: np.ndarray, beta: np.ndarray, eps: float = 1e-5) -> np.ndarray:
     """Layer normalization over the last axis.
@@ -154,13 +159,13 @@ def layer_norm(x: np.ndarray, gamma: np.ndarray, beta: np.ndarray, eps: float = 
     mean and var are computed over the last axis (the feature dimension).
     gamma and beta have shape (d_model,).
     """
-    # TODO: implement
+    # TODO (STEP 7): implement
     raise NotImplementedError
 
 
 def relu(x: np.ndarray) -> np.ndarray:
     """Elementwise ReLU."""
-    # TODO: implement
+    # TODO (STEP 7): implement
     raise NotImplementedError
 
 
@@ -174,7 +179,7 @@ class FeedForward:
         self.b2 = np.asarray(b2, dtype=np.float64)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
-        # TODO: implement relu(x @ W1 + b1) @ W2 + b2
+        # TODO (STEP 7): implement relu(x @ W1 + b1) @ W2 + b2
         raise NotImplementedError
 
 
@@ -194,5 +199,5 @@ class EncoderBlock:
 
     def forward(self, x: np.ndarray, mask: np.ndarray | None = None) -> np.ndarray:
         """Run the encoder block on x: (seq, d_model). Returns (seq, d_model)."""
-        # TODO: residual + attention -> layer_norm; residual + ffn -> layer_norm
+        # TODO (STEP 8): residual + attention -> layer_norm; residual + ffn -> layer_norm
         raise NotImplementedError
