@@ -12,7 +12,7 @@ got smarter but because you gave it a calculator and a clock. Then you will
 ask it something no single tool can answer, *"how much hotter is it today than
 yesterday in San Antonio?"*, and watch it chain three calls to get there.
 
-![The ReAct loop: Thought, Action, Observation, repeated](../lecture/visuals/react-loop.png)
+![The ReAct loop: Thought, Action, Observation, repeated](../../class-01/lecture/visuals/react-loop.png)
 
 ![Which guard stops which failure mode](../lecture/visuals/robust-table.png)
 
