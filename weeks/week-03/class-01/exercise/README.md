@@ -340,5 +340,5 @@ they literally co-occur. That is exactly what embeddings fix next class.)
 - Compare against scikit-learn's `TfidfVectorizer` (already installed). Same top
   hits? (Careful: its default idf formula is smoothed and differs from ours.)
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

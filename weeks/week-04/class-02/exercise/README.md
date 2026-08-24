@@ -284,5 +284,5 @@ harder than it sounds and is the real lesson of the activity.
 Next-character (or next-token) prediction *is* how GPT-style models are trained,
 just at massive scale. You are building the kernel of a language model.
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

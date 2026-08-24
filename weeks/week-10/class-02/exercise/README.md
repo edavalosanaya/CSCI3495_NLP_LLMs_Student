@@ -240,5 +240,5 @@ so the pipeline and the metric run and are testable without a network.
 - Try **zero-shot CoT**: append "Let's think step by step." to a direct prompt.
 - Report where CoT *fails*, are the wrong chains fluent but mistaken?
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

@@ -223,5 +223,5 @@ the work.
   classifier) and re-run. That is the feature-based transfer from W6C1's lecture,
   as opposed to full fine-tuning.
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

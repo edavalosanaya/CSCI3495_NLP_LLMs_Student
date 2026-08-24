@@ -323,5 +323,5 @@ looking for is direction, and even then, one run on one suite is an anecdote.
   one and report both. How much does the measured accuracy depend on the grader
   rather than the model?
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

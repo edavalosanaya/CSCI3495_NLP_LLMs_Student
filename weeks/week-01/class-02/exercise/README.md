@@ -310,6 +310,6 @@ the wrap-up discussion.
   the number. Hint: keep a second table recording which of the three neighbors
   won each cell, then walk it backwards from the bottom-right.
 
-A full reference solution is in the reference solution released after class, and the
+A full reference solution is in the material released after class, and the
 step-by-step explanation is in the walkthrough released after class (don't peek until
 you've tried).

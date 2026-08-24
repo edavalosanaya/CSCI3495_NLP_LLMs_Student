@@ -329,5 +329,5 @@ regurgitate the corpus)?
   before sampling); this previews Week 7 decoding.
 - Try `n=4`. What happens to fluency vs. originality on a tiny corpus?
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

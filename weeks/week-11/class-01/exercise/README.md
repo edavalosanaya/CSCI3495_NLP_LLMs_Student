@@ -269,6 +269,6 @@ Valid record obtained:
 }
 ```
 
-Full reference solutions are in the reference solution released after class and
-the reference solution released after class, and the step-by-step explanation is in
+Full reference solutions are in the material released after class and
+the material released after class, and the step-by-step explanation is in
 the walkthrough released after class (don't peek until you've tried).

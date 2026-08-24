@@ -259,6 +259,6 @@ use every day, at a different scale and with paid annotators instead of you.
   become. This is the clearest demonstration of why re-centering is needed.
 - Give your neighbor's labels to your model. Whose values did it learn?
 
-A full reference solution is in the reference solution released after class, and the
+A full reference solution is in the material released after class, and the
 step-by-step explanation is in the walkthrough released after class (don't peek until
 you've tried).

@@ -332,5 +332,5 @@ Report your table's test **F1**. Highest F1 wins the showdown; best stumper wins
 - Replace raw counts with **binary** (presence/absence) features. Better or worse
   on this data?
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

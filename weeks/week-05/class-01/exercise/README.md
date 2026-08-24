@@ -271,5 +271,5 @@ consequence of what the model was trained to do, not evidence that the mechanism
 - Change `align_briefly` to reward query $i$ for attending to key $i+1$ and
   confirm the diagonal shifts. The mechanism learns whatever you ask of it.
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

@@ -176,4 +176,4 @@ material does not stop being relevant once you build workflows.
 - Add a **second stage** (prompt *chaining*): pass the worker's output through a
   "polish" LLM call before returning. Keep tests green.
 
-A reference solution is in the reference solution released after class (don't peek until you've tried!).
+A reference solution is in the material released after class (don't peek until you've tried!).

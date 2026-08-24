@@ -195,5 +195,5 @@ irrelevant: a fixed `k` always returns `k` chunks, exactly as in W3C1.
 - Measure **recall@k**: for a labeled (question, gold-chunk) set, how often is the
   gold chunk in the top-k?
 
-A full reference solution is in the reference solution released after class, and the step-by-step
+A full reference solution is in the material released after class, and the step-by-step
 explanation is in the walkthrough released after class (don't peek until you've tried).

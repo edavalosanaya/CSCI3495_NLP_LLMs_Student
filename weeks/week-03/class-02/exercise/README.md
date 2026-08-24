@@ -357,6 +357,6 @@ Report your most surprising analogy and your starkest bias result.
 - Add a `most_biased(table, pos, neg, k)` helper that ranks the whole vocabulary
   by bias score.
 
-A full reference solution is in the reference solution released after class, and the
+A full reference solution is in the material released after class, and the
 step-by-step explanation is in the walkthrough released after class (don't peek until
 you've tried).

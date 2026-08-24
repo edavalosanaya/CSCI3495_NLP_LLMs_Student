@@ -163,4 +163,4 @@ a person." A cause with a measured number attached outranks four with adjectives
 - Read about the original **WEAT** (Caliskan, Bryson, Narayanan, *Science* 2017) and
   discuss why measuring bias is itself a contested, value-laden choice.
 
-Reference solution: the reference solution released after class (don't peek until you've tried!).
+Reference solution: the material released after class (don't peek until you've tried!).

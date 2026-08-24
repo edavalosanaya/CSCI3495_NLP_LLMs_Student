@@ -311,6 +311,6 @@ attention is this.
 - Add a padding mask (mask out positions past a per-sequence length) and combine
   it with the causal mask using `&`.
 
-A full reference solution is in the reference solution released after class, and the
+A full reference solution is in the material released after class, and the
 step-by-step explanation is in the walkthrough released after class (don't peek until
 you've tried).

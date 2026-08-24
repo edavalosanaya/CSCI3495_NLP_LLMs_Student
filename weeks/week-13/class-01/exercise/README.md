@@ -194,4 +194,4 @@ window that disappears when the process exits.
 - Cap the carried memory at the last 3 lessons and rerun `run_suite.py`. Does
   first-attempt success drop? Which lesson was carrying the run?
 
-A reference solution is in the reference solution released after class (don't peek until you've tried!).
+A reference solution is in the material released after class (don't peek until you've tried!).
