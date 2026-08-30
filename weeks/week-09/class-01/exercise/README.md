@@ -29,10 +29,25 @@ Each step tells you **what to write**, then exactly **how to check it**. Steps 1
 to 3 all live in `__init__` and are checked together with Step 4's `forward`.
 Step 5 is independent, so start there if the tensor shapes are fighting you.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 ```
 
 Check **one step**:
@@ -47,8 +62,10 @@ Check **everything**:
 lab python -m pytest weeks/week-09/class-01/exercise/test_lora_lab.py -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -253,5 +270,5 @@ of GPT-3. Do not let the toy's ratio be the takeaway.
 - Try `bits=1`. What does the quantizer degenerate to, and is the error what you
   predicted?
 
-A full reference solution is in the material released after class, and the step-by-step
-explanation is in the walkthrough released after class (don't peek until you've tried).
+A full reference solution is in `../solutions/lora_lab.py`, and the step-by-step
+explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).

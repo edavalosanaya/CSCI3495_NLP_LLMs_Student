@@ -37,10 +37,25 @@ The finished code (1) returns the top-k fills for any `[MASK]` sentence using bo
 Each step tells you **what to write**, then exactly **how to check it**. The two
 steps are independent; do them in either order.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 ```
 
 Check **one step**:
@@ -55,8 +70,10 @@ Check **everything**:
 lab python -m pytest weeks/week-06/class-02/exercise/test_bert_mlm.py -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -223,5 +240,5 @@ the work.
   classifier) and re-run. That is the feature-based transfer from W6C1's lecture,
   as opposed to full fine-tuning.
 
-A full reference solution is in the material released after class, and the step-by-step
-explanation is in the walkthrough released after class (don't peek until you've tried).
+A full reference solution is in `../solutions/bert_mlm.py`, and the step-by-step
+explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).

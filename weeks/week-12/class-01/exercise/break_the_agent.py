@@ -66,7 +66,7 @@ def main() -> int:
     trace = run_agent(task, HumanLLM(), max_steps=6)
     print("\n=== RESULT ===")
     print(f"answer={trace.answer!r}  stopped={trace.stopped_reason}  steps={len(trace.steps)}")
-    print("Now open ../../week-12/class-02/solutions/agent.py and tools.py and explain")
+    print("Now open weeks/week-12/class-02/solutions/agent.py and tools.py and explain")
     print("which guard defended each attack you tried.")
     return 0
 

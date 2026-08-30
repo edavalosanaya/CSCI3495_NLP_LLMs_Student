@@ -41,8 +41,33 @@ You will write the parts that make those mistakes impossible.
 
 ## How this lab works
 
-```bash
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
 alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course bash
+```
+
+Stuck for more than a few minutes on a step? The reference solution and a
+step-by-step `WALKTHROUGH.md` are in `../solutions/`. **These labs are not
+graded**, so reading them is not cheating: getting unstuck and finishing the
+idea beats staring at a blank function.
+
+```bash
 lab python -m pytest test_eval.py -k step1 -q     # one step
 lab python -m pytest test_eval.py -q              # everything
 ```
@@ -155,9 +180,7 @@ Then the benchmark, which needs Ollama (`ollama pull qwen2.5:1.5b`). Start
 small, because a full run is a few hundred model calls on a CPU:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps \
-  -e OLLAMA_HOST=http://host.docker.internal:11434 \
-  course python weeks/week-13/class-02/solutions/run_bench.py --n 5 --progress
+docker compose -f docker/docker-compose.yml run --rm --no-deps -e OLLAMA_HOST=http://host.docker.internal:11434 course python weeks/week-13/class-02/solutions/run_bench.py --n 5 --progress
 ```
 
 Full run of all 20 problems x 5 strategies, `qwen2.5:1.5b`, about 20 minutes on

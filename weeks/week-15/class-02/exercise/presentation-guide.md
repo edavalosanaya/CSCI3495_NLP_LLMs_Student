@@ -38,5 +38,5 @@ Presentation-specific lines: clear story, all members present, demo/result quali
 
 ## After presentations
 - Confirm **final report** due date/location (`project/final/report-template.md`).
-- Confirm **paper final exam** time/place (covers the term; the required ethics
-  reading, Stochastic Parrots, included , see `exams/`).
+- Confirm **paper final exam** time/place (covers the term, including the
+  required ethics reading, Stochastic Parrots).

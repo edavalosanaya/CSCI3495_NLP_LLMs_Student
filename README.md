@@ -9,6 +9,7 @@ Course materials for CSCI 3495. Everything you need for the semester lives here.
 | `docker/` | The course environment. Set this up in week 1 and everything else just runs. |
 | `weeks/week-NN/class-NN/lecture/` | The slide deck for each session (`slides.pptx`), plus a markdown outline. |
 | `weeks/week-NN/class-NN/exercise/` | The in-class exercise: starter code, instructions, and any data. |
+| `weeks/week-NN/class-NN/solutions/` | The worked answer to that exercise, plus a step-by-step `WALKTHROUGH.md`. |
 | `homeworks/hw1` ... `hw6` | The six homework assignments, with starter code and the tests they must pass. |
 | `project/` | The semester project: spec, rubrics, and the proposal / checkpoint / report templates. |
 | `syllabus/` | The syllabus. |
@@ -17,7 +18,17 @@ Course materials for CSCI 3495. Everything you need for the semester lives here.
 ## Setup
 
 Follow `docker/README.md`. It takes about fifteen minutes the first time and
-nothing after that.
+nothing after that. Every command in this course works the same on macOS, Linux
+and Windows, because the work happens inside the container rather than on your
+machine.
+
+## About the in-class exercises
+
+The labs are **not graded**. They exist to be attempted, so the worked solution
+and a step-by-step walkthrough ship next to every one of them, in `solutions/`.
+Try the step first; if you are stuck for more than a few minutes, read the
+walkthrough for *that step* and keep going. Homework is different: it is graded,
+and its solutions are not here.
 
 ## Getting updates
 

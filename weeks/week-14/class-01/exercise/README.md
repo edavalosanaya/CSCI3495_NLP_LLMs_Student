@@ -68,13 +68,35 @@ query --> route() --> label --> dispatch --> worker --> Result(label, output, ha
 
 Each step tells you **what to write**, then exactly **how to check it**.
 
-```bash
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
 alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+```
+
+```bash
 lab python -m pytest weeks/week-14/class-01/exercise/test_workflow.py -k step1 -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -147,8 +169,7 @@ lab python -m pytest weeks/week-14/class-01/exercise/test_workflow.py -q
 With Ollama running:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course \
-    python weeks/week-14/class-01/exercise/workflow.py
+docker compose -f docker/docker-compose.yml run --rm course python weeks/week-14/class-01/exercise/workflow.py
 ```
 
 ```
@@ -176,4 +197,4 @@ material does not stop being relevant once you build workflows.
 - Add a **second stage** (prompt *chaining*): pass the worker's output through a
   "polish" LLM call before returning. Keep tests green.
 
-A reference solution is in the material released after class (don't peek until you've tried!).
+A reference solution is in `../solutions/` (don't peek until you've tried!).

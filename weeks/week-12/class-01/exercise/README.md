@@ -37,11 +37,31 @@ model, and the thing under test is the agent's robustness. Each step therefore
 ends with **an attack to run and the behavior you should observe**. If the agent
 does something else, that is a finding, write it down.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm course'
+docker compose -f docker/docker-compose.yml run --rm course bash
 ```
+
+Stuck for more than a few minutes on a step? A step-by-step `WALKTHROUGH.md`
+is in `../solutions/`, with the expected output of every command. **These labs
+are not graded**, so reading it is not cheating: getting unstuck and finishing
+the idea beats stalling.
 
 Everything runs offline; no Ollama needed.
 

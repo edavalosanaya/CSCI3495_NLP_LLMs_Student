@@ -84,10 +84,25 @@ running anything:
 Each step tells you **what to write**, then exactly **how to check it**. Steps 1
 to 3 build on each other; Step 4 is independent.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 ```
 
 Check **one step**:
@@ -102,8 +117,10 @@ Check **everything**:
 lab python -m pytest weeks/week-07/class-02/exercise/test_scaling.py -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -300,8 +317,7 @@ smallest first) over the `TASKS` suite and prints an accuracy-vs-size table.
 docker compose -f docker/docker-compose.yml up -d ollama
 docker compose -f docker/docker-compose.yml exec ollama ollama pull qwen2.5:0.5b
 docker compose -f docker/docker-compose.yml exec ollama ollama pull llama3.2:1b
-docker compose -f docker/docker-compose.yml run --rm course \
-    python weeks/week-07/class-02/exercise/measure.py
+docker compose -f docker/docker-compose.yml run --rm course python weeks/week-07/class-02/exercise/measure.py
 ```
 
 Pick your own models with `SCALING_MODELS="qwen2.5:0.5b,llama3.2:1b,qwen2.5:3b"`.
@@ -323,5 +339,5 @@ looking for is direction, and even then, one run on one suite is an anecdote.
   one and report both. How much does the measured accuracy depend on the grader
   rather than the model?
 
-A full reference solution is in the material released after class, and the step-by-step
-explanation is in the walkthrough released after class (don't peek until you've tried).
+A full reference solution is in `../solutions/scaling.py`, and the step-by-step
+explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).

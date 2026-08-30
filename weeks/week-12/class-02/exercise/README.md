@@ -61,8 +61,25 @@ entire lab offline and only need Ollama for `run_demo.py`.
 
 Each step tells you **what to write**, then how to check it.
 
-```bash
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
 alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course bash
 ```
 
 > **Read this before you trust a green test.** Until you fill in the TODOs, the
@@ -83,8 +100,10 @@ Check **everything**:
 lab python -m pytest test_agent.py -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -266,9 +285,7 @@ lab python -m pytest test_agent.py -q
 Now the demo, which needs Ollama:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps \
-  -e OLLAMA_HOST=http://host.docker.internal:11434 \
-  course python weeks/week-12/class-02/solutions/run_demo.py
+docker compose -f docker/docker-compose.yml run --rm --no-deps -e OLLAMA_HOST=http://host.docker.internal:11434 course python weeks/week-12/class-02/solutions/run_demo.py
 ```
 
 Real output, `qwen2.5:1.5b`:

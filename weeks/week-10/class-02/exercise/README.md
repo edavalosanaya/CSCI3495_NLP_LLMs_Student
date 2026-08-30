@@ -64,10 +64,25 @@ take-home lab).
 Each step tells you **what to write**, then exactly **how to check it**. Steps 1
 and 2 are independent; Step 3 needs Step 1.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 ```
 
 Check **one step**:
@@ -82,8 +97,10 @@ Check **everything**:
 lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -201,8 +218,7 @@ lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -q
 Then against a real model:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course \
-    python weeks/week-10/class-02/exercise/cot_lab.py
+docker compose -f docker/docker-compose.yml run --rm course python weeks/week-10/class-02/exercise/cot_lab.py
 ```
 
 ```
@@ -240,5 +256,5 @@ so the pipeline and the metric run and are testable without a network.
 - Try **zero-shot CoT**: append "Let's think step by step." to a direct prompt.
 - Report where CoT *fails*, are the wrong chains fluent but mistaken?
 
-A full reference solution is in the material released after class, and the step-by-step
-explanation is in the walkthrough released after class (don't peek until you've tried).
+A full reference solution is in `../solutions/cot_lab.py`, and the step-by-step
+explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).

@@ -37,10 +37,25 @@ Each step tells you **what to write**, then exactly **how to check it**. The
 steps are strictly sequential here: Step 3 trains the model you build in Steps 1
 and 2.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 ```
 
 Check **one step**:
@@ -55,8 +70,10 @@ Check **everything**:
 lab python -m pytest weeks/week-04/class-01/exercise/test_mlp_classifier.py -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -254,6 +271,6 @@ time you train a binary classifier.
 This is the smallest complete neural NLP classifier. The same loop trains
 Transformers later in the course: only the model and data get bigger.
 
-A full reference solution is in the material released after class, and the
-step-by-step explanation is in the walkthrough released after class (don't peek until
+A full reference solution is in `../solutions/mlp_classifier.py`, and the
+step-by-step explanation is in `../solutions/WALKTHROUGH.md` (don't peek until
 you've tried).

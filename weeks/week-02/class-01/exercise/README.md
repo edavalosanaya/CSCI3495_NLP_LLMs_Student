@@ -38,10 +38,25 @@ seconds. Swap in your own text for the Babble-Off.
 Each step tells you **what to write**, then exactly **how to check it**. Work in
 order: every step builds on the one before.
 
-Set a shortcut for the long docker command first:
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
 
 ```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 ```
 
 Check **one step**:
@@ -57,8 +72,11 @@ lab python -m pytest weeks/week-02/class-01/exercise/test_ngram_lm.py -q
 ```
 
 Stuck for more than a few minutes on a step? Open
-the walkthrough released after class at that step. It explains the idea and shows the
-code. Read the step you are on, not the whole file.
+`../solutions/WALKTHROUGH.md` at that step. It explains the idea and shows the
+code. Read the step you are on, not the whole file. The full reference solution
+sits in `../solutions/` too. **These labs are not graded**, so reading them is
+not cheating: getting unstuck and finishing the idea beats staring at a blank
+function.
 
 ---
 
@@ -329,5 +347,5 @@ regurgitate the corpus)?
   before sampling); this previews Week 7 decoding.
 - Try `n=4`. What happens to fluency vs. originality on a tiny corpus?
 
-A full reference solution is in the material released after class, and the step-by-step
-explanation is in the walkthrough released after class (don't peek until you've tried).
+A full reference solution is in `../solutions/ngram_lm.py`, and the step-by-step
+explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).

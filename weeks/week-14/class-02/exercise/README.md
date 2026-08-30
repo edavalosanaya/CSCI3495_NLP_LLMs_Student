@@ -65,17 +65,38 @@ parses, and that a fixed seed is set somewhere. **There is nothing to implement*
 here, the checker ships complete. Each step below is a command and the output you
 should see, and the last step runs it on **your own project**.
 
-```bash
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
 ```
+# macOS / Linux (bash, zsh)
+alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+```
+
+Stuck for more than a few minutes on a step? A step-by-step `WALKTHROUGH.md`
+is in `../solutions/`, with the expected output of every command. **These labs
+are not graded**, so reading it is not cheating: getting unstuck and finishing
+the idea beats stalling.
 
 ---
 
 ### Step 1, See a passing file
 
 ```bash
-lab python weeks/week-14/class-02/exercise/repro_check.py \
-    weeks/week-04/class-01/solutions/mlp_classifier.py
+lab python weeks/week-14/class-02/exercise/repro_check.py weeks/week-04/class-01/solutions/mlp_classifier.py
 ```
 
 ```
@@ -90,8 +111,7 @@ Reproducibility check: weeks/week-04/class-01/solutions/mlp_classifier.py
 ### Step 2, See a warning
 
 ```bash
-lab python weeks/week-14/class-02/exercise/repro_check.py \
-    weeks/week-02/class-01/solutions/ngram_lm.py
+lab python weeks/week-14/class-02/exercise/repro_check.py weeks/week-02/class-01/solutions/ngram_lm.py
 ```
 
 ```

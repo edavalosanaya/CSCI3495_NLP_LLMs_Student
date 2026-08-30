@@ -91,8 +91,7 @@ that the Ollama line finds your model.
 ### Step 3, Run your first LLM prompt
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course \
-    python weeks/week-01/class-01/exercise/hello_nlp.py
+docker compose -f docker/docker-compose.yml run --rm course python weeks/week-01/class-01/exercise/hello_nlp.py
 ```
 
 **Done when** you get a completion:
@@ -200,4 +199,6 @@ STEP edits), plus your pair's two scavenger-hunt posts. Participation credit.
 - **Build is very slow or fails partway:** see `docker/README.md`.
 
 A step-by-step companion, including what each command is actually doing and the
-answers to the questions above, is in the walkthrough released after class.
+answers to the questions above, is in `../solutions/WALKTHROUGH.md`. **These labs
+are not graded**, so reading it is not cheating: getting unstuck and finishing the
+idea beats stalling.

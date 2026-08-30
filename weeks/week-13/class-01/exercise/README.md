@@ -66,9 +66,7 @@ P7 needs `search` first, because the agent cannot know the population of Paris.
 lesson written on P1 is still in the prompt at P8. Run it both ways:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps \
-  -e OLLAMA_HOST=http://host.docker.internal:11434 \
-  course python weeks/week-13/class-01/solutions/run_suite.py
+docker compose -f docker/docker-compose.yml run --rm --no-deps -e OLLAMA_HOST=http://host.docker.internal:11434 course python weeks/week-13/class-01/solutions/run_suite.py
 ```
 
 Real output, `qwen2.5:1.5b`:
@@ -102,13 +100,35 @@ Two things worth arguing about afterwards:
 Each step tells you **what to write**, then exactly **how to check it**. Steps 1
 to 3 add the pieces; Step 4 is the loop that uses them.
 
-```bash
+`lab` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
+
+```
+# macOS / Linux (bash, zsh)
 alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
+
+# Windows, PowerShell
+function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
+
+# Windows, Command Prompt
+doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
+```
+
+Rather work inside the image? This opens a shell there, and then every
+command below runs without its `lab` prefix:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+```
+
+```bash
 lab python -m pytest weeks/week-13/class-01/exercise/test_agent.py -k step1 -q
 ```
 
-Stuck for more than a few minutes? Open the walkthrough released after class at the
-matching step.
+Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
+matching step. The full reference solution sits in `../solutions/` too. **These
+labs are not graded**, so reading them is not cheating: getting unstuck and
+finishing the idea beats staring at a blank function.
 
 ---
 
@@ -194,4 +214,4 @@ window that disappears when the process exits.
 - Cap the carried memory at the last 3 lessons and rerun `run_suite.py`. Does
   first-attempt success drop? Which lesson was carrying the run?
 
-A reference solution is in the material released after class (don't peek until you've tried!).
+A reference solution is in `../solutions/` (don't peek until you've tried!).

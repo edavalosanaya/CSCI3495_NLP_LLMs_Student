@@ -168,6 +168,41 @@ Week 1, Class 2: lecture (~25 min), Quiz 1 (~10 min), break, whiteboard warm-up 
 
 ---
 
+# How every lab in this course works
+
+<!-- img: visuals/lab-loop.png -->
+<!-- caption: Read one step, write one function, run one test. Repeat. -->
+<!-- source: original figure -->
+
+---
+
+# Enough Python for today
+
+<!-- img: visuals/python-basics.png -->
+<!-- source: weeks/week-01/class-02/exercise/text_tools.py -->
+
+- The starter gives you the signature and the docstring; you write the body
+
+---
+
+# What is a test?
+
+<!-- img: visuals/test-anatomy.png -->
+<!-- caption: A test calls your function and compares the answer to the one the step promised. -->
+<!-- source: weeks/week-01/class-02/exercise/test_text_tools.py -->
+
+- Code that calls your function and checks the answer the step promised
+
+---
+
+# Green is not the goal, the message is
+
+<!-- img: visuals/pytest-failure.png -->
+<!-- caption: A failure tells you what you returned and what was wanted. That is a hint, not a grade. -->
+<!-- source: pytest output, week 1 class 2 starter -->
+
+---
+
 # Now implement what you traced
 
 <!-- img: visuals/exercise-code.png -->

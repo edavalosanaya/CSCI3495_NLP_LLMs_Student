@@ -58,14 +58,21 @@ you move on. Work them in order: later steps import earlier ones.
 From the repository root, inside the course image:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course \
-    python -m pytest homeworks/hw2 -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q
 ```
 
-That is a mouthful to retype, so make a shortcut for the session:
+`hw` is a shortcut for the long docker command. Set it up once per
+terminal session, using the line for **your** shell:
 
-```bash
+```
+# macOS / Linux (bash, zsh)
 alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q'
+
+# Windows, PowerShell
+function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q @args }
+
+# Windows, Command Prompt
+doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q $*
 ```
 
 Then:
