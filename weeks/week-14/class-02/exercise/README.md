@@ -37,7 +37,7 @@ design that works.)
 
 ## How the session runs (35 min)
 1. **(5 min) Self-assess.** Fill in the checklist below for your project.
-2. **(rest) Build + feedback rounds.** Keep working while the instructor/TA
+2. **(rest) Build + feedback rounds.** Keep working while the instructor
    circulates for ~5-minute 1-on-1s. Come to your slot with a **specific question**.
 
 ## Pre-final self-checklist
@@ -163,9 +163,10 @@ lab python -m pytest weeks/week-14/class-02/exercise/test_repro_check.py -q
 10 passed
 ```
 
-## What to submit
-Show your TA your completed checklist and note the one piece of feedback you'll
-act on before the final. (Participation credit.)
+## When you are done
+
+Nothing to submit. The checklist is yours: note the one piece of feedback you
+will act on before the final report.
 
 ## Deliverables reminder
 - **Final report + presentation:** Week 15 + finals (see `project/RUBRICS.md`, `project/final/report-template.md`).

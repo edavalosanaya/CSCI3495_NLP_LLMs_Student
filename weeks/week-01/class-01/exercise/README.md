@@ -184,10 +184,12 @@ Once your environment runs, pair up:
 This is a low-stakes way to build intuition for what a tiny local model can and
 cannot do, and it previews the reliability themes we revisit all semester.
 
-## What to submit
+## When you are done
 
-Show your TA the `ENV CHECK OK` output and your edited `hello_nlp.py` (all three
-STEP edits), plus your pair's two scavenger-hunt posts. Participation credit.
+Nothing to submit. You are finished when `env_check.py` prints `ENV CHECK OK`
+and your edited `hello_nlp.py` runs. If class ends first, finish it on your own
+time before the next session: everything after this week assumes the environment
+works.
 
 ## Troubleshooting
 

@@ -183,6 +183,8 @@ That mapping from attack to defense is the deliverable, not the score.
 the exact input and what happened; you have found a real gap, and W12C2 is where
 you fix it.
 
-## What to hand in (participation)
-A few sentences: which attack was hardest to defend, and **which line of code**
-defends it. This sets up Class 2, where you implement the guards yourself.
+## When you are done
+
+Nothing to submit. Keep your own notes on which attack was hardest to defend and
+**which line of code** would defend it. Bring that to Class 2, where you
+implement the guards yourself.
