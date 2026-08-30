@@ -9,11 +9,16 @@ When all four steps are done, the whole suite is green:
 from __future__ import annotations
 import re
 
+_EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
+_URL_RE = re.compile(r"https?://\S+")
+_MENTION_RE = re.compile(r"(?<!\w)@(\w+)")
+
 
 def normalize(text: str) -> str:
     """Lowercase, collapse runs of whitespace to one space, strip ends."""
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return re.sub(r"\s+", " ", text.lower()).strip()
 
 
 def tokenize(text: str) -> list[str]:
@@ -25,10 +30,13 @@ def tokenize(text: str) -> list[str]:
 
 def extract(text: str) -> dict[str, list[str]]:
     """Return {'emails': [...], 'urls': [...], 'mentions': [...]} found via regex."""
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    # Use the RAW text (not normalized). Careful: a naive @-pattern also
-    # matches inside an email address.
-    raise NotImplementedError
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return {
+        "emails": _EMAIL_RE.findall(text),
+        "urls": _URL_RE.findall(text),
+        "mentions": _MENTION_RE.findall(text),
+    }
 
 
 def edit_distance(a: str, b: str) -> int:

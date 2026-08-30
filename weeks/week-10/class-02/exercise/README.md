@@ -97,6 +97,11 @@ Check **everything**:
 lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -124,9 +129,12 @@ entire intervention this lab measures.
 
 ---
 
-### Step 1, Extract the answer
+### Step 1, Extract the answer (given)
 
-**Write:** `extract_answer(text)`, returning the **last** integer in the text, or
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `extract_answer(text)`, returning the **last** integer in the text, or
 None.
 
 `re.findall(r"-?\d+", text)` then take `[-1]`.

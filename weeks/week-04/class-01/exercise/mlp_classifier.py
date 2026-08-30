@@ -16,6 +16,9 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
+def _embed_batch(data, vocab, emb) -> torch.Tensor:
+    return torch.stack([embed_document(t, vocab, emb) for t, _ in data])
+
 SEED = 0
 
 # A tiny, deliberately separable sentiment dataset (label 1 = positive, 0 = negative).
@@ -50,14 +53,14 @@ def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch
 
     Returns a 1-D tensor of shape (embedding_dim,).
     """
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
     ids = [vocab.get(tok, 0) for tok in tokenize(text)]
     if not ids:
         return torch.zeros(emb.embedding_dim)
     idx = torch.tensor(ids, dtype=torch.long)
-    vectors = emb(idx)  # shape (num_tokens, embedding_dim)
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    # Collapse the token axis: vectors.mean(dim=0)
-    raise NotImplementedError
+    vectors = emb(idx)  # (num_tokens, embedding_dim)
+    return vectors.mean(dim=0)
 
 
 class MLP(nn.Module):
@@ -82,6 +85,8 @@ def train(
     lr: float = 0.05,
 ) -> list[float]:
     """Train the model + embeddings jointly. Returns the per-epoch loss."""
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
     params = list(model.parameters()) + list(emb.parameters())
     optimizer = torch.optim.Adam(params, lr=lr)
     loss_fn = nn.CrossEntropyLoss()
@@ -89,15 +94,13 @@ def train(
 
     history: list[float] = []
     for _ in range(epochs):
-        # Re-embed each step so gradients also reach the embedding table.
-        X = torch.stack([embed_document(t, vocab, emb) for t, _ in data])
-        # TODO (STEP 3): implement. Check with: pytest -k step3
-        #   1) optimizer.zero_grad()
-        #   2) logits = model(X)
-        #   3) loss = loss_fn(logits, y)
-        #   4) loss.backward()
-        #   5) optimizer.step()
-        raise NotImplementedError
+        optimizer.zero_grad()
+        # Re-embed each step so gradients flow into the embedding table too.
+        X = _embed_batch(data, vocab, emb)
+        logits = model(X)
+        loss = loss_fn(logits, y)
+        loss.backward()
+        optimizer.step()
         history.append(float(loss))
     return history
 

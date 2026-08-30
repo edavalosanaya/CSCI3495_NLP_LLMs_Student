@@ -41,8 +41,10 @@ DEMOS: list[tuple[str, str]] = [
 # ----------------------------- TODO 1 -----------------------------
 def accuracy(preds: list[str], golds: list[str]) -> float:
     """Exact-match accuracy in [0, 1]. Assumes len(preds) == len(golds) > 0."""
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    correct = sum(1 for p, g in zip(preds, golds) if p == g)
+    return correct / len(golds)
 
 
 # ----------------------------- TODO 2 -----------------------------

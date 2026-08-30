@@ -27,20 +27,6 @@ sys.modules["lora_under_test"] = lab
 _spec.loader.exec_module(lab)
 
 
-def _implemented():
-    try:
-        lab.LoRALinear(4, 2, r=2, alpha=4)
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="lora_lab not implemented yet (fill in the TODOs)",
-)
-
-
 def test_step1_base_weight_frozen():
     m = lab.LoRALinear(8, 4, r=4, alpha=8)
     assert m.linear.weight.requires_grad is False

@@ -53,8 +53,13 @@ def vec(word: str) -> np.ndarray:
 
 def cosine(u: np.ndarray, v: np.ndarray) -> float:
     """Cosine similarity between two vectors. Return 0.0 if either norm is 0."""
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    nu = float(np.linalg.norm(u))
+    nv = float(np.linalg.norm(v))
+    if nu == 0.0 or nv == 0.0:
+        return 0.0
+    return float(np.dot(u, v) / (nu * nv))
 
 
 def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
@@ -62,9 +67,16 @@ def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
 
     Each result is (other_word, similarity), sorted by similarity descending.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    # Sort by (-similarity, word) so score ties are deterministic.
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    target = np.asarray(table[word], dtype=float)
+    scored = [
+        (w, cosine(target, np.asarray(v, dtype=float)))
+        for w, v in table.items()
+        if w != word
+    ]
+    scored.sort(key=lambda x: (-x[1], x[0]))
+    return scored[:k]
 
 
 def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, float]]:

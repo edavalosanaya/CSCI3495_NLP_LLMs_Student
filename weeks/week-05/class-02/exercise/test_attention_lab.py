@@ -4,6 +4,7 @@ Test names carry their lab step, so you can check one step at a time:
     python -m pytest weeks/week-05/class-02/exercise/test_attention_lab.py -k step1 -q
 """
 import importlib.util
+import inspect
 import os
 from pathlib import Path
 
@@ -17,17 +18,6 @@ _SRC = (_HERE.parent / "solutions" / "attention_lab.py"
 _spec = importlib.util.spec_from_file_location("attn_uut", _SRC)
 m = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(m)
-
-
-def _impl():
-    try:
-        m.softmax(np.zeros(3))
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(not _impl(), reason="attention_lab not implemented yet")
 
 
 def test_step1_softmax_sums_to_one():

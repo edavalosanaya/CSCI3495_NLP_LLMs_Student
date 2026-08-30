@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  TEXT_TOOLS_FROM=solution  (used by the course test sweep).
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -23,20 +24,6 @@ _spec = importlib.util.spec_from_file_location("text_tools_under_test", _SRC)
 tt = importlib.util.module_from_spec(_spec)
 sys.modules["text_tools_under_test"] = tt
 _spec.loader.exec_module(tt)
-
-# Skip the whole module gracefully if the student hasn't implemented yet.
-def _implemented(fn, *args):
-    try:
-        fn(*args)
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(tt.normalize, "x"),
-    reason="text_tools not implemented yet (fill in the TODOs)",
-)
 
 
 def test_step1_normalize():

@@ -67,6 +67,11 @@ Check **everything**:
 lab python -m pytest weeks/week-03/class-01/exercise/test_search.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -110,9 +115,12 @@ doing.
 
 ---
 
-### Step 1, Build the index
+### Step 1, Build the index (given)
 
-**Write:** `build_index(docs)`.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `build_index(docs)`.
 
 Tokenize every document, then compute two things per term:
 
@@ -251,9 +259,15 @@ word embeddings, and again in Week 11 for retrieval.
 
 ---
 
-### Step 4, Search
+### Step 4, Search (given)
 
-**Write:** `search(index, query, k)`, returning the top-`k` `(doc_id, score)`
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+It builds on the functions from the earlier steps, so its check reports
+`skipped` until you have written those.
+
+**What it does:** `search(index, query, k)`, returning the top-`k` `(doc_id, score)`
 pairs.
 
 Build the query's tf-idf vector, build each document's tf-idf vector, take the

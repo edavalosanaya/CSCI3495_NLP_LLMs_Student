@@ -34,12 +34,6 @@ def _implemented(fn, *args):
         return True  # raised a real error -> it's implemented
 
 
-pytestmark = pytest.mark.skipif(
-    not _implemented(jl.extract_json, '{"a": 1}'),
-    reason="json_lab not implemented yet (fill in the TODOs)",
-)
-
-
 def test_step1_extract_plain():
     assert jl.extract_json('{"name": "Mug", "price": 5.0}') == {"name": "Mug", "price": 5.0}
 

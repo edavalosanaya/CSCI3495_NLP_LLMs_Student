@@ -6,6 +6,7 @@ Test names carry their lab step, so you can check one step at a time:
 Set COT_LAB_FROM=solution to test the reference solution.
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -30,12 +31,6 @@ def _implemented(fn, *args):
         return True
     except NotImplementedError:
         return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(cl.extract_answer, "x 5"),
-    reason="cot_lab not implemented yet (fill in the TODOs)",
-)
 
 
 def test_step1_extract_answer_last_int():

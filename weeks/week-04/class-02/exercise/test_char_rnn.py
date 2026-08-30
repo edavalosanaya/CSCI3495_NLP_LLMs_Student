@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  CHARRNN_FROM=solution
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -25,22 +26,6 @@ _spec = importlib.util.spec_from_file_location("charrnn_under_test", _SRC)
 cr = importlib.util.module_from_spec(_spec)
 sys.modules["charrnn_under_test"] = cr
 _spec.loader.exec_module(cr)
-
-
-def _implemented() -> bool:
-    try:
-        stoi, _ = cr.build_vocab(["abc"])
-        cr.make_training_pairs("abc", stoi)
-        model = cr.CharRNN(len(stoi))
-        model(torch.tensor([[0, 1]]))
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(), reason="char_rnn not implemented yet (fill in the TODOs)"
-)
 
 
 def test_step0_vocab_contains_end_marker():

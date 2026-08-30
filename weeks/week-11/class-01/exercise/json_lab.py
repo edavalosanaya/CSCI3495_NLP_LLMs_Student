@@ -56,8 +56,21 @@ def generate_valid(model: "Model", schema: dict, max_retries: int = 2) -> dict:
     Return the first valid record. Raise RuntimeError if still invalid after
     max_retries extra attempts. Use build_prompt(schema, error=...).
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    raise NotImplementedError
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    error: str | None = None
+    for attempt in range(max_retries + 1):
+        reply = model.generate(build_prompt(schema, error))
+        try:
+            record = extract_json(reply)
+        except ValueError as e:
+            error = str(e)
+            continue
+        errors = validate(record, schema)
+        if not errors:
+            return record
+        error = "; ".join(errors)
+    raise RuntimeError(f"no valid record after {max_retries + 1} attempts: {error}")
 
 
 def build_prompt(schema: dict, error: str | None = None) -> str:

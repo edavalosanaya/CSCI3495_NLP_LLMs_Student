@@ -64,6 +64,11 @@ Check **everything**:
 lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -71,9 +76,12 @@ finishing the idea beats staring at a blank function.
 
 ---
 
-### Step 1, Build the vocabulary
+### Step 1, Build the vocabulary (given)
 
-**Write:** `build_vocab(corpus)`. Lowercase each line, split on whitespace, turn
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `build_vocab(corpus)`. Lowercase each line, split on whitespace, turn
 each word into a tuple of its characters plus `END`, and count.
 
 **Done when:**
@@ -208,9 +216,15 @@ the last, which is why the *order* is the model.
 
 ---
 
-### Step 5, Encode
+### Step 5, Encode (given)
 
-**Write:** `encode_word(word, merges)`. Start from characters plus `END`, then
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+It builds on the functions from the earlier steps, so its check reports
+`skipped` until you have written those.
+
+**What it does:** `encode_word(word, merges)`. Start from characters plus `END`, then
 apply **every learned merge in order**, fusing all adjacent occurrences of each.
 
 The inner loop is the same walk as Step 3. The difference is that you replay the

@@ -21,14 +21,24 @@ def apply_temperature(logits: dict[str, float], temperature: float) -> dict[str,
     p_i = softmax(logit_i / T). Lower T -> sharper; higher T -> flatter.
     For T very close to 0, treat it as greedy: all mass on the argmax token.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    if temperature < 1e-6:
+        # Greedy: all mass on the argmax.
+        best = max(logits, key=logits.get)
+        return {t: (1.0 if t == best else 0.0) for t in logits}
+    scaled = {t: v / temperature for t, v in logits.items()}
+    m = max(scaled.values())  # for numerical stability
+    exps = {t: math.exp(v - m) for t, v in scaled.items()}
+    z = sum(exps.values())
+    return {t: e / z for t, e in exps.items()}
 
 
 def greedy(dist: dict[str, float]) -> str:
     """Return the single highest-probability token (ties: any is fine)."""
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return max(dist, key=dist.get)
 
 
 def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
@@ -49,8 +59,18 @@ def sample(dist: dict[str, float], seed: int | None = None) -> str:
 
     Use random.Random(seed) for determinism in tests.
     """
-    # TODO (STEP 5): implement. Check with: pytest -k step5
-    raise NotImplementedError
+    # GIVEN (STEP 5): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    rng = random.Random(seed)
+    r = rng.random()
+    cum = 0.0
+    last = None
+    for tok, prob in dist.items():
+        last = tok
+        cum += prob
+        if r <= cum:
+            return tok
+    return last  # floating-point fallback
 
 
 def _demo() -> None:

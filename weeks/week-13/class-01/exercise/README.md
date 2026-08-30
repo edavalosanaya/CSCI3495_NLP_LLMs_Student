@@ -125,6 +125,11 @@ docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
 lab python -m pytest weeks/week-13/class-01/exercise/test_agent.py -k step1 -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -132,9 +137,12 @@ finishing the idea beats staring at a blank function.
 
 ---
 
-### Step 1, Memory
+### Step 1, Memory (given)
 
-**Write:** `Memory.add` (append a note) and `Memory.as_prompt` (return `""` when
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `Memory.add` (append a note) and `Memory.as_prompt` (return `""` when
 empty, otherwise a "Lessons from previous attempts:" block with one bullet per
 note).
 
@@ -158,9 +166,12 @@ and an agent without one must still run.
 
 ---
 
-### Step 3, Put them in the prompt
+### Step 3, Put them in the prompt (given)
 
-**Write:** the prompt assembly. If `plan` is non-empty, append a `Plan:` block;
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** the prompt assembly. If `plan` is non-empty, append a `Plan:` block;
 then append `memory.as_prompt()`.
 
 **Done when:** `-k step3` gives `2 passed, 7 deselected`.

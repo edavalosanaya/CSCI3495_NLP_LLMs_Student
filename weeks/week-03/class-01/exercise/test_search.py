@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  SEARCH_FROM=solution  (used by the course test sweep).
 """
 import importlib.util
+import inspect
 import math
 import os
 import sys
@@ -24,20 +25,6 @@ _spec = importlib.util.spec_from_file_location("search_under_test", _SRC)
 se = importlib.util.module_from_spec(_spec)
 sys.modules["search_under_test"] = se
 _spec.loader.exec_module(se)
-
-
-def _implemented():
-    try:
-        se.build_index(["a b", "b c"])
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="search not implemented yet (fill in the TODOs)",
-)
 
 
 def test_step1_idf_ranks_rare_above_common():

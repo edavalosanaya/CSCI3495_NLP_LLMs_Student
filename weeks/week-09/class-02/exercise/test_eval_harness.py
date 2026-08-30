@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  EVAL_FROM=solution  (used by the course test sweep).
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -23,20 +24,6 @@ _spec = importlib.util.spec_from_file_location("eval_under_test", _SRC)
 eh = importlib.util.module_from_spec(_spec)
 sys.modules["eval_under_test"] = eh
 _spec.loader.exec_module(eh)
-
-
-def _implemented():
-    try:
-        eh.normalize_answer("x")
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="eval_harness not implemented yet (fill in the TODOs)",
-)
 
 
 def test_step1_normalize_strips_articles_and_punct():

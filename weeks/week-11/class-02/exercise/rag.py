@@ -42,8 +42,17 @@ def chunk_documents(docs: list[tuple[str, str]]) -> list[Chunk]:
     Return a flat list of Chunk with sequential ids starting at 0. Strip
     whitespace and drop empty passages.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    chunks: list[Chunk] = []
+    cid = 0
+    for source, text in docs:
+        for passage in re.split(r"\n\s*\n", text):
+            passage = passage.strip()
+            if passage:
+                chunks.append(Chunk(id=cid, source=source, text=passage))
+                cid += 1
+    return chunks
 
 
 class TfidfRetriever:
@@ -85,8 +94,10 @@ def verify_citations(answer: str, retrieved: list[Chunk]) -> set[int]:
     Citations look like [1], [2], ... A citation is valid if its number is in
     1..len(retrieved). Use this to detect hallucinated citations (out of range).
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    cited = {int(n) for n in re.findall(r"\[(\d+)\]", answer)}
+    return {n for n in cited if 1 <= n <= len(retrieved)}
 
 
 # --------------------------- generator backends ---------------------------

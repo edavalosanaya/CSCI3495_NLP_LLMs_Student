@@ -31,8 +31,13 @@ PREFERENCES: list[tuple[str, str]] = [
 
 def sigmoid(x: float) -> float:
     """Numerically-stable logistic sigmoid."""
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    if x >= 0:
+        z = math.exp(-x)
+        return 1.0 / (1.0 + z)
+    z = math.exp(x)
+    return z / (1.0 + z)
 
 
 def neg_log_likelihood(

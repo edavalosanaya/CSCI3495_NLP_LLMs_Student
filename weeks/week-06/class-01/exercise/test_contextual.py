@@ -12,6 +12,7 @@ if (a) the functions aren't implemented yet, or (b) the tiny model can't be
 loaded (e.g. offline with no cache).
 """
 import importlib.util
+import inspect
 import math
 import os
 import sys

@@ -94,8 +94,9 @@ def today(_arg: str = "") -> str:
     This is the cheapest possible demonstration that a tool beats memory: the
     date is not in the weights, and no amount of prompting can put it there.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return _dt.date.today().isoformat()
 
 
 # --------------------------------------------------------------------------
@@ -132,11 +133,20 @@ def weather(arg: str) -> str:
     model into a loop. Being forgiving about the INPUT while staying exact
     about the OUTPUT is most of good tool design.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    # split on the first comma; normalise the city (strip, quotes, lowercase,
-    # "_" -> " "); reject an unknown city; use _day_offset(day) for the date;
-    # reject an offset outside the series. Return str(temperature).
-    raise NotImplementedError
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    city, _, day = arg.partition(",")
+    city = city.strip().strip('"\'').lower().replace("_", " ")
+    if not city:
+        return "Error: usage is weather[city, day]"
+    if city not in _SERIES:
+        return f"Error: no weather for '{city}'. Known: {', '.join(sorted(_SERIES))}."
+    off = _day_offset(day)
+    if off is None:
+        return f"Error: could not read the date '{day.strip()}'. Use today, yesterday, or YYYY-MM-DD."
+    if not 0 <= off < len(_SERIES[city]):
+        return f"Error: no reading that far back; I have the last {len(_SERIES[city])} days."
+    return str(_SERIES[city][off])
 
 
 # --------------------------------------------------------------------------
@@ -180,10 +190,20 @@ def _tokens(text: str) -> set[str]:
 
 def search(query: str) -> str:
     """Return the best-matching corpus entry by word overlap. Network-free."""
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    # score every CORPUS entry by word overlap with the query and return the
-    # best entry's text; no overlap -> f"No results found for '{query}'."
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    query = query.strip()
+    if not query:
+        return "Error: empty query"
+    q = _tokens(query)
+    best_key, best_score = None, 0
+    for key, text in CORPUS.items():
+        score = len(q & _tokens(key + " " + text))
+        if score > best_score:
+            best_key, best_score = key, score
+    if best_key is None:
+        return f"No results found for '{query}'."
+    return CORPUS[best_key]
 
 
 # The registry the agent dispatches against: tool name -> callable(str) -> str.

@@ -72,11 +72,13 @@ def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, 
     Input is the name; target is the name shifted left by one, ending in END.
     Example: "abc" -> input ids for "abc", target ids for "bc."
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    #   in_chars  = list(name)
-    #   out_chars = list(name[1:]) + [END]
-    #   convert each to ids via stoi, return as 1-D LongTensors
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    in_chars = list(name)
+    out_chars = list(name[1:]) + [END]
+    xin = torch.tensor([stoi[c] for c in in_chars], dtype=torch.long)
+    yt = torch.tensor([stoi[c] for c in out_chars], dtype=torch.long)
+    return xin, yt
 
 
 @torch.no_grad()

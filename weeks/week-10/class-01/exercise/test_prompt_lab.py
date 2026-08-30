@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  PROMPT_LAB_FROM=solution
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -31,12 +32,6 @@ def _implemented(fn, *args):
         return True
     except NotImplementedError:
         return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(pl.accuracy, ["a"], ["a"]),
-    reason="prompt_lab not implemented yet (fill in the TODOs)",
-)
 
 
 def test_step1_accuracy_perfect():

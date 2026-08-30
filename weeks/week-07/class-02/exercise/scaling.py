@@ -11,6 +11,7 @@ Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-07/class-02/exercise/test_scaling.py -k step1 -q
 """
 from __future__ import annotations
+import string
 
 # A tiny task suite: simple factual / arithmetic questions with a target string
 # that should appear in a correct answer. (Lenient substring grading.)
@@ -25,14 +26,16 @@ TASKS = [
 
 def normalize(text: str) -> str:
     """Lowercase and strip surrounding whitespace/punctuation for lenient matching."""
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return text.strip().strip(string.punctuation + " ").lower()
 
 
 def is_correct(model_output: str, target: str) -> bool:
     """True if the normalized target appears as a substring of the normalized output."""
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return normalize(target) in normalize(model_output)
 
 
 def accuracy(outputs: list[str], targets: list[str]) -> float:

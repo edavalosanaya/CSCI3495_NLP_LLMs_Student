@@ -80,8 +80,10 @@ def score(model: dict, tokens: list[str]) -> dict:
 
 def predict(model: dict, tokens: list[str]) -> str:
     """Return the class with the highest score."""
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    raise NotImplementedError
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    scores = score(model, tokens)
+    return max(scores, key=scores.get)
 
 
 def prf(gold: list[str], pred: list[str], target: str = "pos") -> dict:
@@ -90,8 +92,16 @@ def prf(gold: list[str], pred: list[str], target: str = "pos") -> dict:
     Return {"precision": p, "recall": r, "f1": f1}. If a denominator is 0,
     define that metric as 0.0.
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    tp = sum(1 for g, p in zip(gold, pred) if p == target and g == target)
+    fp = sum(1 for g, p in zip(gold, pred) if p == target and g != target)
+    fn = sum(1 for g, p in zip(gold, pred) if p != target and g == target)
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    f1 = (2 * precision * recall / (precision + recall)
+          if (precision + recall) else 0.0)
+    return {"precision": precision, "recall": recall, "f1": f1}
 
 
 def _demo() -> None:

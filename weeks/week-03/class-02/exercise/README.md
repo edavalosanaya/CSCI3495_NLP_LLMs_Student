@@ -104,6 +104,11 @@ Check **everything**:
 lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -147,9 +152,12 @@ hundreds of dimensions none of which have names.
 
 ---
 
-### Step 1, Cosine similarity
+### Step 1, Cosine similarity (given)
 
-**Write:** `cosine(u, v)` for two numpy arrays. Return 0.0 if either norm is 0.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `cosine(u, v)` for two numpy arrays. Return 0.0 if either norm is 0.
 
 `np.dot` and `np.linalg.norm` do the work; this is a three-line function.
 
@@ -185,9 +193,12 @@ every pair of words co-occurs somewhere.
 
 ---
 
-### Step 2, Nearest neighbors
+### Step 2, Nearest neighbors (given)
 
-**Write:** `nearest(word, table, k)`, the `k` most similar words, **excluding
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `nearest(word, table, k)`, the `k` most similar words, **excluding
 `word` itself**, sorted by similarity descending.
 
 Sort with the key `(-similarity, word)` so that words tied on score come back in

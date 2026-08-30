@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. Set DECODING_FROM=solution
 to test the reference solution (used by the course sweep).
 """
 import importlib.util
+import inspect
 import math
 import os
 import sys
@@ -25,16 +26,6 @@ dec = importlib.util.module_from_spec(_spec)
 sys.modules["decoding_under_test"] = dec
 _spec.loader.exec_module(dec)
 
-
-def _implemented():
-    try:
-        dec.greedy({"a": 1.0})
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(not _implemented(), reason="decoding not implemented yet")
 
 LOGITS = {"a": 2.0, "b": 1.0, "c": 0.0, "d": -1.0}
 

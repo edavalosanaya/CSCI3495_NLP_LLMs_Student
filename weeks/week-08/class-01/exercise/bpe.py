@@ -25,8 +25,14 @@ def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
     characters plus the END marker. Example:
         "low low"  ->  {("l","o","w","</w>"): 2}
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    vocab: Counter = Counter()
+    for line in corpus:
+        for word in line.lower().split():
+            symbols = tuple(word) + (END,)
+            vocab[symbols] += 1
+    return dict(vocab)
 
 
 def count_pairs(vocab: dict[tuple[str, ...], int]) -> Counter:
@@ -69,8 +75,23 @@ def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
     Start from characters + END, then for each learned merge (in order) fuse
     all adjacent occurrences of that pair. Returns the final list of subwords.
     """
-    # TODO (STEP 5): implement. Check with: pytest -k step5
-    raise NotImplementedError
+    # GIVEN (STEP 5): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    symbols: list[str] = list(word.lower()) + [END]
+    for a, b in merges:
+        merged = a + b
+        out: list[str] = []
+        i = 0
+        n = len(symbols)
+        while i < n:
+            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
+                out.append(merged)
+                i += 2
+            else:
+                out.append(symbols[i])
+                i += 1
+        symbols = out
+    return symbols
 
 
 if __name__ == "__main__":

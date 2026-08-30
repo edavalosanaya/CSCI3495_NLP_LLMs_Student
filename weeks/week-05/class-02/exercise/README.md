@@ -68,6 +68,11 @@ Check **everything**:
 lab python -m pytest weeks/week-05/class-02/exercise/test_attention_lab.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -75,9 +80,12 @@ finishing the idea beats staring at a blank function.
 
 ---
 
-### Step 1, Numerically stable softmax
+### Step 1, Numerically stable softmax (given)
 
-**Write:** `softmax(x, axis=-1)`. Subtract the max along `axis` **before**
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `softmax(x, axis=-1)`. Subtract the max along `axis` **before**
 exponentiating, then normalize.
 
 ```
@@ -217,9 +225,12 @@ sum-to-1 property.
 
 ---
 
-### Step 4, Split and combine heads
+### Step 4, Split and combine heads (given)
 
-**Write:** `split_heads(X, num_heads)` and `combine_heads(X)`.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `split_heads(X, num_heads)` and `combine_heads(X)`.
 
 ```
 split:   (T, d_model)          -> (num_heads, T, d_head)

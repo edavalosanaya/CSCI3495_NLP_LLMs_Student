@@ -60,6 +60,11 @@ Check **everything**:
 lab python -m pytest weeks/week-07/class-01/exercise/test_decoding.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -85,9 +90,12 @@ that every filter should remove.
 
 ---
 
-### Step 1, Temperature
+### Step 1, Temperature (given)
 
-**Write:** `apply_temperature(logits, temperature)`, returning a normalized
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `apply_temperature(logits, temperature)`, returning a normalized
 probability dict.
 
 Divide every logit by `T`, then softmax (subtract the max before exponentiating,
@@ -125,9 +133,12 @@ exactly what it does to the numbers.
 
 ---
 
-### Step 2, Greedy
+### Step 2, Greedy (given)
 
-**Write:** `greedy(dist)`, returning the highest-probability token.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `greedy(dist)`, returning the highest-probability token.
 
 `max(dist, key=dist.get)` is the whole function.
 
@@ -234,9 +245,12 @@ most production text generation for exactly this adaptivity.
 
 ---
 
-### Step 5, Sample
+### Step 5, Sample (given)
 
-**Write:** `sample(dist, seed=None)`. Draw one token according to its
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `sample(dist, seed=None)`. Draw one token according to its
 probability.
 
 Use `random.Random(seed)` (a **local** generator, so the tests are

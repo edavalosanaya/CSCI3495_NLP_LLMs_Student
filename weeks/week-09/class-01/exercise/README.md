@@ -62,6 +62,11 @@ Check **everything**:
 lab python -m pytest weeks/week-09/class-01/exercise/test_lora_lab.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -184,9 +189,12 @@ starts as a no-op and can only improve from there.
 
 ---
 
-### Step 5, Quantize
+### Step 5, Quantize (given)
 
-**Write:** `quantize(w, bits)`, symmetric per-tensor quantize-dequantize.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `quantize(w, bits)`, symmetric per-tensor quantize-dequantize.
 
 ```
 qmax  = 2 ** (bits - 1) - 1

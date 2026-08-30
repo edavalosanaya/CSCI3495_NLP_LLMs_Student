@@ -27,6 +27,8 @@ import os
 import re
 import string
 
+_ARTICLES = {"a", "an", "the"}
+
 MODEL = os.environ.get("COURSE_MODEL", "qwen2.5:0.5b")
 
 # A tiny QA slice: each item has a question, the gold answer, and (for the
@@ -48,14 +50,19 @@ def normalize_answer(s: str) -> str:
 
     This is the standard SQuAD-style normalization so 'The Paris.' == 'paris'.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    s = s.lower()
+    s = "".join(ch for ch in s if ch not in string.punctuation)
+    tokens = [t for t in s.split() if t not in _ARTICLES]
+    return " ".join(tokens)
 
 
 def exact_match(pred: str, gold: str) -> bool:
     """True if normalized prediction == normalized gold."""
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return normalize_answer(pred) == normalize_answer(gold)
 
 
 def contains_answer(pred: str, gold: str) -> bool:
@@ -64,8 +71,14 @@ def contains_answer(pred: str, gold: str) -> bool:
     Models often answer in a sentence ('The capital is Paris.'), so a lenient
     'gold is contained in pred' metric is useful alongside exact match.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    raise NotImplementedError
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    p = normalize_answer(pred)
+    g = normalize_answer(gold)
+    if not g:
+        return False
+    # token-aware substring: match on word boundaries within the normalized pred
+    return bool(re.search(r"(?:^|\s)" + re.escape(g) + r"(?:\s|$)", p))
 
 
 def accuracy(preds: list[str], golds: list[str]) -> float:
@@ -73,8 +86,14 @@ def accuracy(preds: list[str], golds: list[str]) -> float:
 
     (Only over items with a non-None gold; raise ValueError if lengths differ.)
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    if len(preds) != len(golds):
+        raise ValueError("preds and golds must be the same length")
+    if not preds:
+        return 0.0
+    hits = sum(1 for p, g in zip(preds, golds) if contains_answer(p, g))
+    return hits / len(preds)
 
 
 def is_hallucination(pred: str, item: dict) -> bool:

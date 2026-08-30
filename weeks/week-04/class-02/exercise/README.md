@@ -68,6 +68,11 @@ Check **everything**:
 lab python -m pytest weeks/week-04/class-02/exercise/test_char_rnn.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -152,9 +157,12 @@ the hidden state threaded through.
 
 ---
 
-### Step 2, Build the training pairs
+### Step 2, Build the training pairs (given)
 
-**Write:** `make_training_pairs(name, stoi)`. The input is the name's characters;
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `make_training_pairs(name, stoi)`. The input is the name's characters;
 the target is the name shifted left by one, ending with `END`.
 
 ```

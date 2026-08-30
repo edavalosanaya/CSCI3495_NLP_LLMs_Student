@@ -63,16 +63,19 @@ def worker_summarize(query: str, llm: LLM) -> str:
 
 def worker_translate(query: str, llm: LLM) -> str:
     """Translate the user's text to French."""
-    # TODO (STEP 2): prompt the llm to translate `query` to French.
-    #                Check with: pytest -k step2
-    raise NotImplementedError("Implement worker_translate()")
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return llm(f"Translate the following text into French. Reply with only the translation:\n\n{query}")
 
 
 def worker_extract(query: str, llm: LLM) -> str:
     """Extract named entities / key items from the text."""
-    # TODO (STEP 2): prompt the llm to extract key entities from `query`.
-    #                Check with: pytest -k step2
-    raise NotImplementedError("Implement worker_extract()")
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return llm(
+        "Extract the key named entities (people, places, organizations, dates) "
+        f"from the text as a comma-separated list:\n\n{query}"
+    )
 
 
 def worker_fallback(query: str, llm: LLM) -> str:

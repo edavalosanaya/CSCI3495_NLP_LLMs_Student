@@ -35,14 +35,17 @@ class Memory:
     notes: list[str] = field(default_factory=list)
 
     def add(self, note: str) -> None:
-        # TODO (STEP 1): implement. Check with: pytest -k step1
-        raise NotImplementedError
+        # GIVEN (STEP 1): written for you. Read it, run its check, and use
+        # it as the pattern for the steps you do write.
+        self.notes.append(note)
 
     def as_prompt(self) -> str:
-        # TODO (STEP 1): implement. Check with: pytest -k step1
-        #   return "" if empty; else a block like
-        #   "Lessons from previous attempts:\n- note1\n- note2\n"
-        raise NotImplementedError
+        # GIVEN (STEP 1): written for you. Read it, run its check, and use
+        # it as the pattern for the steps you do write.
+        if not self.notes:
+            return ""
+        lines = "\n".join(f"- {n}" for n in self.notes)
+        return f"Lessons from previous attempts:\n{lines}\n"
 
 
 @dataclass
@@ -100,15 +103,29 @@ def make_plan(task: str, planner: Optional[LLM]) -> str:
 # Single ReAct attempt (memory + plan injected into the prompt)
 # --------------------------------------------------------------------------
 def _build_header(task: str, plan: str, memory: Memory) -> str:
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
     header = (
-        "You are a ReAct agent. Interleave:\n"
-        "Thought: <reasoning>\nAction: <tool>[<input>]\n"
-        "then read: Observation: <result>\n"
-        "Tools: calc[expr], search[query]. Finish with Action: finish[<answer>].\n"
+        "You solve problems by calling tools. Reply with EXACTLY two lines:\n"
+        "Thought: <one short sentence>\n"
+        "Action: <tool>[<input>]\n\n"
+        "Tools:\n"
+        "- calc[expression]   arithmetic, e.g. calc[23 * 4]. Use ** for powers, sqrt().\n"
+        "- search[query]      look up a fact you do not know.\n"
+        "- finish[answer]     give the final NUMBER and stop.\n\n"
+        "Rules: never do arithmetic yourself, always use calc. Put the whole\n"
+        "expression in one calc call. finish with the number only.\n\n"
+        "Example\n"
+        "Task: A shelf has 12 boxes with 6 pens each. How many pens?\n"
+        "Thought: I will multiply with the calculator.\n"
+        "Action: calc[12 * 6]\n"
+        "Observation: 72\n"
+        "Thought: The calculator gave the answer.\n"
+        "Action: finish[72]\n"
     )
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    #   if `plan` is non-empty, append a "Plan:\n{plan}\n" block, then
-    #   append memory.as_prompt() (the long-term lessons).
+    if plan:
+        header += f"\nPlan:\n{plan}\n"
+    header += "\n" + memory.as_prompt()
     header += f"\nTask: {task}\n"
     return header
 

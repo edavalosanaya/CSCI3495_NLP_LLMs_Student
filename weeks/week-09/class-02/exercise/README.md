@@ -67,6 +67,11 @@ Check **everything**:
 lab python -m pytest weeks/week-09/class-02/exercise/test_eval_harness.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -102,9 +107,12 @@ lab python -m pytest weeks/week-09/class-02/exercise/test_eval_harness.py -k ste
 
 ---
 
-### Step 1, Normalize
+### Step 1, Normalize (given)
 
-**Write:** `normalize_answer(s)`. Lowercase, strip punctuation, drop the articles
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `normalize_answer(s)`. Lowercase, strip punctuation, drop the articles
 `a`/`an`/`the`, collapse whitespace.
 
 This is the standard SQuAD normalization, so `"The Paris."` becomes `"paris"`.
@@ -121,9 +129,12 @@ This is the standard SQuAD normalization, so `"The Paris."` becomes `"paris"`.
 
 ---
 
-### Step 2, Exact match
+### Step 2, Exact match (given)
 
-**Write:** `exact_match(pred, gold)`, comparing normalized strings.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `exact_match(pred, gold)`, comparing normalized strings.
 
 **Done when:** `-k step2` gives `1 passed, 12 deselected`.
 
@@ -132,9 +143,12 @@ correct answer wrapped in a sentence as wrong, which is why Step 3 exists.
 
 ---
 
-### Step 3, Lenient containment
+### Step 3, Lenient containment (given)
 
-**Write:** `contains_answer(pred, gold)`, true when the normalized gold appears
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `contains_answer(pred, gold)`, true when the normalized gold appears
 as a **token**-substring of the normalized prediction.
 
 **Match on token boundaries, not raw substrings.** There is a dedicated test for
@@ -156,9 +170,12 @@ changes your headline number, and neither is "the truth".
 
 ---
 
-### Step 4, Aggregate
+### Step 4, Aggregate (given)
 
-**Write:** `accuracy(preds, golds)`, the fraction where `contains_answer` holds.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `accuracy(preds, golds)`, the fraction where `contains_answer` holds.
 Raise `ValueError` if the lengths differ.
 
 **The raise is the interesting part.** Silently zipping mismatched lists is the

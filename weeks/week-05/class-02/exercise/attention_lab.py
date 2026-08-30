@@ -16,9 +16,11 @@ import numpy as np
 
 
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    #   numerically-stable softmax along `axis` (subtract the max first)
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    x = x - np.max(x, axis=axis, keepdims=True)
+    e = np.exp(x)
+    return e / np.sum(e, axis=axis, keepdims=True)
 
 
 def scaled_dot_product_attention(Q, K, V, mask=None):
@@ -36,15 +38,18 @@ def causal_mask(T: int) -> np.ndarray:
 
 
 def split_heads(X, num_heads):
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    #   (T, d_model) -> (num_heads, T, d_head); reshape THEN transpose
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    T, d_model = X.shape
+    d_head = d_model // num_heads
+    return X.reshape(T, num_heads, d_head).transpose(1, 0, 2)
 
 
 def combine_heads(X):
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    #   (num_heads, T, d_head) -> (T, num_heads*d_head); exact inverse of split
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    num_heads, T, d_head = X.shape
+    return X.transpose(1, 0, 2).reshape(T, num_heads * d_head)
 
 
 def multi_head_attention(X, Wq, Wk, Wv, Wo, num_heads, mask=None):

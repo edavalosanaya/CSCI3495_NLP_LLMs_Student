@@ -64,24 +64,23 @@ def heatmap(weights: torch.Tensor, row_labels=None, col_labels=None) -> str:
 
     Use the shade ramp below: higher weight -> denser character.
     """
-    ramp = " .:-=+*#%@"  # 10 levels, light -> dark
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    ramp = " .:-=+*#%@"
     W = weights.detach()
     if W.ndim == 1:
         W = W.unsqueeze(0)
     rows, cols = W.shape
     lines = []
     if col_labels:
-        header = "      " + " ".join(f"{c[:4]:>4}" for c in col_labels)
-        lines.append(header)
+        lines.append("      " + " ".join(f"{c[:4]:>4}" for c in col_labels))
     for r in range(rows):
         label = (row_labels[r] if row_labels else f"q{r}")[:5]
         cells = []
         for c in range(cols):
-            # TODO (STEP 3): implement. Check with: pytest -k step3
-            #   map W[r, c] in [0, 1] to an index 0..9 into `ramp` (clamp it,
-            #   rounding can reach 10), then append a 4-wide cell of that
-            #   shade character to `cells`.
-            raise NotImplementedError
+            level = int(round(float(W[r, c]) * (len(ramp) - 1)))
+            level = max(0, min(len(ramp) - 1, level))
+            cells.append(ramp[level] * 4)
         lines.append(f"{label:>5} " + " ".join(cells))
     return "\n".join(lines)
 

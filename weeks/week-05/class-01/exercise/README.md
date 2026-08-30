@@ -67,6 +67,11 @@ Check **everything**:
 lab python -m pytest weeks/week-05/class-01/exercise/test_attention.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -197,9 +202,12 @@ decoder gets a *different* blend at every step, chosen by the scores.
 
 ---
 
-### Step 3, Draw the heatmap
+### Step 3, Draw the heatmap (given)
 
-**Write:** the inner cell loop in `heatmap`. For each weight in `[0, 1]`, map it
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** the inner cell loop in `heatmap`. For each weight in `[0, 1]`, map it
 to an index into `ramp = " .:-=+*#%@"` (10 levels, light to dark) and append a
 **4-character-wide** cell of that shade.
 

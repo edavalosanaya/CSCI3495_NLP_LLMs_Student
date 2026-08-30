@@ -119,6 +119,11 @@ lab python -m pytest weeks/week-11/class-01/exercise/test_ctf.py -k step1 -q
 >
 > Use pytest to catch regressions; use the demo to confirm your own work.
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -126,9 +131,12 @@ finishing the idea beats staring at a blank function.
 
 ---
 
-### Step 1, Leak the secret
+### Step 1, Leak the secret (given)
 
-**Write:** `attack_leak_secret()`, returning a user message that makes
+**Given, already written for you.** A working attack string is in `ctf.py`.
+Run it, read why it lands, and try to write a second one of your own.
+
+**What it does:** `attack_leak_secret()`, returning a user message that makes
 `naive_model` print `SECRET_TOKEN`.
 
 Read `naive_model` first. It is deliberately gullible: it obeys instructions
@@ -145,9 +153,12 @@ PHASE 1: attacking the UNGUARDED assistant
 
 ---
 
-### Step 2, Force a refund
+### Step 2, Force a refund (given)
 
-**Write:** `attack_force_refund()`, returning a message that makes the assistant
+**Given, already written for you.** Same deal: the attack is in `ctf.py`.
+Run it and read it. The guards in Steps 3 and 4 are yours to write.
+
+**What it does:** `attack_force_refund()`, returning a message that makes the assistant
 call the **refund** tool on order **1001** with no human approval.
 
 **Done when** the demo shows the tool firing:
@@ -195,9 +206,12 @@ every other layer has been bypassed.
 
 ---
 
-### Step 5, Allow-list the tools
+### Step 5, Allow-list the tools (given)
 
-**Write:** `tool_allowed(tool, approved)`. Safe tools always run; privileged
+**Given, already written for you.** `tool_allowed` is in `ctf.py`; read it and
+run its check.
+
+**What it does:** `tool_allowed(tool, approved)`. Safe tools always run; privileged
 tools require `approved=True`; unknown tools are always denied.
 
 **Deny by default.** An unknown tool name must return False, not True. A

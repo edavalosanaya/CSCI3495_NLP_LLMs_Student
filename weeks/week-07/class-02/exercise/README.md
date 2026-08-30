@@ -117,6 +117,11 @@ Check **everything**:
 lab python -m pytest weeks/week-07/class-02/exercise/test_scaling.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -142,9 +147,12 @@ a capital and a period. Reconciling that is Steps 1 and 2.
 
 ---
 
-### Step 1, Normalize
+### Step 1, Normalize (given)
 
-**Write:** `normalize(text)`. Lowercase, strip surrounding whitespace, and strip
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `normalize(text)`. Lowercase, strip surrounding whitespace, and strip
 surrounding punctuation.
 
 `text.strip().strip(string.punctuation + " ").lower()` does it. Note `str.strip`
@@ -178,9 +186,12 @@ silently decide what counts as a correct answer.
 
 ---
 
-### Step 2, Lenient matching
+### Step 2, Lenient matching (given)
 
-**Write:** `is_correct(model_output, target)`, true when the normalized target
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `is_correct(model_output, target)`, true when the normalized target
 appears **as a substring** of the normalized output.
 
 **Done when:**

@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. Set SCALING_FROM=solution
 to test the reference solution (used by the course sweep).
 """
 import importlib.util
+import inspect
 import math
 import os
 import sys
@@ -24,17 +25,6 @@ _spec = importlib.util.spec_from_file_location("scaling_under_test", _SRC)
 sc = importlib.util.module_from_spec(_spec)
 sys.modules["scaling_under_test"] = sc
 _spec.loader.exec_module(sc)
-
-
-def _implemented():
-    try:
-        sc.normalize("X")
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(not _implemented(), reason="scaling not implemented yet")
 
 
 def test_step1_normalize():

@@ -23,8 +23,14 @@ def cosine_similarity(u: list[float], v: list[float]) -> float:
 
     cos(u, v) = (u . v) / (||u|| * ||v||)
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    dot = sum(a * b for a, b in zip(u, v))
+    nu = math.sqrt(sum(a * a for a in u))
+    nv = math.sqrt(sum(b * b for b in v))
+    if nu == 0.0 or nv == 0.0:
+        return 0.0
+    return dot / (nu * nv)
 
 
 def contextual_vector(sentence: str, word: str):

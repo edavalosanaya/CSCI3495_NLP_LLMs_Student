@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  EMB_FROM=solution  (used by the course test sweep).
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -24,20 +25,6 @@ _spec = importlib.util.spec_from_file_location("emb_under_test", _SRC)
 em = importlib.util.module_from_spec(_spec)
 sys.modules["emb_under_test"] = em
 _spec.loader.exec_module(em)
-
-
-def _implemented():
-    try:
-        em.cosine(np.array([1.0, 0.0]), np.array([1.0, 0.0]))
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="embeddings not implemented yet (fill in the TODOs)",
-)
 
 
 def test_step1_cosine_values():

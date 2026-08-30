@@ -100,6 +100,11 @@ Check **everything**:
 lab python -m pytest weeks/week-11/class-02/exercise/test_rag.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -107,9 +112,12 @@ finishing the idea beats staring at a blank function.
 
 ---
 
-### Step 1, Chunk the documents
+### Step 1, Chunk the documents (given)
 
-**Write:** `chunk_documents(docs)`, splitting each document on blank lines into
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `chunk_documents(docs)`, splitting each document on blank lines into
 `Chunk` objects with sequential ids across the whole corpus.
 
 **Ids must be sequential across documents**, not restarted per document; the
@@ -149,9 +157,12 @@ it, a model handed irrelevant context will use it anyway.
 
 ---
 
-### Step 4, Verify citations
+### Step 4, Verify citations (given)
 
-**Write:** `verify_citations(answer, retrieved)`, returning the set of cited ids
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `verify_citations(answer, retrieved)`, returning the set of cited ids
 that actually appear among the retrieved chunks.
 
 **A citation the model invented is worse than no citation**, because it looks

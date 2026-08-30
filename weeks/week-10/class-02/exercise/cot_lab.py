@@ -42,8 +42,10 @@ def extract_answer(text: str) -> int | None:
     CoT replies put the final number at the end (e.g. 'the answer is 18').
     Hint: re.findall(r'-?\\d+', text) then take the last match.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    matches = re.findall(r"-?\d+", text)
+    return int(matches[-1]) if matches else None
 
 
 # ----------------------------- TODO 2 -----------------------------

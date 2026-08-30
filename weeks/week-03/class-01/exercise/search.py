@@ -12,6 +12,7 @@ CPU-only, deterministic, no network. Build TF-IDF and cosine yourself.
 from __future__ import annotations
 import math
 import re
+from collections import Counter
 
 # Tiny one-line "documents". Topics overlap on purpose.
 DOCS = [
@@ -42,9 +43,16 @@ def build_index(docs: list[str]) -> dict:
           "idf": {term: log(n / df)},     # inverse document frequency
         }
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    # df counts DOCUMENTS containing the term, not total occurrences.
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    tokenized = [tokenize(d) for d in docs]
+    n = len(docs)
+    df: Counter = Counter()
+    for toks in tokenized:
+        for term in set(toks):
+            df[term] += 1
+    idf = {term: math.log(n / df[term]) for term in df}
+    return {"docs": tokenized, "n": n, "df": dict(df), "idf": idf}
 
 
 def tfidf_vector(index: dict, tokens: list[str]) -> dict:
@@ -72,8 +80,16 @@ def search(index: dict, query: str, k: int = 3) -> list[tuple[int, float]]:
     Build the query's tf-idf vector, score it against every document's
     tf-idf vector, and return the k highest. Break ties by doc_id (ascending).
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    qvec = tfidf_vector(index, tokenize(query))
+    scored = []
+    for doc_id, toks in enumerate(index["docs"]):
+        dvec = tfidf_vector(index, toks)
+        scored.append((doc_id, cosine(qvec, dvec)))
+    # Sort by score descending, then doc_id ascending.
+    scored.sort(key=lambda x: (-x[1], x[0]))
+    return scored[:k]
 
 
 def _demo() -> None:

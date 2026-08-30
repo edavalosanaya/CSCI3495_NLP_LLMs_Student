@@ -26,19 +26,6 @@ sys.modules["ngram_under_test"] = ng
 _spec.loader.exec_module(ng)
 
 
-def _implemented():
-    try:
-        ng.count_ngrams(["a b c"], 2)
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="ngram_lm not implemented yet (fill in the TODOs)",
-)
-
 TRAIN = ["the cat sat", "the cat ran", "a cat sat"]
 
 

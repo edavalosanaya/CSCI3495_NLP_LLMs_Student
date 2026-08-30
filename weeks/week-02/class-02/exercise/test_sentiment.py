@@ -26,19 +26,6 @@ sys.modules["sentiment_under_test"] = sm
 _spec.loader.exec_module(sm)
 
 
-def _implemented():
-    try:
-        sm.train_nb(["a b"], ["pos"])
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="sentiment not implemented yet (fill in the TODOs)",
-)
-
 DOCS = [d for d, _ in sm.TRAIN]
 LABELS = [y for _, y in sm.TRAIN]
 

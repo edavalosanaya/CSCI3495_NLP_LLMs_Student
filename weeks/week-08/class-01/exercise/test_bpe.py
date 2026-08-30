@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  BPE_FROM=solution  (used by the course test sweep).
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -24,19 +25,6 @@ bpe = importlib.util.module_from_spec(_spec)
 sys.modules["bpe_under_test"] = bpe
 _spec.loader.exec_module(bpe)
 
-
-def _implemented(fn, *args):
-    try:
-        fn(*args)
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(bpe.build_vocab, ["low"]),
-    reason="bpe not implemented yet (fill in the TODOs)",
-)
 
 CORPUS = ["low low low low low", "lower lower", "newest newest newest", "widest"]
 

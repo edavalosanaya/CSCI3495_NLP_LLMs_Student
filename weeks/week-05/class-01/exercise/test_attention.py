@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  ATTN_FROM=solution
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -25,21 +26,6 @@ _spec = importlib.util.spec_from_file_location("attn_under_test", _SRC)
 at = importlib.util.module_from_spec(_spec)
 sys.modules["attn_under_test"] = at
 _spec.loader.exec_module(at)
-
-
-def _implemented() -> bool:
-    try:
-        m = at.AdditiveAttention(4)
-        m(torch.zeros(4), torch.eye(2, 4), torch.eye(2, 4))
-        at.heatmap(torch.tensor([[0.5, 0.5]]))
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(), reason="attention not implemented yet (fill in the TODOs)"
-)
 
 
 def test_step1_scores_shape():

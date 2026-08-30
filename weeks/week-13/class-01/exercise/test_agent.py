@@ -7,6 +7,7 @@ Default: run against the student exercise files. To check the reference
 solution (used by the course sweep): set  AGENT_FROM=solution
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -33,20 +34,6 @@ scripted = _load("scripted_llm")
 ScriptedLLM = scripted.ScriptedLLM
 ReflexiveLLM = scripted.ReflexiveLLM
 const = scripted.const
-
-
-def _implemented() -> bool:
-    try:
-        m = agent.Memory()
-        m.add("x")
-        return "x" in m.as_prompt()
-    except Exception:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(), reason="W13C1 agent not implemented yet (fill in the TODOs)"
-)
 
 
 # ----------------------------- memory -----------------------------

@@ -75,9 +75,14 @@ def quantize(w: torch.Tensor, bits: int) -> torch.Tensor:
       3. return q * scale  (the dequantized approximation, same shape/dtype)
     Returns w unchanged behavior at high bit-depth; coarse at low bit-depth.
     """
-    # TODO (STEP 5): implement symmetric quant-dequant.
-    #                Check with: pytest -k step5
-    raise NotImplementedError
+    # GIVEN (STEP 5): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    qmax = 2 ** (bits - 1) - 1
+    scale = w.abs().max() / qmax
+    if scale == 0:
+        return w.clone()
+    q = torch.round(w / scale).clamp(-qmax, qmax)
+    return q * scale
 
 
 def quant_error(w: torch.Tensor, bits: int) -> float:

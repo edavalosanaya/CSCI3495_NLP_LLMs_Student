@@ -100,6 +100,11 @@ Check **everything**:
 lab python -m pytest test_agent.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -163,9 +168,12 @@ loudly costs the agent one step; a tool that lies costs you the whole answer.
 
 ---
 
-### Step 2, The clock
+### Step 2, The clock (given)
 
-**Write:** `today(_arg)`. One line: return `datetime.date.today().isoformat()`.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `today(_arg)`. One line: return `datetime.date.today().isoformat()`.
 It ignores its argument, because the model will sometimes call `today[]` and
 sometimes `today[now]`.
 
@@ -176,9 +184,12 @@ memory. No prompt can tell the model what day it is; a two-line function can.
 
 ---
 
-### Step 3, The weather service
+### Step 3, The weather service (given)
 
-**Write:** `weather(arg)`, where `arg` looks like `"san antonio, yesterday"`.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `weather(arg)`, where `arg` looks like `"san antonio, yesterday"`.
 Split on the first comma. Normalise the city (strip whitespace and quotes,
 lowercase it, turn `_` into a space). Reject an unknown city with a message
 that **lists the known ones**. Use the provided `_day_offset(day)` for the date
@@ -206,9 +217,12 @@ same numbers whatever day you run it.
 
 ---
 
-### Step 4, Local search
+### Step 4, Local search (given)
 
-**Write:** `search(query)`. Score every `CORPUS` entry by how many words it
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `search(query)`. Score every `CORPUS` entry by how many words it
 shares with the query and return the best entry's text.
 
 **Done when:** `-k step4` gives `1 passed, 22 deselected`.

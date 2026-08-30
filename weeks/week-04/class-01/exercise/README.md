@@ -70,6 +70,11 @@ Check **everything**:
 lab python -m pytest weeks/week-04/class-01/exercise/test_mlp_classifier.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -106,9 +111,12 @@ model will ever know.
 
 ---
 
-### Step 1, Average the embeddings
+### Step 1, Average the embeddings (given)
 
-**Write:** the last line of `embed_document`. `vectors` already holds the
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** the last line of `embed_document`. `vectors` already holds the
 embedding rows for this document, shape `(num_tokens, embedding_dim)`. Collapse
 it to a single vector by averaging **over the token dimension**.
 
@@ -187,9 +195,15 @@ nonlinearity is what makes it a *deep* network.
 
 ---
 
-### Step 3, The training loop
+### Step 3, The training loop (given)
 
-**Write:** the five lines inside `train`'s loop, in this order:
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+It builds on the functions from the earlier steps, so its check reports
+`skipped` until you have written those.
+
+**What it does:** the five lines inside `train`'s loop, in this order:
 
 ```
 optimizer.zero_grad()

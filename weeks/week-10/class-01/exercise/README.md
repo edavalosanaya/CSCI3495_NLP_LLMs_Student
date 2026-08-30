@@ -58,6 +58,11 @@ Check **everything**:
 lab python -m pytest weeks/week-10/class-01/exercise/test_prompt_lab.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -96,9 +101,12 @@ wrong word. Keep it in mind when your scores look strange.
 
 ---
 
-### Step 1, Accuracy
+### Step 1, Accuracy (given)
 
-**Write:** `accuracy(preds, golds)`, exact-match accuracy over two label lists.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `accuracy(preds, golds)`, exact-match accuracy over two label lists.
 
 **Done when:**
 

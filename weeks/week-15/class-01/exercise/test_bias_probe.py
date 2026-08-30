@@ -31,20 +31,6 @@ sys.modules["bias_probe_under_test"] = bp
 _spec.loader.exec_module(bp)
 
 
-def _implemented():
-    try:
-        bp.cosine(np.array([1.0, 0.0]), np.array([1.0, 0.0]))
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="bias_probe not implemented yet (fill in the TODOs)",
-)
-
-
 # ---- cosine ----
 
 def test_step1_cosine_identical_is_one():

@@ -29,21 +29,6 @@ sys.modules["workflow_under_test"] = wf
 _spec.loader.exec_module(wf)
 
 
-# Skip the whole module gracefully if the student hasn't implemented yet.
-def _implemented():
-    try:
-        wf.route("hi", lambda p: "summarize")
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(),
-    reason="workflow not implemented yet (fill in the TODOs)",
-)
-
-
 class MockLLM:
     """A canned, scriptable LLM. Returns `router_reply` for routing prompts and
     `worker_reply` for everything else; records every prompt it sees."""

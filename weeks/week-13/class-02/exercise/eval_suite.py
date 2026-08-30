@@ -53,19 +53,28 @@ def is_correct(predicted: Optional[float], gold: float, tol: float = 1e-4) -> bo
     different ways. Tolerance is relative for big numbers so 1596 vs 1596.0001
     does not fail.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    # None is never correct. Otherwise compare numerically with a tolerance
-    # that scales with the magnitude of `gold`.
-    raise NotImplementedError
+    # GIVEN (STEP 1): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    if predicted is None:
+        return False
+    return abs(predicted - gold) <= max(tol, abs(gold) * tol)
 
 
 def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result:
     """Run one strategy on one problem. Reflexion gets the evaluator to react to."""
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    # Reflexion needs an EXTERNAL evaluator: build a feedback_fn(answer) that
-    # returns (ok, message) and pass it in kw. Then run fn(...) and pack the
-    # Run into a Result, scoring it with is_correct.
-    raise NotImplementedError
+    # GIVEN (STEP 2): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    if name.startswith("Reflexion"):
+        def feedback(ans):
+            if is_correct(ans, problem.answer):
+                return True, "Correct."
+            return False, (f"Wrong: you answered {ans}. Recheck each arithmetic "
+                           "step with the calculator.")
+        kw = {**kw, "feedback_fn": feedback}
+    run = fn(problem.question, llm, **kw)
+    return Result(problem.pid, name, run.answer,
+                  is_correct(run.answer, problem.answer),
+                  run.calls, run.steps, run.attempts, run.trace)
 
 
 def run_matrix(problems: list[Problem], strategies: dict, llm,
@@ -76,13 +85,15 @@ def run_matrix(problems: list[Problem], strategies: dict, llm,
 
 
 def success_rate(results: list[Result]) -> float:
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return sum(r.correct for r in results) / len(results) if results else 0.0
 
 
 def avg_calls(results: list[Result]) -> float:
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    return sum(r.calls for r in results) / len(results) if results else 0.0
 
 
 def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:

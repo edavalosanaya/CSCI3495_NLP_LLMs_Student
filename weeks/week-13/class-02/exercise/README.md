@@ -62,6 +62,11 @@ command below runs without its `lab` prefix:
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course bash
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes on a step? The reference solution and a
 step-by-step `WALKTHROUGH.md` are in `../solutions/`. **These labs are not
 graded**, so reading them is not cheating: getting unstuck and finishing the
@@ -81,9 +86,12 @@ not edit them, until the stretch goals.
 
 ---
 
-### Step 1, Score an answer
+### Step 1, Score an answer (given)
 
-**Write:** `is_correct(predicted, gold, tol)` in `eval_suite.py`. `None` is never
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `is_correct(predicted, gold, tol)` in `eval_suite.py`. `None` is never
 correct; otherwise compare numerically with a tolerance that scales with the
 size of `gold`.
 
@@ -96,9 +104,12 @@ looking for a bug in the agent that is actually in your ruler.
 
 ---
 
-### Step 2, Evaluate one run
+### Step 2, Evaluate one run (given)
 
-**Write:** `evaluate_one(problem, name, fn, llm, **kw)`. Run the strategy, score
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `evaluate_one(problem, name, fn, llm, **kw)`. Run the strategy, score
 it, and pack the `Run` into a `Result` **including `calls`**, which is what the
 run cost.
 
@@ -126,9 +137,12 @@ makes a 20-problem comparison trustworthy.
 
 ---
 
-### Step 4, Two metrics, not one
+### Step 4, Two metrics, not one (given)
 
-**Write:** `success_rate(results)` and `avg_calls(results)`. Both must return
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `success_rate(results)` and `avg_calls(results)`. Both must return
 `0.0` for an empty list rather than dividing by zero.
 
 **Done when:** `-k step4` gives `2 passed, 15 deselected`.

@@ -116,8 +116,9 @@ one that feeds pure garbage.
 
 ### Step 2, The workers
 
-**Write:** `worker_summarize`, `worker_translate`, `worker_extract`. Each prompts
-the LLM for its one job and returns the reply.
+**Write:** `worker_summarize`. `worker_translate` and `worker_extract` are
+written for you: read them first, then write the third the same way. Each worker
+prompts the LLM for its one job and returns the reply.
 
 **Each worker gets its own focused prompt**, which is the entire argument for the
 routing pattern: three small, testable prompts beat one prompt that tries to do

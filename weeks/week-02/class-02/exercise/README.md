@@ -71,6 +71,11 @@ Check **everything**:
 lab python -m pytest weeks/week-02/class-02/exercise/test_sentiment.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -207,9 +212,15 @@ is exactly what a threshold knob (see the stretch goals) would let you tune.
 
 ---
 
-### Step 3, Predict
+### Step 3, Predict (given)
 
-**Write:** `predict(model, tokens)`, returning the class with the highest score.
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+It builds on the functions from the earlier steps, so its check reports
+`skipped` until you have written those.
+
+**What it does:** `predict(model, tokens)`, returning the class with the highest score.
 
 This is a one-liner over `score`. `max(scores, key=scores.get)` does it.
 
@@ -240,9 +251,12 @@ correctly.
 
 ---
 
-### Step 4, Evaluate
+### Step 4, Evaluate (given)
 
-**Write:** `prf(gold, pred, target="pos")`, returning
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `prf(gold, pred, target="pos")`, returning
 `{"precision": p, "recall": r, "f1": f1}` for the target class.
 
 Count three things over the paired lists:

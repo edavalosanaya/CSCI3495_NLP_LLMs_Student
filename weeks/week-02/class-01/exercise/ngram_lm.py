@@ -12,6 +12,7 @@ Everything is CPU-only and deterministic (we seed the RNG). No network needed.
 from __future__ import annotations
 import random
 from collections import defaultdict
+import math
 
 BOS, EOS = "<s>", "</s>"
 
@@ -83,10 +84,21 @@ def generate(model: dict, n: int, max_len: int = 20, seed: int = 0) -> list[str]
     Stop at EOS or after max_len words. Return the generated words
     (WITHOUT the BOS/EOS padding).
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    # Use a LOCAL random.Random(seed), and iterate sorted(model["vocab"]),
-    # or the same seed will not reproduce the same sentence.
-    raise NotImplementedError
+    # GIVEN (STEP 3): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    rng = random.Random(seed)
+    words = sorted(model["vocab"])  # sorted for determinism
+    context = (BOS,) * (n - 1)
+    out: list[str] = []
+    for _ in range(max_len):
+        weights = [prob(model, context, w) for w in words]
+        nxt = rng.choices(words, weights=weights, k=1)[0]
+        if nxt == EOS:
+            break
+        out.append(nxt)
+        if n > 1:
+            context = (context + (nxt,))[1:]
+    return out
 
 
 def perplexity(model: dict, n: int, sentences: list[str]) -> float:
@@ -97,8 +109,20 @@ def perplexity(model: dict, n: int, sentences: list[str]) -> float:
     Sum log-probs over every predicted token (the EOS counts; BOS padding
     does not). N is the total number of predicted tokens. Use math.log / math.exp.
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    raise NotImplementedError
+    # GIVEN (STEP 4): written for you. Read it, run its check, and use
+    # it as the pattern for the steps you do write.
+    log_sum = 0.0
+    count = 0
+    for s in sentences:
+        toks = pad(tokenize(s), n)
+        for i in range(n - 1, len(toks)):
+            context = tuple(toks[i - n + 1 : i])
+            word = toks[i]
+            log_sum += math.log(prob(model, context, word))
+            count += 1
+    if count == 0:
+        return float("inf")
+    return math.exp(-log_sum / count)
 
 
 def _demo() -> None:

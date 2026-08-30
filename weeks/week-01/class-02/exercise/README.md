@@ -77,6 +77,11 @@ Check **everything**:
 lab python -m pytest weeks/week-01/class-02/exercise/test_text_tools.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -95,12 +100,15 @@ lab python
 ```python
 >>> import sys; sys.path.insert(0, "weeks/week-01/class-02/exercise")
 >>> import text_tools
->>> text_tools.normalize("hi")
+>>> text_tools.normalize("  Hi   THERE ")
+'hi there'
+>>> text_tools.tokenize("hi")
 NotImplementedError
 ```
 
-That error is the starting line, not a bug. Every function raises it until you
-write the body.
+`normalize` is written for you, so it answers. `tokenize` raises, and that error
+is the starting line, not a bug: every function you still have to write raises
+it until you fill in the body.
 
 While you are here, get a feel for the one library you need:
 
@@ -117,9 +125,12 @@ are most of Steps 1 to 3.
 
 ---
 
-### Step 1, Normalize
+### Step 1, Normalize (given)
 
-**Write:** `normalize(text)`. Lowercase the text, collapse every run of
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `normalize(text)`. Lowercase the text, collapse every run of
 whitespace (spaces, tabs, newlines) to a single space, and strip the ends.
 
 One `re.sub` plus `.lower()` and `.strip()` is enough. Note `\s+` matches a
@@ -197,9 +208,12 @@ statistically-learned tokenizer (BPE) chooses instead.
 
 ---
 
-### Step 3, Extract
+### Step 3, Extract (given)
 
-**Write:** `extract(text)`. Return `{"emails": [...], "urls": [...], "mentions": [...]}`
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `extract(text)`. Return `{"emails": [...], "urls": [...], "mentions": [...]}`
 found in the **raw** text (do not normalize first, URLs are case-sensitive).
 
 Three separate patterns, one per key. Starting points:

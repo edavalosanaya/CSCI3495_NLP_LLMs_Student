@@ -7,6 +7,7 @@ Runs against the student's exercise file by default. To check the reference
 solution, set:  MLP_FROM=solution
 """
 import importlib.util
+import inspect
 import os
 import sys
 from pathlib import Path
@@ -25,21 +26,6 @@ _spec = importlib.util.spec_from_file_location("mlp_under_test", _SRC)
 mc = importlib.util.module_from_spec(_spec)
 sys.modules["mlp_under_test"] = mc
 _spec.loader.exec_module(mc)
-
-
-def _implemented() -> bool:
-    try:
-        vocab = mc.build_vocab(["a b c"])
-        emb = mc.nn.Embedding(len(vocab), 4)
-        mc.embed_document("a b", vocab, emb)
-        return True
-    except NotImplementedError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _implemented(), reason="mlp_classifier not implemented yet (fill in the TODOs)"
-)
 
 
 def test_step0_vocab_has_unk_at_zero():

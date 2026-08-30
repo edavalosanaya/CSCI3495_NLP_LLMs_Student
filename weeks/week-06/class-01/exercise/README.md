@@ -75,6 +75,11 @@ Check **everything**:
 lab python -m pytest weeks/week-06/class-01/exercise/test_contextual.py -q
 ```
 
+Some steps are **already written for you** and marked `(given)`. Run their
+check, read the code, and use it as the pattern for the steps you do write. A
+step you have not written yet reports `skipped`, never a failure, so the only
+red you will ever see is a real wrong answer.
+
 Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
 matching step. The full reference solution sits in `../solutions/` too. **These
 labs are not graded**, so reading them is not cheating: getting unstuck and
@@ -112,9 +117,12 @@ the head weights are discarded. It is not an error.
 
 ---
 
-### Step 1, Cosine similarity
+### Step 1, Cosine similarity (given)
 
-**Write:** `cosine_similarity(u, v)` for two plain Python lists. Use `math` and
+**Given, already written for you.** Read it in the starter, run its check,
+and use it as the pattern for the steps you do write.
+
+**What it does:** `cosine_similarity(u, v)` for two plain Python lists. Use `math` and
 built-ins, no numpy. Return 0.0 if either norm is 0.
 
 You have written this twice already (W3C1 on dicts, W3C2 on numpy arrays). This
