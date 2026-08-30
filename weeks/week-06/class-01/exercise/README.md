@@ -20,8 +20,8 @@ contextual one. Same word, two sentences: does the vector change?
 We use a **tiny** BERT (`prajjwal1/bert-tiny`) so everything runs on a laptop CPU
 in seconds. The first run downloads a few MB, then it is cached.
 
-**You will write three functions** in `contextual_embeddings.py`, one per step,
-each with its own check.
+**You will write two functions** in `contextual_embeddings.py`. The other one is
+already written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 
@@ -29,7 +29,8 @@ each with its own check.
 
 ![Contextual idea: run a deep LM over the sentence; its hidden states ARE the representations](../lecture/visuals/contextual-idea.png)
 
-The three functions you will write are exactly these quantities:
+The three functions in the lab, one given and two yours to write, are exactly
+these quantities:
 
 $$\mathrm{cosine}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\lVert\mathbf{u}\rVert \, \lVert\mathbf{v}\rVert}$$
 

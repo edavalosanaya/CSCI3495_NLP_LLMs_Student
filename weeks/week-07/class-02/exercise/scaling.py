@@ -67,4 +67,9 @@ def _demo() -> None:
 
 
 if __name__ == "__main__":
-    _demo()
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        _demo()
+    except NotImplementedError:
+        print("scaling.py is not finished yet: fill in the next TODO in this file, then re-run.")

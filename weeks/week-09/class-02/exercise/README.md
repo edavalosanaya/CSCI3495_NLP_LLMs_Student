@@ -1,13 +1,16 @@
 # W9C2 Lab: Build an Evaluation Harness
 
-A benchmark is **dataset + metric + protocol**. You implement the metric and
+A benchmark is **dataset + metric + protocol**. This lab builds the metric and
 protocol halves:
 
-- **Steps 1 to 5, factuality scoring:** normalize answers, score them two ways,
-  aggregate, and flag a **hallucination** on a question that has no answer.
-- **Steps 6 to 7, LLM-as-judge:** when there is no gold answer, people ask a
-  model to judge. Judges are biased. You will build the **swap test** that
-  catches position bias and only trusts verdicts that survive it.
+- **Steps 1 to 4, the scoring plumbing (given):** normalize answers, score them
+  two ways, aggregate. These are written for you. Skim them, run their checks,
+  and see the shape a metric function takes.
+- **Step 5, the hallucination flag:** yours. Catch a model inventing an answer to
+  a question that has none.
+- **Steps 6 to 7, LLM-as-judge:** yours. When there is no gold answer, people ask
+  a model to judge. Judges are biased. You build the **swap test** that catches
+  position bias and only trusts verdicts that survive it.
 
 Everything is fully testable **without any model**. The live runs degrade
 gracefully if Ollama is down.

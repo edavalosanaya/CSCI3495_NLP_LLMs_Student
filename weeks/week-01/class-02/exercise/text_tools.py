@@ -3,7 +3,7 @@
 Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-01/class-02/exercise/test_text_tools.py -k step1 -q
 
-When all four steps are done, the whole suite is green:
+When every step is done, the whole suite is green:
     python -m pytest weeks/week-01/class-02/exercise/test_text_tools.py -q
 """
 from __future__ import annotations

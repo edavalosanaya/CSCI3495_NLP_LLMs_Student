@@ -4,7 +4,7 @@
 Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-02/class-01/exercise/test_ngram_lm.py -k step1 -q
 
-When all four steps are done, the demo runs:
+When every step is done, the demo runs:
     python weeks/week-02/class-01/exercise/ngram_lm.py
 
 Everything is CPU-only and deterministic (we seed the RNG). No network needed.
@@ -145,4 +145,4 @@ if __name__ == "__main__":
     try:
         _demo()
     except NotImplementedError:
-        print("ngram_lm.py is not implemented yet, fill in the TODOs, then re-run.")
+        print("ngram_lm.py is not finished yet: fill in the next TODO in this file, then re-run.")

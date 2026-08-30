@@ -4,7 +4,7 @@
 Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-10/class-01/exercise/test_prompt_lab.py -k step1 -q
 
-When all three steps are done, run the full experiment (real local model if
+When every step is done, run the full experiment (real local model if
 available, else a stub):
     python weeks/week-10/class-01/exercise/prompt_lab.py
 

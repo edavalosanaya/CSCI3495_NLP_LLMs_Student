@@ -95,9 +95,14 @@ def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
 
 
 if __name__ == "__main__":
-    demo = ["low low low low low", "lower lower", "newest newest newest", "widest"]
-    merges = train_bpe(demo, num_merges=10)
-    print("Learned merges (in order):")
-    for i, m in enumerate(merges, 1):
-        print(f"  {i:2d}. {m[0]!r} + {m[1]!r}")
-    print("\nEncoding 'lowest':", encode_word("lowest", merges))
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        demo = ["low low low low low", "lower lower", "newest newest newest", "widest"]
+        merges = train_bpe(demo, num_merges=10)
+        print("Learned merges (in order):")
+        for i, m in enumerate(merges, 1):
+            print(f"  {i:2d}. {m[0]!r} + {m[1]!r}")
+        print("\nEncoding 'lowest':", encode_word("lowest", merges))
+    except NotImplementedError:
+        print("bpe.py is not finished yet: fill in the next TODO in this file, then re-run.")

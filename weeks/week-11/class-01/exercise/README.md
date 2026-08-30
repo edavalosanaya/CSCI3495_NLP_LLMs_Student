@@ -263,7 +263,8 @@ possible version of that constraint.
 ## Companion lab: structured output (`json_lab.py`)
 
 Same idea from the other direction: output validation **is** a security control,
-and it is the machinery `guard_output` uses. Three steps, its own test file.
+and it is the machinery `guard_output` uses. Three steps and its own test file;
+you write the first two, the third is given.
 
 - **Step 1, `extract_json(text)`**: pull the JSON object out of a reply that may
   wrap it in prose or a ``` fence. Raise if there is none.
@@ -272,10 +273,11 @@ and it is the machinery `guard_output` uses. Three steps, its own test file.
   Watch the bool-is-not-int case: `True` passes `isinstance(x, int)` in Python,
   and there is a test for it.
   `-k step2` gives `4 passed, 4 deselected`.
-- **Step 3, `generate_valid(model, schema, max_retries)`**: ask, validate, and on
-  failure **re-ask with the error message included**. That feedback loop is the
-  whole technique.
-  `-k step3` gives `1 passed, 7 deselected`.
+- **Step 3, `generate_valid(model, schema, max_retries)`** (given): ask, validate,
+  and on failure **re-ask with the error message included**. That feedback loop is
+  the whole technique, and it is written for you: read it once Steps 1 and 2 work.
+  It calls both of them, so `-k step3` reports `1 skipped, 7 deselected` until they
+  do, then `1 passed, 7 deselected`.
 
 ```bash
 lab python -m pytest weeks/week-11/class-01/exercise/test_json_lab.py -q

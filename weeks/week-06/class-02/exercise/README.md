@@ -6,8 +6,8 @@ LM) and **fine-tuning** (adapt to a task).
 Everything uses a **tiny** model (`prajjwal1/bert-tiny`) so it runs on a laptop
 CPU in **seconds**. First run downloads a few MB, then caches.
 
-**You will write two functions** in `bert_mlm.py`, one per step, each with its own
-check.
+**You will write two functions** in `bert_mlm.py`, one per step, each with its
+own check.
 
 > **In-class competition between the two steps (pairs, ~10 min): MASK roulette.**
 > Using your Step 1 `top_mask_predictions`, each pair crafts a sentence with one

@@ -9,8 +9,8 @@ Can you *see* scaling on a laptop? Run the **same task suite** on two or more
 models of different sizes and compare accuracy. Bigger should do at least as
 well.
 
-**You will write four functions** in `scaling.py`, one per step, each with its own
-check. Then `measure.py` drives real Ollama models.
+**You will write two functions** in `scaling.py`. The other two are already
+written for you, to read and run. Every step has its own check. Then `measure.py` drives real Ollama models.
 
 ## Before you code: the picture and the math
 

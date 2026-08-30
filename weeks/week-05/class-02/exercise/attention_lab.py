@@ -68,10 +68,10 @@ def main() -> int:
     try:
         Q = K = V = X
         out, w = scaled_dot_product_attention(Q, K, V)
-        print("MILESTONE 1  softmax + scaled dot-product attention: WORKS")
+        print("MILESTONE 1  scaled dot-product attention: WORKS")
         print("  weights row 0:", np.round(w[0], 3), " (sums to", round(float(w[0].sum()), 3), ")")
     except NotImplementedError:
-        print("MILESTONE 1  softmax / scaled_dot_product_attention: not implemented yet")
+        print("MILESTONE 1  scaled_dot_product_attention: not written yet (Step 2)")
         return 0
 
     try:
@@ -82,7 +82,7 @@ def main() -> int:
         for row in np.round(wm, 2):
             print("   ", row)
     except NotImplementedError:
-        print("MILESTONE 2  causal_mask: not implemented yet, keep going")
+        print("MILESTONE 2  causal_mask: not written yet (Step 3), keep going")
         return 0
 
     try:
@@ -91,7 +91,7 @@ def main() -> int:
         print("MILESTONE 3  multi-head attention: WORKS, output shape", out.shape)
         print("\nAll milestones run. Now make the tests pass.")
     except NotImplementedError:
-        print("MILESTONE 3  split/combine heads / multi_head_attention: not implemented yet")
+        print("MILESTONE 3  multi_head_attention: not written yet (Step 5)")
     return 0
 
 

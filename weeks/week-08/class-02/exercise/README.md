@@ -3,8 +3,8 @@
 You will experience RLHF's Stage 2 from the inside: **label preference data**,
 then **fit a reward model** to your labels and watch it recover your ranking.
 
-**You will write three functions** in `preferences.py`, one per step, each with
-its own check.
+**You will write two functions** in `preferences.py`. The other one is already
+written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 

@@ -6,8 +6,8 @@
 You just saw the Transformer's core. Now build it, in NumPy only. This is the
 literal math behind every LLM you will use this term.
 
-**You will write six functions** in `attention_lab.py` across five steps, each
-with its own check.
+**You will write three functions** in `attention_lab.py`. The other three are
+already written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 
@@ -167,7 +167,7 @@ lab python weeks/week-05/class-02/exercise/attention_lab.py
 ```
 
 ```
-MILESTONE 1  softmax + scaled dot-product attention: WORKS
+MILESTONE 1  scaled dot-product attention: WORKS
   weights row 0: [0.598 0.104 0.2   0.097]  (sums to 1.0 )
 ```
 

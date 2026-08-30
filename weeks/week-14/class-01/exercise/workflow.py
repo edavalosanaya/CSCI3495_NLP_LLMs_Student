@@ -119,19 +119,24 @@ def make_ollama_llm(model: str = "qwen2.5:0.5b") -> LLM:
 
 
 if __name__ == "__main__":
-    # Tiny demo with a real model if available, else a canned mock.
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
     try:
-        llm = make_ollama_llm()
-        llm("ping")  # smoke test
-        print("Using local Ollama model.\n")
-    except Exception as e:  # noqa: BLE001
-        print(f"(Ollama unavailable: {e}), using a canned mock LLM.\n")
+        # Tiny demo with a real model if available, else a canned mock.
+        try:
+            llm = make_ollama_llm()
+            llm("ping")  # smoke test
+            print("Using local Ollama model.\n")
+        except Exception as e:  # noqa: BLE001
+            print(f"(Ollama unavailable: {e}), using a canned mock LLM.\n")
 
-        def llm(prompt: str) -> str:  # type: ignore[misc]
-            if "label" in prompt.lower() or "classify" in prompt.lower():
-                return "summarize"
-            return "[mock] response"
+            def llm(prompt: str) -> str:  # type: ignore[misc]
+                if "label" in prompt.lower() or "classify" in prompt.lower():
+                    return "summarize"
+                return "[mock] response"
 
-    for q in ["Summarize the French Revolution.", "Translate 'hello' for me."]:
-        r = run_workflow(q, llm)
-        print(f"Q: {q}\n -> [{r.label}] via {r.handled_by}: {r.output}\n")
+        for q in ["Summarize the French Revolution.", "Translate 'hello' for me."]:
+            r = run_workflow(q, llm)
+            print(f"Q: {q}\n -> [{r.label}] via {r.handled_by}: {r.output}\n")
+    except NotImplementedError:
+        print("workflow.py is not finished yet: fill in the next TODO in this file, then re-run.")

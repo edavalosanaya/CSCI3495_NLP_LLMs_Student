@@ -6,7 +6,7 @@ Input recipe: tokenize -> look up embeddings -> AVERAGE them -> feed an MLP.
 Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-04/class-01/exercise/test_mlp_classifier.py -k step1 -q
 
-When all three steps are done, the demo runs:
+When every step is done, the demo runs:
     python weeks/week-04/class-01/exercise/mlp_classifier.py
 
 Everything is tiny and CPU-only.
@@ -128,4 +128,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        raise SystemExit(main())
+    except NotImplementedError:
+        print("mlp_classifier.py is not finished yet: fill in the next TODO in this file, then re-run.")

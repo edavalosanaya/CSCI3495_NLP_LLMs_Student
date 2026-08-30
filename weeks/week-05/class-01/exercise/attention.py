@@ -138,4 +138,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        raise SystemExit(main())
+    except NotImplementedError:
+        print("attention.py is not finished yet: fill in the next TODO in this file, then re-run.")

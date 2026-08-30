@@ -4,8 +4,8 @@ Train a baby language model on a corpus, make it **babble**, and score how good
 it is with **perplexity**. Then face off against your classmates in the
 **Babble-Off**.
 
-**You will write four functions** in `ngram_lm.py`, one per step, each with its
-own check.
+**You will write two functions** in `ngram_lm.py`. The other two are already
+written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 
@@ -96,7 +96,7 @@ lab python weeks/week-02/class-01/exercise/ngram_lm.py
 You should see:
 
 ```
-ngram_lm.py is not implemented yet, fill in the TODOs, then re-run.
+ngram_lm.py is not finished yet: fill in the next TODO in this file, then re-run.
 ```
 
 Now open a Python shell and try the three helpers that are **already written**

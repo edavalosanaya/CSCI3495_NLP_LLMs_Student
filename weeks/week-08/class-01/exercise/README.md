@@ -4,8 +4,8 @@ Build **Byte-Pair Encoding** end to end: learn merges from a corpus, then use
 them to tokenize a word the tokenizer has never seen. Standard library only, no
 network.
 
-**You will write five functions** in `bpe.py` across five steps, each with its own
-check.
+**You will write three functions** in `bpe.py`. The other two are already
+written for you, to read and run. Every step has its own check.
 
 **The representation used throughout:**
 

@@ -4,8 +4,8 @@ Build the four text tools that every later week leans on: cleaning text,
 splitting it into tokens, pulling structured things out of it with regexes, and
 measuring how far apart two strings are.
 
-**You will write four functions** in `text_tools.py`, one per step, each with its
-own check.
+**You will write two functions** in `text_tools.py`. The other two are already
+written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 

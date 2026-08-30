@@ -56,8 +56,8 @@ The algorithm is "just doing math." Discuss, then share out:
 Do **vector arithmetic on meaning**: find nearest neighbors, solve analogies
 (*man : king :: woman : ?*), and **probe embeddings for social bias**.
 
-**You will write four functions** in `embeddings.py`, one per step, each with its
-own check. Step 1 is the foundation; Steps 2 to 4 each build on it independently,
+**You will write two functions** in `embeddings.py`. The other two are already
+written for you, to read and run. Every step has its own check. Step 1 is the foundation; Steps 2 to 4 each build on it independently,
 so if one fights you, move on.
 
 ## The data
@@ -125,7 +125,7 @@ lab python weeks/week-03/class-02/exercise/embeddings.py
 ```
 
 ```
-embeddings.py is not implemented yet, fill in the TODOs, then re-run.
+embeddings.py is not finished yet: fill in the next TODO in this file, then re-run.
 ```
 
 Look at the space you are about to explore:

@@ -9,7 +9,7 @@ Two ideas, hands-on, in pure PyTorch (no downloads):
 Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-09/class-01/exercise/test_lora_lab.py -k step1 -q
 
-When all five steps are done, the demo runs:
+When every step is done, the demo runs:
     python weeks/week-09/class-01/exercise/lora_lab.py
 
 Everything is tiny and seeded so it finishes in well under a minute on CPU.
@@ -91,22 +91,27 @@ def quant_error(w: torch.Tensor, bits: int) -> float:
 
 
 if __name__ == "__main__":
-    torch.manual_seed(0)
-    # --- Part A: LoRA fine-tune on a toy linear task ---
-    in_f, out_f, n = 8, 4, 64
-    X = torch.randn(n, in_f)
-    true_W = torch.randn(out_f, in_f)
-    Y = X @ true_W.T  # target the adapter must help fit
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        torch.manual_seed(0)
+        # --- Part A: LoRA fine-tune on a toy linear task ---
+        in_f, out_f, n = 8, 4, 64
+        X = torch.randn(n, in_f)
+        true_W = torch.randn(out_f, in_f)
+        Y = X @ true_W.T  # target the adapter must help fit
 
-    model = LoRALinear(in_f, out_f, r=4, alpha=8)
-    losses = train_lora(model, X, Y, steps=200)
-    print(f"LoRA loss: {losses[0]:.3f} -> {losses[-1]:.3f}")
-    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    frozen = sum(p.numel() for p in model.parameters() if not p.requires_grad)
-    print(f"Trainable params: {trainable}  |  Frozen params: {frozen}")
+        model = LoRALinear(in_f, out_f, r=4, alpha=8)
+        losses = train_lora(model, X, Y, steps=200)
+        print(f"LoRA loss: {losses[0]:.3f} -> {losses[-1]:.3f}")
+        trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        frozen = sum(p.numel() for p in model.parameters() if not p.requires_grad)
+        print(f"Trainable params: {trainable}  |  Frozen params: {frozen}")
 
-    # --- Part B: quantization bake-off ---
-    w = torch.randn(1000)
-    print("\nQuantization bake-off (mean abs error vs original):")
-    for bits in (8, 4, 2):
-        print(f"  {bits}-bit: error = {quant_error(w, bits):.4f}")
+        # --- Part B: quantization bake-off ---
+        w = torch.randn(1000)
+        print("\nQuantization bake-off (mean abs error vs original):")
+        for bits in (8, 4, 2):
+            print(f"  {bits}-bit: error = {quant_error(w, bits):.4f}")
+    except NotImplementedError:
+        print("lora_lab.py is not finished yet: fill in the next TODO in this file, then re-run.")

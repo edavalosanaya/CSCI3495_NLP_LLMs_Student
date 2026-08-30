@@ -3,8 +3,8 @@
 Stop tuning prompts by vibes. Build a tiny **eval harness** and run controlled
 A/B experiments over prompt variants, then play *prompt golf*.
 
-**You will write three functions** in `prompt_lab.py`, one per step, each with its
-own check.
+**You will write two functions** in `prompt_lab.py`. The other one is already
+written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 

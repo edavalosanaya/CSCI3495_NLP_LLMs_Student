@@ -4,8 +4,8 @@ Build a **Naive Bayes sentiment classifier from scratch** (no scikit-learn for
 the model itself), train it on movie-review snippets, and score it with
 **precision, recall, and F1**.
 
-**You will write four functions** in `sentiment.py`, one per step, each with its
-own check.
+**You will write two functions** in `sentiment.py`. The other two are already
+written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 
@@ -92,7 +92,7 @@ lab python weeks/week-02/class-02/exercise/sentiment.py
 ```
 
 ```
-sentiment.py is not implemented yet, fill in the TODOs, then re-run.
+sentiment.py is not finished yet: fill in the next TODO in this file, then re-run.
 ```
 
 Look at the data you are about to model, and at the one helper already written

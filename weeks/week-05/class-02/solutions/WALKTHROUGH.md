@@ -83,7 +83,7 @@ heatmaps and the masked-weight printout possible.
 **What you should see:**
 
 ```
-MILESTONE 1  softmax + scaled dot-product attention: WORKS
+MILESTONE 1  scaled dot-product attention: WORKS
   weights row 0: [0.598 0.104 0.2   0.097]  (sums to 1.0 )
 ```
 

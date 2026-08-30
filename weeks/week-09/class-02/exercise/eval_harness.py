@@ -267,6 +267,11 @@ def run_judge_demo(model: str = MODEL) -> int:
 
 
 if __name__ == "__main__":
-    run_model_eval()
-    print("\n" + "=" * 60 + "\n")
-    raise SystemExit(run_judge_demo())
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        run_model_eval()
+        print("\n" + "=" * 60 + "\n")
+        raise SystemExit(run_judge_demo())
+    except NotImplementedError:
+        print("eval_harness.py is not finished yet: fill in the next TODO in this file, then re-run.")

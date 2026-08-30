@@ -4,8 +4,8 @@ Build a **TF-IDF + cosine-similarity** document search engine from scratch, then
 race it against your classmates to find the most relevant document for tricky
 queries.
 
-**You will write four functions** in `search.py`, one per step, each with its own
-check.
+**You will write two functions** in `search.py`. The other two are already
+written for you, to read and run. Every step has its own check.
 
 ## Before you code: the picture and the math
 
@@ -88,7 +88,7 @@ lab python weeks/week-03/class-01/exercise/search.py
 ```
 
 ```
-search.py is not implemented yet, fill in the TODOs, then re-run.
+search.py is not finished yet: fill in the next TODO in this file, then re-run.
 ```
 
 Look at the corpus you are about to index:

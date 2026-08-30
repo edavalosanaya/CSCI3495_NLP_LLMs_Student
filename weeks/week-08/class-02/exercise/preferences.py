@@ -67,9 +67,14 @@ def fit_reward_model(
 
 
 if __name__ == "__main__":
-    scores = fit_reward_model(PREFERENCES)
-    ranking = sorted(scores, key=scores.get, reverse=True)
-    print("Learned reward-model scores (higher = more preferred):")
-    for r in ranking:
-        print(f"  {r}: {scores[r]:+.3f}")
-    print("Implied ranking:", " > ".join(ranking))
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        scores = fit_reward_model(PREFERENCES)
+        ranking = sorted(scores, key=scores.get, reverse=True)
+        print("Learned reward-model scores (higher = more preferred):")
+        for r in ranking:
+            print(f"  {r}: {scores[r]:+.3f}")
+        print("Implied ranking:", " > ".join(ranking))
+    except NotImplementedError:
+        print("preferences.py is not finished yet: fill in the next TODO in this file, then re-run.")

@@ -4,8 +4,8 @@ Implement the core math of decoding on a toy next-token distribution (pure
 Python, no model needed). Then `playground.py` lets you feel the **same knobs on
 a real local LLM** via Ollama.
 
-**You will write five functions** in `decoding.py` across five steps, each with
-its own check.
+**You will write two functions** in `decoding.py`. The other three are already
+written for you, to read and run. Every step has its own check.
 
 A "distribution" here is a dict `{token: probability}` that sums to about 1.0.
 
@@ -163,7 +163,7 @@ lab python -m pytest weeks/week-07/class-01/exercise/test_decoding.py -k step2 -
 
 **Why it matters:** greedy is deterministic and safe, which is exactly why it is
 also repetitive. It is the right choice for a classification-shaped task and the
-wrong one for open-ended text, which is why the other three functions exist.
+wrong one for open-ended text, which is why the other filters exist.
 
 ---
 

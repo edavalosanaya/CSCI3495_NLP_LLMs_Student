@@ -54,7 +54,7 @@ def main() -> int:
     try:
         Q = K = V = X
         out, w = scaled_dot_product_attention(Q, K, V)
-        print("MILESTONE 1  softmax + scaled dot-product attention: WORKS")
+        print("MILESTONE 1  scaled dot-product attention: WORKS")
         print("  weights row 0:", np.round(w[0], 3), " (sums to", round(float(w[0].sum()), 3), ")")
     except NotImplementedError:
         print("MILESTONE 1  softmax / scaled_dot_product_attention: not implemented yet")

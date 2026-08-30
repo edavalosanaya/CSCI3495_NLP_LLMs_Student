@@ -4,7 +4,7 @@
 Work through the lab in `README.md`. Each STEP below has its own check:
     python -m pytest weeks/week-03/class-01/exercise/test_search.py -k step1 -q
 
-When all four steps are done, the demo runs:
+When every step is done, the demo runs:
     python weeks/week-03/class-01/exercise/search.py
 
 CPU-only, deterministic, no network. Build TF-IDF and cosine yourself.
@@ -108,4 +108,4 @@ if __name__ == "__main__":
     try:
         _demo()
     except NotImplementedError:
-        print("search.py is not implemented yet, fill in the TODOs, then re-run.")
+        print("search.py is not finished yet: fill in the next TODO in this file, then re-run.")
