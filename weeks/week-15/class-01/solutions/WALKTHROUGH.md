@@ -8,7 +8,7 @@ more than the code, which is short.
 
 ---
 
-## Step 1, Cosine similarity
+## Step 1, `cosine`
 
 Fourth appearance in the course: W3C1 (sparse dicts), W3C2 (numpy), W6C1 (lists),
 here. **Worth naming the repetition explicitly**: the instrument used to measure
@@ -19,7 +19,7 @@ Zero-vector guard as always.
 
 ---
 
-## Step 2, Association
+## Step 2, `association`
 
 Mean cosine with attribute set `A` minus mean cosine with `B`. Positive leans
 toward `A`.
@@ -31,7 +31,7 @@ rather than about one token.
 
 ---
 
-## Step 3, Effect size
+## Step 3, `effect`
 
 Average `association` over target set `X`, average over `Y`, take the difference.
 
@@ -42,7 +42,7 @@ in this literature.
 
 ---
 
-## Step 4, Running it, and how to teach it
+## Running it
 
 ```
   engineer     association(male - female) = +1.014

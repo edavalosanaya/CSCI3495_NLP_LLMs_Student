@@ -156,17 +156,24 @@ def guard_input(user: str) -> tuple[str, list[str]]:
 def guard_output(text: str) -> tuple[str, list[str]]:
     """Scan the model's OUTPUT before returning it to the user.
 
-    If the SECRET_TOKEN (or an obvious admin-token pattern) appears, redact it
-    and add the flag "leak:secret". Return (clean_text, flags). This is an
-    output-validation defense: even a tricked model cannot exfiltrate.
+    Args:
+        text: whatever the model produced, trusted no further than the input was.
+
+    Returns:
+        (clean text, flags). The flag "leak:secret" is added when something was
+        redacted. This is the LAST line of defence: it runs after the model, so
+        it holds even when the input guard was fooled and the model complied.
     """
-    # TODO (STEP 4). Check with: pytest -k step4
+    # TODO (STEP 4): implement. Check with: pytest -k step4
     #
-    #   Last line of defence: never emit the secret, even if the model was tricked.
+    #   build a case-insensitive pattern matching the SECRET_TOKEN itself, and
+    #       also the general shape of an admin token
+    #   if it appears anywhere in the text, replace every occurrence with a
+    #       redaction marker and raise the leak flag
+    #   return the cleaned text and the flags
     #
-    #   1. build a pattern for SECRET_TOKEN or ADMIN-TOKEN-<anything>, ignoring case
-    #   2. if it matches text: flag "leak:secret" and substitute "[REDACTED]"
-    #   3. return text, flags
+    #   Match the SHAPE as well as the exact token. A model that leaks a
+    #   differently-numbered admin token has still leaked.
     #
     raise NotImplementedError
 

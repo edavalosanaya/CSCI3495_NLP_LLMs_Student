@@ -15,7 +15,7 @@ directly and is the real check. Say this to the class; otherwise a student can
 
 ---
 
-## Steps 1 and 2, The attacks
+## Given, the attacks
 
 `naive_model` is deliberately gullible: it scans the user text for instructions
 and obeys them. That is not a strawman. It is a compressed version of what a real
@@ -47,7 +47,7 @@ exploit is trivial once you look at how instructions are handled.
 
 ---
 
-## Step 3, Guard the input
+## Step 3, `guard_input`
 
 `guard_input` returns `(cleaned_text, flags)`. The flags matter as much as the
 cleaning: a security control that silently drops traffic is impossible to
@@ -66,7 +66,7 @@ defensible answer: input filtering is the most theatrical of the four.
 
 ---
 
-## Step 4, Guard the output
+## Step 4, `guard_output`
 
 Redact the secret on the way out, **assuming Step 3 already failed**.
 
@@ -78,7 +78,7 @@ anticipate adversarial phrasing.
 
 ---
 
-## Step 5, Allow-list the tools
+## Given, `tool_allowed`
 
 ```
 safe tools        -> always allowed
@@ -106,7 +106,7 @@ human-in-the-loop: real, and the one you would keep if you could keep only one.
 
 ---
 
-## Step 6, Do not break normal use
+## Running it
 
 `test_step6_normal_lookup_still_works` is small and important. A guard that
 blocks everything scores perfectly on every attack and is useless. Real security
@@ -116,7 +116,7 @@ aggressive enough to fail this, that is a genuine finding, not a nuisance.
 
 ---
 
-## Companion lab: `json_lab.py`
+## Steps 1 and 2, `json_lab.py`
 
 **Step 1, `extract_json`.** Models wrap JSON in prose and ``` fences no matter
 how firmly you ask them not to. Locating the object and parsing it is the

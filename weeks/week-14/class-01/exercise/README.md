@@ -1,35 +1,20 @@
-# W14C1 Activity: Jigsaw + Poster Lightning Share, then Build a Router + Workers Workflow
+# W14C1 Lab: Routing Workflow
 
-This class has two parts: a **team jigsaw + poster lightning share** to learn the
-workflow patterns, then a **shortened pair-programming build** of the routing pattern.
+## 1. Learning objective
 
-## Part 1: Jigsaw + poster lightning share (TEAM, ~20 min)
-1. **Jigsaw (12 min).** Your team is assigned **one** pattern: *prompt chaining*,
-   *routing*, *parallelization*, or *orchestrator-workers*. Make a poster with:
-   - a simple **diagram** of how it works,
-   - one **real use-case** where it fits,
-   - a **"when NOT to use an agent"** caveat for this pattern.
-2. **Poster lightning share (8 min).** No wall walk needed, this works in a
-   fixed-seat room. Each team gets **~60 seconds to teach its pattern from their
-   seats** (or photograph the poster onto the shared screen while narrating). Take
-   notes so you leave understanding all four patterns. If time is tight, the
-   instructor may shorten this step, so keep your teach-back crisp.
+Build the cheapest agentic pattern that works: a router that reads a query,
+picks one specialist worker, and returns a structured result you can log.
 
-## Part 2: Build the routing pattern (PAIR, ~21 min)
+You write three functions in `workflow.py`: the router, one worker, and the
+dispatcher. The other workers, the fallback and the dispatch table are given.
 
-**Goal:** implement the **routing** pattern from Anthropic's *Building Effective
-Agents*: a router that classifies a request and dispatches it to a specialized
-worker, with a safe fallback. You'll make the orchestration logic **unit-testable
-with a mock LLM** so it runs offline and deterministically.
-
-## Before you code: the picture and the math
+## 2. Understanding the math
 
 ![Routing pattern: a cheap classifier dispatches each query to a specialized path](../lecture/visuals/routing.png)
 
-![Router anatomy: query, raw LLM reply, normalize and validate, worker, structured Result](../lecture/visuals/router-anatomy.png)
-
-The router asks the LLM for a raw label, normalizes it, and validates it against
-the allowed label set $L = \{\text{summarize}, \text{translate}, \text{extract}\}$:
+The router asks the LLM for a raw label, normalizes it, and validates it
+against the allowed set $L = \{\text{summarize}, \text{translate},
+\text{extract}\}$. Anything else becomes `unknown`:
 
 $$
 \hat{y} = \mathrm{normalize}\big(\mathrm{LLM}(p_{\text{route}}, q)\big),
@@ -41,7 +26,10 @@ $$
 \end{cases}
 $$
 
-Dispatch then picks the worker from a table, with the fallback wired to `unknown`:
+![Router anatomy: query, raw LLM reply, normalize and validate, worker, structured Result](../lecture/visuals/router-anatomy.png)
+
+Dispatch then picks the worker from a table, with the fallback wired to the
+`unknown` key so an unroutable query is handled rather than crashing:
 
 $$
 \mathrm{run\_workflow}(q) = W_{\text{label}}(q),
@@ -49,131 +37,84 @@ $$
 W_{\text{unknown}} = \mathrm{worker\_fallback}
 $$
 
-Your finished code takes any query string, classifies it into one of three job
-labels (or `unknown`), and runs exactly one worker on it. It always returns a
-structured `Result` with the label, the output, who handled it, and a trace: it
-never crashes on a messy or off-topic query. **Check yourself before coding:**
-if the LLM replies `"  Translate "` (extra spaces, capital T), which worker runs
-and why? (`worker_translate`: normalize strips whitespace and lowercases, so
-$\hat{y} = \text{translate} \in L$, exactly the top row of the anatomy figure.)
+## 3. Getting started
 
-## The system you're building
-```
-query --> route() --> label --> dispatch --> worker --> Result(label, output, handled_by, trace)
-                         |
-                         +--> "unknown" --> worker_fallback   (never crashes)
-```
-
-## How this lab works
-
-Open a shell inside the course image, already in this lab's folder. One command,
-once per session:
+From the repository root on your own machine, once per session:
 
 ```bash
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-01/exercise course bash
 ```
 
-Everything below runs in that shell. Each step says what to write and gives the
-one command that checks it:
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 4. Implement `route`
+
+Ask for one word, then distrust the answer: trim it, lowercase it, take the
+first token, and map anything unrecognized to `unknown`.
 
 ```bash
 pytest -k step1 -q
 ```
 
-Steps marked **(given)** are already written for you: read them, run the check,
-move on. A step you have not written yet reports `skipped`, never a failure.
-Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
-**The labs are not graded**, so reading it is not cheating.
----
+```
+.....                                                                    [100%]
+5 passed, 6 deselected
+```
 
-### Step 1, The router
+## 5. Implement `worker_summarize`
 
-**Write:** `route(query, llm)`. Prompt the LLM to reply with exactly one of the
-allowed labels, then **defend against messy output**: strip, lowercase, take the
-first token, and map anything not in `LABELS` to `"unknown"`.
-
-**The defense is the step, not the prompt.** Models reply "Summarize.", "I think
-this is a summarize task", or an empty string. Five tests cover this, including
-one that feeds pure garbage.
-
-**Done when:** `-k step1` gives `5 passed, 6 deselected`.
-
----
-
-### Step 2, The workers
-
-**Write:** `worker_summarize`. `worker_translate` and `worker_extract` are
-written for you: read them first, then write the third the same way. Each worker
-prompts the LLM for its one job and returns the reply.
-
-**Each worker gets its own focused prompt**, which is the entire argument for the
-routing pattern: three small, testable prompts beat one prompt that tries to do
-everything.
-
-**Done when:** `-k step2` gives `1 passed, 10 deselected`.
-
----
-
-### Step 3, The fallback
-
-`worker_fallback` is already written. Note what it does: returns a helpful
-message and **never calls the LLM**.
-
-**A fallback that needs the model cannot handle the model failing.** The test is
-named `fallback_never_crashes_and_does_not_need_llm` for that reason.
-
-**Done when:** `-k step3` gives `1 passed, 10 deselected`.
-
----
-
-### Step 4, Orchestrate
-
-**Write:** `run_workflow(query, llm)`. Route, look up the worker in a dispatch
-table (falling back on `"unknown"`), call it, and return a `Result` with a trace.
-
-**A dispatch dict, not a chain of `if`s.** Adding a capability then means adding
-a label and a table entry, which is the property that makes this pattern scale.
-
-**The trace matters as much as the answer.** When a workflow misbehaves, the
-first question is always "which branch did it take?", and an answer with no trace
-cannot tell you.
-
-**Done when:** `-k step4` gives `3 passed, 8 deselected`.
-
----
-
-### Step 5, Run it
+One line, in the same shape as the two workers above it.
 
 ```bash
-pytest -q
+pytest -k step2 -q
 ```
 
 ```
-...........                                                              [100%]
-11 passed
+.                                                                        [100%]
+1 passed, 10 deselected
 ```
 
-With Ollama running:
+## 6. Implement `run_workflow`
+
+Route, look the label up in `_WORKERS`, run it, and package a `Result`.
 
 ```bash
-python workflow.py
+pytest -k step3 -q
+```
+
+```
+...                                                                      [100%]
+3 passed, 8 deselected
+```
+
+## 7. Run it, then break it
+
+```bash
+python ../solutions/workflow.py
 ```
 
 ```
 Q: Summarize the French Revolution.
- -> [summarize] via worker_summarize: The French Revolution was a period of radical
-    social and political upheaval that began with the storming of the Bastille...
+ -> [summarize] via worker_summarize: The French Revolution, a pivotal period ...
 
 Q: Translate 'hello' for me.
  -> [translate] via worker_translate: Bonjour.
 ```
 
-**Note the bracketed label in each line.** That is the trace, and it is the
-difference between a workflow you can debug and one you can only re-run.
+The routing works on well-formed queries. Now find where it does not.
 
-Also worth noticing in the summarize output: the model's history is shaky
-(Robespierre did not lead the storming of the Bastille). The router did its job
-perfectly and the worker still produced a confident error. **Routing controls
-which prompt runs, not whether the answer is true**, which is why W9's evaluation
-material does not stop being relevant once you build workflows.
-
+1. Route pure nonsense: `route("asdfgh", llm)`. It returns `summarize`, not
+   `unknown`. Then try "What is the airspeed velocity of an unladen swallow?":
+   also `summarize`. The fallback worker exists but almost never runs. Whose
+   job is it to notice a query is off-topic, and is `unknown` reachable in
+   practice?
+2. Feed the router messy replies directly. `"  Summarize.\n"` and `"SUMMARIZE"`
+   both normalize to `summarize`, but `"The label is: translate"` becomes
+   `unknown` because the first word is "The". Would you fix the normalizer or
+   the prompt, and what does each choice cost?
+3. Delete the `"unknown"` entry from `_WORKERS` and route something unroutable.
+   What does `run_workflow` do now, and which line was quietly protecting you?
+4. Count the model calls in one `run_workflow`. Compare that with asking one
+   big prompt to do the whole job. When is routing worth the extra call?

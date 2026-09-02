@@ -1,87 +1,40 @@
-# W14C2 Exercise: Project Work + Instructor Feedback Session
+# W14C2 Lab: Project Work & Reproducibility Check
 
-This is **not** a coding exercise. It is a structured **work session** before next
-week's final presentations. Use the time to push your project forward and get a
-**1-on-1 instructor checkpoint**.
+## 1. Learning objective
 
-## Before you code: the picture and the math
+Push your project forward with an instructor checkpoint, and run a
+reproducibility check over the code you are about to hand in.
 
-![Decision checklist: prompt, then augmented LLM, then workflow, and only last an agent](../lecture/visuals/decision-checklist.png)
+There is nothing to implement. `repro_check.py` is written; you point it at
+your own files and act on what it says.
+
+## 2. Understanding the math
 
 ![Chained 90 percent reliable steps decay: 0.9, 0.81, 0.73, 0.66, 0.59](../lecture/visuals/why-expensive.png)
 
-Two ideas from lecture drive the "Design sanity" checklist item and the
-take-home `repro_check.py`. First, reliability multiplies across chained LLM
-steps: with per-step success $p$ and $n$ steps,
+Reliability multiplies across chained LLM steps. With per-step success $p$ over
+$n$ steps, a pipeline that feels fine at each step is not fine end to end:
 
 $$
 P(\text{whole task succeeds}) = p^{n},
 \qquad \text{e.g. } 0.9^{5} \approx 0.59
 $$
 
-so every step you can delete makes your pipeline more reliable. Second,
-reproducibility is an equality check: with a fixed seed $s$, two runs of your
-entry point must agree,
+![Decision checklist: prompt, then augmented LLM, then workflow, and only last an agent](../lecture/visuals/decision-checklist.png)
 
-$$
-f(x; s)_{\text{run 1}} = f(x; s)_{\text{run 2}}
-$$
+That is the argument for the checklist: reach for a plain prompt first, then an
+augmented LLM, then a fixed workflow, and only last an agent that decides its
+own control flow.
 
-The take-home helper simply verifies that your entry point imports cleanly in
-Docker and shows determinism hints (fixed seeds) so that equality can hold. Use
-the checklist figure to justify each moving part of your design in your 1-on-1.
-**Check yourself before coding:** your pipeline has 4 LLM steps, each 90%
-reliable; what fraction of runs finishes fully correct? ($0.9^{4} \approx 0.66$,
-about two thirds, which is why the checklist pushes you toward the simplest
-design that works.)
+## 3. Getting started
 
-## How the session runs (35 min)
-1. **(5 min) Self-assess.** Fill in the checklist below for your project.
-2. **(rest) Build + feedback rounds.** Keep working while the instructor
-   circulates for ~5-minute 1-on-1s. Come to your slot with a **specific question**.
-
-## Pre-final self-checklist
-Score yourself honestly (this previews the final rubric in `project/RUBRICS.md`):
-
-- [ ] **Problem & related work**, I can state my question in one sentence and name the paper(s) it builds on.
-- [ ] **Method is clear**, someone could re-implement my approach from my description.
-- [ ] **A working baseline exists**, I have at least one real, measured result (not just plans).
-- [ ] **Metrics, not vibes**, I report a number (accuracy / F1 / success rate / perplexity…), not anecdotes.
-- [ ] **Analysis**, I have at least one error-analysis example or ablation, and a stated limitation.
-- [ ] **Reproducibility**, it runs in the course Docker image; seeds are fixed; data/model are pinned/cached.
-- [ ] **Design sanity (Week 14!)**, no part is over-engineered; an agent is used only where a workflow won't do; failures have a fallback.
-- [ ] **Presentation**, I have a 5-8 minute story: motivation → method → result → limitation.
-
-## Bring a specific question to your 1-on-1
-Vague ("is this good?") gets vague answers. Try instead:
-- "My baseline gets X; is that a fair comparison to Y?"
-- "My agent loop sometimes never stops, what stopping condition do you suggest?"
-- "Is this metric the right one for my task?"
-
-## Reproducibility quick-check (take-home lab, offline)
-
-A tiny helper verifies the two things graders check first: that your entry point
-parses, and that a fixed seed is set somewhere. **There is nothing to implement**
-here, the checker ships complete. Each step below is a command and the output you
-should see, and the last step runs it on **your own project**.
-
-Open a shell inside the course image, already in this lab's folder. One
-command, once per session:
+From the repository root on your own machine, once per session:
 
 ```bash
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-02/exercise course bash
 ```
 
-Everything below runs in that shell.
-
-Stuck for more than a few minutes on a step? A step-by-step `WALKTHROUGH.md`
-is in `../solutions/`, with the expected output of every command. **These labs
-are not graded**, so reading it is not cheating: getting unstuck and finishing
-the idea beats stalling.
-
----
-
-### Step 1, See a passing file
+## 4. Check a file that is reproducible
 
 ```bash
 python repro_check.py ../../../week-04/class-01/solutions/mlp_classifier.py
@@ -94,9 +47,7 @@ Reproducibility check: ../../../week-04/class-01/solutions/mlp_classifier.py
   Note: run your real entry point in Docker too; this is only a static hint.
 ```
 
----
-
-### Step 2, See a warning
+## 5. Check one that is not
 
 ```bash
 python repro_check.py ../../../week-02/class-01/solutions/ngram_lm.py
@@ -109,54 +60,27 @@ Reproducibility check: ../../../week-02/class-01/solutions/ngram_lm.py
   Note: run your real entry point in Docker too; this is only a static hint.
 ```
 
-**That warning is a false positive, and noticing why is the point.** `ngram_lm.py`
-*is* deterministic: it seeds a local `random.Random(seed)` inside `generate`
-rather than calling a global seeder, and the checker only looks for the global
-pattern. A static check reports what it can see, not what is true.
-
----
-
-### Step 3, See the failure modes
+## 6. Check your own project
 
 ```bash
-python repro_check.py no_such_file.py
+python repro_check.py /workspace/<path to your project file>
 ```
 
-A missing file and a file with a syntax error both report cleanly and return a
-non-zero exit code, so this can go in a CI script.
+Run it over every file you intend to submit. Fix each `[WARN]` before the
+checkpoint, or be ready to say why it does not apply.
 
----
+## 7. The checkpoint conversation
 
-### Step 4, Run it on YOUR project
+Bring answers to these. They are the same questions the final rubric asks.
 
-```bash
-python repro_check.py path/to/your_entrypoint.py
-```
-
-**Then do the thing the checker cannot do**: actually run your entry point inside
-the course image, twice, and confirm you get the same numbers. The tool does no
-network calls and no execution; it is a static hint, and the note in its own
-output says so.
-
-The graders' first two questions are "does it run in Docker?" and "do I get your
-numbers?". This step is where you find out before they do.
-
-### Smoke test
-
-```bash
-pytest -q
-```
-
-```
-..........                                                               [100%]
-10 passed
-```
-
-## When you are done
-
-Nothing to submit. The checklist is yours: note the one piece of feedback you
-will act on before the final report.
-
-## Deliverables reminder
-- **Final report + presentation:** Week 15 + finals (see `project/RUBRICS.md`, `project/final/report-template.md`).
-- Presentations run across **W15C2 and the finals session**.
+1. Run the numbers on your own pipeline. How many LLM calls are chained end to
+   end, and what is $p^{n}$ if each is 90% reliable? If that number is
+   uncomfortable, which step would you delete first?
+2. Walk down the decision checklist for your project. What is the simplest
+   design that would still meet your goal, and what specifically does your
+   current design buy over it?
+3. `repro_check.py` is a static hint: it greps for seeding and never runs your
+   code. Name a way your project could be irreproducible that this tool cannot
+   possibly detect.
+4. State the one result you will show in the final presentation, and the
+   command a reader would run to reproduce it.

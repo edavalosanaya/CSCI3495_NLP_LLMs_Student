@@ -6,7 +6,7 @@ first; the point of the lab is the failures you meet on the way.
 
 ---
 
-## Step 1, The calculator
+## Step 1, `calculator`
 
 ```python
 def calculator(expr: str) -> str:
@@ -53,7 +53,7 @@ Expected output:
 
 ---
 
-## Step 2, The clock
+## Given, `today`
 
 ```python
 def today(_arg: str = "") -> str:
@@ -69,7 +69,7 @@ with an empty string and sometimes with nothing at all.
 
 ---
 
-## Step 3, The weather service
+## Given, `weather`
 
 ```python
 def weather(arg: str) -> str:
@@ -114,7 +114,7 @@ Expected output:
 
 ---
 
-## Step 4, Local search
+## Given, `search`
 
 ```python
 def search(query: str) -> str:
@@ -139,7 +139,7 @@ rather than an arbitrary first entry.
 
 ---
 
-## Step 5, The registry
+## Step 2, the `TOOLS` registry
 
 ```python
 TOOLS = {
@@ -157,7 +157,7 @@ is the most common "my agent ignores my tool" bug, and it is always this.
 
 ---
 
-## Step 6, Parsing the action
+## Step 3, `parse_action`
 
 ```python
 def parse_action(text: str) -> Optional[tuple[str, str]]:
@@ -206,7 +206,7 @@ True
 
 ---
 
-## Step 7, The grounding check
+## Step 4, `is_grounded`
 
 ```python
 def is_grounded(answer: str, observations: list[str]) -> bool:
@@ -247,7 +247,7 @@ different strings and the tests pin the behaviour you get from the real tools.
 
 ---
 
-## Step 8, Full run
+## Running it
 
 ```
 23 passed
@@ -261,7 +261,7 @@ a tool.
 
 ---
 
-## Step 9, Where the floor is
+## Where the floor is
 
 Rerunning on `qwen2.5:0.5b` is worth doing once, because the failure is
 specific rather than general. Measured on this lab, the 0.5b:

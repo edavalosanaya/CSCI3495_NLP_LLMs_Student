@@ -86,7 +86,13 @@ def calculator(expr: str) -> str:
         return f"Error: could not evaluate '{expr}'"
     if isinstance(result, float) and result.is_integer():
         result = int(result)
-    return str(result)
+    try:
+        return str(result)
+    except ValueError:
+        # A huge integer (calc[9999**9999]) evaluates fine and then blows up on
+        # str(), past CPython's 4300-digit conversion limit. Every failure in
+        # this tool has to leave as a string, including this one.
+        return "Error: result too large to display"
 
 
 # --------------------------------------------------------------------------

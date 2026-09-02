@@ -29,47 +29,72 @@ def get_vector(word: str) -> np.ndarray:
 def cosine(a: np.ndarray, b: np.ndarray) -> float:
     """Cosine similarity between two vectors.
 
+    Args:
+        a: any vector.
+        b: any vector of the same length.
+
+    Returns:
+        A float in [-1, 1]. 0.0 when either vector has zero length, since a
+        vector with no direction has no angle to measure.
     """
-    # TODO (STEP 1). Check with: pytest -k step1
+    # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   1. na, nb = np.linalg.norm(a), np.linalg.norm(b)
-    #   2. if either norm is 0.0: return 0.0
-    #   3. return float(np.dot(a, b) / (na * nb))
+    #   The formula is in README section 2.
+    #
+    #   measure each vector's length, and if either is zero there is no angle
+    #   otherwise divide their dot product by the two lengths
     #
     raise NotImplementedError
 
 
 def association(word: str, set_a: list[str], set_b: list[str]) -> float:
-    """Mean-cosine association of `word` toward set A vs. set B.
+    """Which of two attribute sets a single word sits closer to.
 
-    s(word, A, B) = mean_{a in A} cos(word, a) - mean_{b in B} cos(word, b)
+    Args:
+        word: the word being probed, e.g. "engineer".
+        set_a: one pole of the attribute axis, e.g. male-coded words.
+        set_b: the other pole, e.g. female-coded words. The two sets need not
+            be the same size, which is why each side is averaged.
 
-    Positive => `word` is, on average, closer to set A than to set B.
-
+    Returns:
+        A float. Positive means the word is on average closer to set A,
+        negative closer to set B, and near zero means the axis says nothing
+        about this word.
     """
-    # TODO (STEP 2). Check with: pytest -k step2
+    # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   1. v = get_vector(word)
-    #   2. mean_a = mean of cosine(v, get_vector(w)) for every w in set_a
-    #   3. mean_b = the same over set_b
-    #   4. return float(mean_a - mean_b)
+    #   The formula is in README section 2.
+    #
+    #   look up the word's own vector
+    #   average its cosine against every word in the first set
+    #   do the same for the second set
+    #   the answer is the difference between those two averages
     #
     raise NotImplementedError
 
 
 def effect(targets_x: list[str], targets_y: list[str],
            attr_a: list[str], attr_b: list[str]) -> float:
-    """A WEAT-style summary: do X-words lean toward A while Y-words lean toward B?
+    """A WEAT-style summary over two groups of target words.
 
-    Returns mean_{x in X} s(x, A, B) - mean_{y in Y} s(y, A, B).
-    A large positive value indicates a stereotype-aligned association pattern.
+    Args:
+        targets_x: the first group of words, e.g. career-coded.
+        targets_y: the second group, e.g. family-coded.
+        attr_a: one pole of the attribute axis.
+        attr_b: the other pole.
 
+    Returns:
+        A float. Large and positive means X leans toward A while Y leans toward
+        B, which is the stereotype-aligned pattern. Swapping attr_a and attr_b
+        flips the sign; swapping the targets flips it too.
     """
-    # TODO (STEP 3). Check with: pytest -k step3
+    # TODO (STEP 3): implement. Check with: pytest -k step3
     #
-    #   1. mean_x = mean of association(x, attr_a, attr_b) for x in targets_x
-    #   2. mean_y = the same over targets_y
-    #   3. return float(mean_x - mean_y)
+    #   The formula is in README section 2, and it is step 2 applied twice.
+    #
+    #   average the association of every word in the first target group
+    #   do the same for the second group
+    #   the answer is the difference between those averages
     #
     raise NotImplementedError
 

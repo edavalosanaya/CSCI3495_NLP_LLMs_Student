@@ -8,7 +8,7 @@ running it against `qwen2.5:0.5b`.
 
 ---
 
-## Step 1, Chunk the documents
+## Given, `chunk_documents`
 
 Split on blank lines, assign **globally sequential** ids across the whole corpus.
 
@@ -25,7 +25,7 @@ class what would break if a chunk cut a definition in half.
 
 ---
 
-## Step 2, Retrieve
+## Step 1, `TfidfRetriever.retrieve`
 
 Transform the query with the **already-fitted** vectorizer (`transform`, not
 `fit_transform`, or you refit on one query and destroy the vocabulary), cosine
@@ -38,7 +38,7 @@ approximate-nearest-neighbour index, but the shape is identical.
 
 ---
 
-## Step 3, Build a grounded prompt
+## Step 2, `build_prompt`
 
 Numbered context, then the question, plus two instructions: answer **only** from
 the context, and say "I don't know" if the context does not support an answer.
@@ -51,7 +51,7 @@ is the same instinct as the unanswerable item in W9C2's dataset: you have to mak
 
 ---
 
-## Step 4, Verify citations
+## Given, `verify_citations`
 
 Return the set of cited ids that actually appear among the retrieved chunks.
 
@@ -66,7 +66,7 @@ implying the citation check makes the answer true.
 
 ---
 
-## Step 5, Run the pipeline
+## Running it
 
 ```
 Q: How does RAG reduce hallucination?

@@ -42,8 +42,6 @@ def chunk_documents(docs: list[tuple[str, str]]) -> list[Chunk]:
     Return a flat list of Chunk with sequential ids starting at 0. Strip
     whitespace and drop empty passages.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     chunks: list[Chunk] = []
     cid = 0
     for source, text in docs:
@@ -66,43 +64,56 @@ class TfidfRetriever:
 
     # --------------------------- STEP 2 ---------------------------
     def retrieve(self, query: str, k: int = 3) -> list[Chunk]:
-        """Return the top-k chunks most similar to the query.
+        """Find the k chunks most relevant to a query.
 
-        Hint: transform the query with self.vectorizer, compute cosine
-        similarity against self.matrix (sklearn cosine_similarity), and take the
-        k highest-scoring chunks (descending).
+        Args:
+            query: the user's question, as raw text.
+            k: how many chunks to return.
+
+        Returns:
+            Up to k Chunks, most similar first. These become the ONLY evidence
+            the generator is allowed to use, so a miss here cannot be recovered
+            further down the pipeline.
         """
-        # TODO (STEP 2). Check with: pytest -k step2
+        # TODO (STEP 1): implement. Check with: pytest -k step1
         #
-        #   1. qv = self.vectorizer.transform([query])       same space as the index
-        #   2. scores = cosine_similarity(qv, self.matrix)[0]
-        #   3. order = scores.argsort()[::-1][:k]            best k, highest first
-        #   4. return [self.chunks[i] for i in order]
+        #   The score is in README section 2.
         #
-        #   argsort is ascending, so [::-1] flips it.
+        #   put the query into the same vector space as the index, using the
+        #       vectorizer that was already FITTED on the corpus. Transform it;
+        #       do not fit it again, or the query lands in its own space
+        #   score the query against every indexed chunk
+        #   take the k best, highest first, and return those chunks
+        #
+        #   argsort gives you ascending order, so the best scores are at the
+        #   END of it.
         #
         raise NotImplementedError
 
 
 # ----------------------------- STEP 3 -----------------------------
 def build_prompt(query: str, chunks: list[Chunk]) -> str:
-    """Grounded prompt: numbered context [1..k] + instructions + the question.
+    """Assemble the retrieved chunks and the question into a grounded prompt.
 
-    Instruct the model to use ONLY the context, cite sources like [1], and say
-    "I don't know." if the answer is not in the context.
+    Args:
+        query: the user's question.
+        chunks: what retrieve() came back with, best first.
+
+    Returns:
+        One prompt string. All of the grounding lives in here: the numbering
+        the model cites against, the instruction to use only this context, and
+        the permission to refuse. Nothing downstream can add grounding back.
     """
-    # TODO (STEP 3). Check with: pytest -k step3
+    # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   The grounding lives entirely in this string.
+    #   number the chunks from 1 so the model has something to cite
+    #   write a prompt that tells the model to use ONLY that context, to cite
+    #       its sources by those numbers, and to say it does not know when the
+    #       context does not answer the question
+    #   then lay out the context, the question, and an answer cue
     #
-    #   1. number the chunks: "[1] <text>", "[2] <text>", ... joined by newlines
-    #   2. return a prompt that:
-    #         says to use ONLY the context,
-    #         says to cite sources like [1], [2],
-    #         says to answer "I don't know." when the context does not contain it,
-    #         then Context:, the numbered chunks, Question:, the query, Answer:
-    #
-    #   Without the I-don't-know clause the model invents an answer.
+    #   The permission to refuse is the load-bearing sentence. Without it the
+    #   model fills the gap with something plausible and uncited.
     #
     raise NotImplementedError
 
@@ -114,8 +125,6 @@ def verify_citations(answer: str, retrieved: list[Chunk]) -> set[int]:
     Citations look like [1], [2], ... A citation is valid if its number is in
     1..len(retrieved). Use this to detect hallucinated citations (out of range).
     """
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     cited = {int(n) for n in re.findall(r"\[(\d+)\]", answer)}
     return {n for n in cited if 1 <= n <= len(retrieved)}
 

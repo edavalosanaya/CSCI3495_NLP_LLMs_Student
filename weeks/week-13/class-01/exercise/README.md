@@ -1,198 +1,114 @@
-# W13C1 Lab: Design It, Then Build It (Memory, Planning & Reflexion)
+# W13C1 Lab: Reflexion, an Agent That Learns
 
-Your W12 agent could *act*. Now make it *learn within a task*: plan first,
-remember lessons, and **reflect on failures to retry better** (Reflexion,
-Shinn et al., 2023). Everything is tested with a **mock LLM**, no Ollama.
+## 1. Learning objective
 
-## Before you code: the picture and the math
+Give an agent a second chance: when an attempt fails, have it write down what
+went wrong and put that note in the prompt for the next try. Then see whether
+carrying those notes ACROSS problems helps too.
+
+You write three functions in `agent.py`: the planner, the self-critique, and
+the retry loop. Memory, the ReAct attempt and the tools are given.
+
+## 2. Understanding the math
 
 ![The Reflexion loop: plan, attempt, check success, reflect and retry](../lecture/visuals/reflexion-loop.png)
 
-![Reflexion architecture from the paper: Actor, Evaluator, Self-reflection, memory](../lecture/visuals/assets/shinn-2023-fig-2a.png)
-
-The flowchart is *exactly* `run_reflexion_agent`: `plan → attempt → (reflect → retry)*`. In the paper's diagram, the Actor is your `react_attempt`, the Evaluator is the `success()` check, and the "Reflective text" flowing into long-term memory is what `Memory.add()` stores. Formally, starting from empty memory $m_0 = \varnothing$, attempt $i$ is
+Each attempt is an ordinary ReAct run, but conditioned on a plan and on
+everything memory has accumulated. A failed attempt is turned into a note and
+appended, so attempt $i+1$ sees what attempt $i$ learned:
 
 $$\tau_i = \mathrm{ReAct}(\text{task} \mid \text{plan},\ m_{i-1}), \qquad m_i = m_{i-1} \cup \{\ \mathrm{reflect}(\text{task}, \tau_i)\ \}$$
 
-and the loop stops as soon as $\mathrm{success}(\tau_i)$ is true, or after `max_attempts` tries (about 3). Your finished code runs one ReAct attempt per iteration, and on each failure appends one reflection note to memory so the *next* prompt contains the lesson. **Check yourself before coding:** in the flowchart, which event causes `memory.add(reflect)` to fire? (The `success?` check answering **no**: a failed attempt, and only then.)
+![Reflexion architecture from the paper: Actor, Evaluator, Self-reflection, memory](../lecture/visuals/assets/shinn-2023-fig-2a.png)
 
-## In-class activity: build a math word-problem solver (~37 min)
+The success check is the EVALUATOR's, not the agent's. The agent never sees it,
+which is what stops it from simply declaring victory.
 
-Everyone builds an agent for the **same job**, so the designs are comparable:
-an agent that solves written maths problems and **gets better as it goes**.
-Build the code in class; this is not a take-home lab.
+## 3. Getting started
 
-![Activity: build a math word-problem solver that learns](../lecture/visuals/activity.png)
-
-**Phase 1, design on paper (teams of 3, ~15 min).** No code yet. Decide:
-
-1. **Which tools**, and what does each return? At least two, from:
-   `calc` (given), `search` (given), `solve` (rearrange an equation for x),
-   `convert` (units), `table` (tabulate a series to spot a pattern).
-2. **Plan up front, or step by step?**
-3. **What counts as failure, and who decides?**
-4. **What goes into long-term memory**, in what exact words?
-5. **How many retries** before you give up?
-
-Decision 3 is the one teams skip, and it is the one Reflexion is actually about.
-The paper's agent does not grade itself: an **external evaluator** tells it
-*"wrong, expected 92"*. An agent that marks its own homework agrees with itself
-every time. In this lab that evaluator is `evaluate()` in `problems.py`, and its
-message is what your reflection gets written from.
-
-**Phase 2, build in pairs (~18 min).** Implement the loop you drew (Steps 1-5
-below), then run it against the ten problems and compare your code to your
-design: where did they differ, and which difference mattered?
-
-## The ten problems
-
-`problems.py` holds ten word problems with known answers. Nine need `calc`;
-P7 needs `search` first, because the agent cannot know the population of Paris.
-
-| | Problem | Answer | Needs |
-|---|---|---|---|
-| P1 | 23 students, 4 pencils each | 92 | calc |
-| P2 | area of a 14 by 9 garden | 126 | calc |
-| P3 | 240 km in 3 hours, speed | 80 | calc |
-| P4 | 7 books at 12.50 | 87.5 | calc |
-| P5 | 15% tip on 64 | 9.6 | calc |
-| P6 | 450 L tank, two fifths full | 180 | calc |
-| P7 | population of the capital of France, doubled | 4200000 | search + calc |
-| P8 | square root of 1764 | 42 | calc |
-| P9 | 1000 at 5% compound, 3 years | 1157.625 | calc |
-| P10 | 8 L per 100 km, over 350 km | 28 | calc |
-
-**The experiment.** `run_suite` works through all ten keeping ONE memory, so a
-lesson written on P1 is still in the prompt at P8. Run it both ways:
-
-```bash
-OLLAMA_HOST=http://host.docker.internal:11434 python ../solutions/run_suite.py
-```
-
-Real output, `qwen2.5:1.5b`:
-
-```
-A. memory RESET between problems
-  solved on the FIRST attempt : 0/10
-  solved within 2 attempts    : 4/10
-  first-attempt timeline      : P1: . P2: . P3: . P4: . P5: . P6: . P7: . P8: . P9: . P10: .
-
-B. memory CARRIED across problems (long-term memory)
-  solved on the FIRST attempt : 5/10
-  solved within 2 attempts    : 7/10
-  first-attempt timeline      : P1: . P2:OK P4:OK P5:OK P6:OK P8:OK
-```
-
-Same model, same tools, same problems. The only difference is whether the agent
-keeps its notes. **P1 always fails**, because memory is empty when it starts; the
-lesson it writes there ("call calc for every arithmetic step instead of doing it
-in my head") is what P2 onwards get for free.
-
-Two things worth arguing about afterwards:
-
-- It is still only 5/10. Look at which problems fail (P3, P7, P9, P10) and say
-  what lesson *would* have helped. Reflexion improves an agent; it does not fix it.
-- Try replacing the evaluator's message in `problems.py` with a bare `"wrong"`
-  and rerun. A vaguer signal produces a vaguer lesson, and the gain shrinks.
-
-## How this lab works
-
-Open a shell inside the course image, already in this lab's folder. One command,
-once per session:
+From the repository root on your own machine, once per session:
 
 ```bash
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-01/exercise course bash
 ```
 
-Everything below runs in that shell. Each step says what to write and gives the
-one command that checks it:
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 4. Implement `make_plan`
+
+Ask for a few numbered steps. No planner means an empty plan, not an error.
 
 ```bash
 pytest -k step1 -q
 ```
 
-Steps marked **(given)** are already written for you: read them, run the check,
-move on. A step you have not written yet reports `skipped`, never a failure.
-Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
-**The labs are not graded**, so reading it is not cheating.
----
+```
+.                                                                        [100%]
+1 passed, 9 deselected
+```
 
-### Step 1, Memory (given)
+## 5. Implement `reflect`
 
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-**What it does:** `Memory.add` (append a note) and `Memory.as_prompt` (return `""` when
-empty, otherwise a "Lessons from previous attempts:" block with one bullet per
-note).
-
-**The empty case must return an empty string**, not a header with nothing under
-it. An empty "Lessons:" heading in the prompt is worse than no heading, because
-it invites the model to invent lessons.
-
-**Done when:** `-k step1` gives `2 passed, 7 deselected`.
-
----
-
-### Step 2, Planner
-
-**Write:** `make_plan`. If `planner` is None, return `""`. Otherwise prompt it for
-2 to 4 numbered steps and return them.
-
-**`None` must be handled**, and there is a test for it: a planner is optional,
-and an agent without one must still run.
-
-**Done when:** `-k step2` gives `1 passed, 8 deselected`.
-
----
-
-### Step 3, Put them in the prompt (given)
-
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-**What it does:** the prompt assembly. If `plan` is non-empty, append a `Plan:` block;
-then append `memory.as_prompt()`.
-
-**Done when:** `-k step3` gives `2 passed, 7 deselected`.
-
-**This step is where memory and planning actually do something.** Until the text
-lands in the prompt, both are just data structures. That is the honest mechanism
-behind "agent memory": it is string concatenation into the context window.
-
----
-
-### Step 4, The Reflexion loop
-
-**Write:** the outer retry loop. Attempt the task; if it fails, ask the reflector
-what went wrong, store that note in memory, and try again, up to `max_attempts`.
-
-Four tests, one per behavior:
-
-| Test | Behavior |
-|---|---|
-| `succeeds_first_try_no_extra_attempts` | do not retry on success |
-| `recovers_after_failure` | the reflection actually helps |
-| `gives_up_after_max_attempts` | bounded, never infinite |
-| `reflector_callable_is_used` | you call the reflector, not a canned string |
-
-**Done when:** `-k step4` gives `4 passed, 5 deselected`.
-
----
-
-### Step 5, Run it
+Turn a failed trace into one or two sentences of advice. The no-model fallback
+is already written; you add the branch that uses a reflector.
 
 ```bash
-pytest -q
+pytest -k step2 -q
 ```
 
 ```
-.........                                                                [100%]
-9 passed
+.                                                                        [100%]
+1 passed, 9 deselected
 ```
 
-Then the demo, and read the second attempt's prompt: the lesson from attempt 1
-is sitting in it. That is Reflexion (Shinn et al. 2023) in one screen, and note
-what it is **not**: no weights changed. The "learning" is a note in the context
-window that disappears when the process exits.
+## 6. Implement `run_reflexion_agent`
 
+Attempt, check with the evaluator's oracle, and on failure write a reflection
+into memory BEFORE trying again.
+
+```bash
+pytest -k step3 -q
+```
+
+```
+...                                                                      [100%]
+3 passed, 7 deselected
+```
+
+## 7. Run it, then question it
+
+```bash
+python ../solutions/run_suite.py
+```
+
+```
+model: qwen2.5:1.5b   problems: 10
+
+A. memory RESET between problems (reflection helps within a problem only)
+  solved on the FIRST attempt : 0/10
+  solved within 2 attempts    : 1/10
+  first-attempt timeline      : P1: . P2: . P3: . P4: . P5: . P6: . P7: . P8: . P9: . P10: .
+
+B. memory CARRIED across problems (long-term memory)
+  solved on the FIRST attempt : 3/10
+  solved within 2 attempts    : 5/10
+  first-attempt timeline      : P1: . P2: . P3: . P4:OK P5:OK P6:OK P7: . P8: . P9: . P10: .
+```
+
+Everything is at temperature 0, so those numbers repeat exactly. The only
+difference between A and B is whether an earlier lesson is still in the prompt.
+
+1. Read run B's timeline. Nothing is solved first-try until P4, then P4, P5 and
+   P6 all are, then it stops again at P7. What could make a lesson help three
+   problems and then stop helping?
+2. Move the reflection to AFTER the next attempt starts, instead of before.
+   The retry now sees an empty memory. Does the agent still improve, and what
+   does that tell you about which part of Reflexion is doing the work?
+3. Let the agent see `success_check`. Pass it in as a tool and watch what
+   happens to the reported success rate. Explain why the evaluator's oracle
+   must stay outside the agent.
+4. Run A solved 1/10 within two attempts and B solved 5/10. Both used the same
+   model and the same number of attempts per problem. Name the cost of B that
+   this table does not show.

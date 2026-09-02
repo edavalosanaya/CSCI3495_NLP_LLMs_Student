@@ -6,7 +6,7 @@ here is about measuring them honestly.
 
 ---
 
-## Step 1, Score an answer
+## Given, `is_correct`
 
 ```python
 def is_correct(predicted: Optional[float], gold: float, tol: float = 1e-4) -> bool:
@@ -21,7 +21,7 @@ lab debugging an agent that was right all along.
 
 ---
 
-## Step 2, Evaluate one run
+## Given, `evaluate_one`
 
 ```python
 def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result:
@@ -57,7 +57,7 @@ secretly Reflexion.
 
 ---
 
-## Step 3, The matrix
+## Step 1, `run_matrix`
 
 ```python
 def run_matrix(problems: list[Problem], strategies: dict, llm,
@@ -75,7 +75,7 @@ def run_matrix(problems: list[Problem], strategies: dict, llm,
 
 ---
 
-## Step 4, Two metrics
+## Given, `success_rate` and `avg_calls`
 
 ```python
 def success_rate(results: list[Result]) -> float:
@@ -92,7 +92,7 @@ give you `0.0`, not a `ZeroDivisionError` in the middle of a 15-minute run.
 
 ---
 
-## Step 5, Head to head
+## Step 2, `paired_wins`
 
 ```python
 def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
@@ -131,7 +131,7 @@ Reflexion vs ReAct   Reflexion only: 2   ReAct only: 0   same: 18
 
 ---
 
-## Step 6, The leaderboard
+## Step 3, `leaderboard`
 
 ```python
 def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float]]:
@@ -146,7 +146,7 @@ leaderboard blind to cost would have crowned whatever retried the most.
 
 ---
 
-## Step 7, What the real run says
+## Running it
 
 ```
 1  Reflexion+CoT     65%  13/20  1.5 calls

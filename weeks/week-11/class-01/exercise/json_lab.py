@@ -32,47 +32,59 @@ def _type_name(t) -> str:
 
 
 def extract_json(text: str) -> dict:
-    """Return the first JSON object found in `text`, or raise ValueError.
+    """Dig a JSON object out of whatever the model wrapped it in.
 
-    Models wrap JSON in prose or ```json fences. Find the substring from the
-    first '{' to the matching '}' (a simple last-'}' heuristic is fine here),
-    then json.loads it. Raise ValueError if there is no valid object.
+    Args:
+        text: raw model output. It may be bare JSON, or JSON inside a ```json
+            fence, or JSON with a sentence of prose either side of it.
+
+    Returns:
+        The parsed object, as a dict.
+
+    Raises:
+        ValueError: if there is no JSON object in there at all, if it does not
+            parse, or if it parses to something that is not a dict. A list is
+            valid JSON and still wrong here.
     """
-    # TODO (STEP 1). Check with: pytest -k step1
+    # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   Models wrap JSON in prose or a code fence. Find the object anyway.
+    #   find the first opening brace and the LAST closing brace
+    #   if either is missing, or they are the wrong way round, there is no
+    #       object to extract
+    #   parse the slice between them, turning any parse failure into a
+    #       ValueError so callers only have one exception type to handle
+    #   reject anything that did not come back as a dict
     #
-    #   1. start = text.find("{"); end = text.rfind("}")
-    #   2. if either is -1, or end < start: raise ValueError
-    #   3. json.loads(text[start:end+1]); turn a JSONDecodeError into a ValueError
-    #   4. if the result is not a dict: raise ValueError
-    #   5. return it
+    #   First-open to last-close is deliberately crude, and enough here.
     #
     raise NotImplementedError
 
 
 # ----------------------------- STEP 2 -----------------------------
 def validate(record: dict, schema: dict) -> list[str]:
-    """Return a list of error strings (empty == valid).
+    """Check a parsed record against a schema and report everything wrong.
 
-    For each field in the schema check:
-      - present in record
-      - correct type (note: in Python bool is a subclass of int, guard for it)
-      - within 'min'/'max' if given
+    Args:
+        record: the dict that came back from extract_json.
+        schema: field name -> spec. Each spec has a "type", and may have "min"
+            and "max" bounds.
+
+    Returns:
+        A list of human-readable error strings, EMPTY when the record is valid.
+        Collect every problem rather than returning at the first: a caller
+        fixing a model's output wants the whole list at once.
     """
-    # TODO (STEP 2). Check with: pytest -k step2
+    # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   Return a LIST of human-readable errors, empty when the record is fine.
+    #   for every field the schema asks for:
+    #       if the record does not have it at all, record that and move on
+    #       if the value is the wrong type, record that and move on
+    #       otherwise check it against any min and max the spec gives
+    #   hand back everything you found
     #
-    #   1. for each field, spec in schema.items():
-    #         missing from record -> "<field>: missing required field", next field
-    #         value = record[field]; expected = spec["type"]
-    #         bool trap: if expected is not bool but the value IS a bool, that is
-    #         an error (in Python True is an int), next field
-    #         wrong isinstance -> "<field>: expected X, got Y", next field
-    #         if "min" in spec and value < spec["min"] -> below-minimum error
-    #         if "max" in spec and value > spec["max"] -> above-maximum error
-    #   2. return errors
+    #   One trap: in Python a bool IS an int, so True passes an int check
+    #   unless you rule it out on purpose. _type_name is given for the
+    #   messages.
     #
     #   _type_name is given for the message text.
     #

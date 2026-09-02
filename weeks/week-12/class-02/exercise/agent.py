@@ -123,18 +123,20 @@ def parse_action(text: str) -> Optional[tuple[str, str]]:
     Accepts `tool(input)` too, because small models slip into parentheses and
     there is nothing to be gained by failing on that.
     """
-    # TODO (STEP 6). Check with: pytest -k step6
+    # TODO (STEP 3): implement. Check with: pytest -k step3
     #
-    #   Pull the FIRST `Action: tool[input]` out of the model's text.
+    #   Pull the FIRST "Action: tool[input]" out of the model's text. The
+    #   opening pattern is given as _ACTION_OPEN.
     #
-    #   1. m = _ACTION_OPEN.search(text); no match -> return None
-    #   2. tool, opener = m.group(1), m.group(2); closer is "]" for "[", else ")"
-    #   3. walk forward from m.end() keeping a depth counter: +1 on opener,
-    #      -1 on closer; when depth hits 0 you have found the real end
-    #   4. return (tool, the collected input)
+    #   find where an action starts; if there is none, there is nothing to do
+    #   note which bracket opened it, because the matching closer differs
+    #   walk forward counting depth: going up on every opener and down on every
+    #       closer, and the input ends where the depth returns to zero
+    #   return the tool name and that input
     #
-    #   Depth counting is why calc[log(3**2 * 16 - 10)] survives; a plain
-    #   regex would stop at the first ) and cut the expression in half.
+    #   Counting depth is the whole point. A plain regex stops at the FIRST
+    #   closing bracket, which cuts calc[log(3**2 * 16 - 10)] in half and
+    #   silently feeds the tool a different expression.
     #
     raise NotImplementedError
 
@@ -166,7 +168,7 @@ def is_grounded(answer: str, observations: list[str]) -> bool:
     plausible number from memory instead. The loop cannot tell a real lookup
     from an invented one, but this check can.
     """
-    # TODO (STEP 7). Check with: pytest -k step7
+    # TODO (STEP 4): implement. Check with: pytest -k step4
     #
     #   Did the answer invent a number the tools never returned?
     #

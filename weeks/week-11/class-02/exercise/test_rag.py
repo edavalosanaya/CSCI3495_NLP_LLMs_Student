@@ -33,7 +33,7 @@ def _implemented(fn, *args):
         return False
 
 
-def test_step1_chunking_splits_on_blank_lines():
+def test_given_chunking_splits_on_blank_lines():
     chunks = rag.chunk_documents([("doc1.md", "first passage\n\nsecond passage")])
     assert len(chunks) == 2
     assert chunks[0].text == "first passage"
@@ -42,7 +42,7 @@ def test_step1_chunking_splits_on_blank_lines():
     assert all(c.source == "doc1.md" for c in chunks)
 
 
-def test_step1_chunking_full_corpus_ids_sequential():
+def test_given_chunking_ids_sequential():
     chunks = rag.chunk_documents(rag.NOTES)
     assert len(chunks) >= 5
     assert [c.id for c in chunks] == list(range(len(chunks)))
@@ -53,7 +53,7 @@ def _build_retriever():
     return rag.TfidfRetriever(chunks)
 
 
-def test_step2_retrieve_relevant_chunk_for_cot():
+def test_step1_retrieve_relevant_chunk_for_cot():
     if not _implemented(rag.TfidfRetriever(rag.chunk_documents(rag.NOTES)).retrieve, "x", 1):
         pytest.skip("retrieve not implemented")
     r = _build_retriever()
@@ -64,7 +64,7 @@ def test_step2_retrieve_relevant_chunk_for_cot():
                for c in top)
 
 
-def test_step2_retrieve_relevant_chunk_for_rag():
+def test_step1_retrieve_relevant_chunk_for_rag():
     if not _implemented(rag.TfidfRetriever(rag.chunk_documents(rag.NOTES)).retrieve, "x", 1):
         pytest.skip("retrieve not implemented")
     r = _build_retriever()
@@ -72,7 +72,7 @@ def test_step2_retrieve_relevant_chunk_for_rag():
     assert "hallucination" in top[0].text.lower()
 
 
-def test_step3_build_prompt_grounded():
+def test_step2_build_prompt_grounded():
     if not _implemented(rag.build_prompt, "q", []):
         pytest.skip("build_prompt not implemented")
     chunks = rag.chunk_documents(rag.NOTES)[:2]
@@ -82,7 +82,7 @@ def test_step3_build_prompt_grounded():
     assert "don't know" in p.lower() or "do not know" in p.lower()  # grounding instruction
 
 
-def test_step4_verify_citations():
+def test_given_verify_citations():
     if not _implemented(rag.verify_citations, "x", []):
         pytest.skip("verify_citations not implemented")
     retrieved = rag.chunk_documents(rag.NOTES)[:3]
@@ -92,7 +92,7 @@ def test_step4_verify_citations():
     assert rag.verify_citations("No citations at all.", retrieved) == set()
 
 
-def test_step5_stub_generator_offline_endtoend():
+def test_given_stub_generator_endtoend():
     """The whole offline pipeline runs and produces a valid citation."""
     if not all([
         _implemented(rag.build_prompt, "q", []),

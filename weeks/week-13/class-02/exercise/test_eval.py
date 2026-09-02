@@ -53,18 +53,18 @@ def R(pid, strategy, correct, calls=1):
 
 
 # ------------------------------------------------------------- step 1: scoring
-def test_step1_is_correct_matches_numerically_not_as_strings():
+def test_given_is_correct_matches_numerically():
     assert E.is_correct(18.0, 18)
     assert E.is_correct(1596.00001, 1596)
 
 
-def test_step1_is_correct_rejects_none_and_wrong():
+def test_given_is_correct_rejects_none_and_wrong():
     assert not E.is_correct(None, 18)
     assert not E.is_correct(17.9, 18)
 
 
 # -------------------------------------------------------- step 2: one eval run
-def test_step2_evaluate_one_scores_and_records_cost():
+def test_given_evaluate_one_scores_and_records_cost():
     p = E.Problem("G01", "What is 6 times 7?", 42.0)
     res = E.evaluate_one(p, "Naive", S.naive, const_llm("The answer is 42"))
     assert res.correct and res.predicted == 42.0
@@ -72,7 +72,7 @@ def test_step2_evaluate_one_scores_and_records_cost():
 
 
 @pytest.mark.parametrize("name", ["Reflexion+CoT", "Reflexion+ReAct"])
-def test_step2_every_reflexion_variant_gets_an_external_evaluator(name):
+def test_given_every_reflexion_variant_gets_an_evaluator(name):
     # With a model that always answers 41, Reflexion must retry (2 attempts),
     # which only happens if evaluate_one handed it a feedback function. Both
     # variants must qualify, so match on the prefix, not the exact name.
@@ -83,7 +83,7 @@ def test_step2_every_reflexion_variant_gets_an_external_evaluator(name):
     assert res.attempts == 2, f"{name} should have been given feedback and retried"
 
 
-def test_step2_reflexion_wraps_its_base_and_costs_more():
+def test_given_reflexion_wraps_its_base_and_costs_more():
     p = E.Problem("G01", "What is 6 times 7?", 42.0)
     llm = const_llm("Thought: done.\nAction: finish[41]")
     base = E.evaluate_one(p, "CoT", S.cot, llm)
@@ -92,7 +92,7 @@ def test_step2_reflexion_wraps_its_base_and_costs_more():
 
 
 # ------------------------------------------------------------- step 3: matrix
-def test_step3_run_matrix_covers_every_strategy_and_problem():
+def test_step1_run_matrix_covers_every_strategy_and_problem():
     probs = [E.Problem("G01", "q1", 42.0), E.Problem("G02", "q2", 42.0)]
     m = E.run_matrix(probs, {"Naive": S.naive, "CoT": S.cot},
                      const_llm("The answer is 42"))
@@ -102,25 +102,25 @@ def test_step3_run_matrix_covers_every_strategy_and_problem():
 
 
 # ------------------------------------------------------------ step 4: metrics
-def test_step4_success_rate_and_avg_calls():
+def test_given_success_rate_and_avg_calls():
     rows = [R("G01", "X", True, 1), R("G02", "X", False, 3)]
     assert E.success_rate(rows) == 0.5
     assert E.avg_calls(rows) == 2.0
 
 
-def test_step4_metrics_handle_an_empty_run():
+def test_given_metrics_handle_an_empty_run():
     assert E.success_rate([]) == 0.0 and E.avg_calls([]) == 0.0
 
 
 # ------------------------------------------------------- step 5: paired compare
-def test_step5_paired_wins_pairs_by_problem_id():
+def test_step2_paired_wins_pairs_by_problem_id():
     a = [R("G01", "A", True), R("G02", "A", False), R("G03", "A", True)]
     b = [R("G02", "B", True), R("G01", "B", False), R("G03", "B", True)]  # shuffled
     assert E.paired_wins(a, b) == (1, 1, 1)
 
 
 # --------------------------------------------------------- step 6: leaderboard
-def test_step6_leaderboard_ranks_by_success_then_cost():
+def test_step3_leaderboard_ranks_by_success_then_cost():
     m = {
         "Expensive": [R("G01", "Expensive", True, 8), R("G02", "Expensive", True, 8)],
         "Cheap": [R("G01", "Cheap", True, 1), R("G02", "Cheap", True, 1)],
@@ -132,7 +132,7 @@ def test_step6_leaderboard_ranks_by_success_then_cost():
     assert ranked[0][1] == 1.0 and ranked[0][2] == 1.0
 
 
-def test_step6_format_leaderboard_is_readable():
+def test_step3_format_leaderboard_is_readable():
     m = {"Cheap": [R("G01", "Cheap", True, 1)]}
     out = E.format_leaderboard(m)
     assert "Cheap" in out and "100%" in out

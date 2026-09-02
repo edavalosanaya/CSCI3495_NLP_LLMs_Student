@@ -93,45 +93,45 @@ def test_step1_calc_turns_errors_into_observations():
 
 
 # -------------------------------------------------------------- step 2: today
-def test_step2_today_returns_the_real_date():
+def test_given_today_returns_the_real_date():
     assert T.today() == datetime.date.today().isoformat()
 
 
 # ------------------------------------------------------------ step 3: weather
-def test_step3_weather_reads_today_and_yesterday():
+def test_given_weather_reads_today_and_yesterday():
     assert T.weather("san antonio, today") == "101.0"
     assert T.weather("san antonio, yesterday") == "94.0"
 
 
-def test_step3_weather_forgives_sloppy_input():
+def test_given_weather_forgives_sloppy_input():
     assert T.weather("San_Antonio, TODAY") == "101.0"
     assert T.weather('austin, "yesterday"') == "96.0"
 
 
-def test_step3_weather_accepts_an_iso_date():
+def test_given_weather_accepts_an_iso_date():
     y = (datetime.date.today() - datetime.timedelta(days=2)).isoformat()
     assert T.weather(f"austin, {y}") == "95.0"
 
 
-def test_step3_weather_errors_are_readable():
+def test_given_weather_errors_are_readable():
     assert T.weather("paris, today").startswith("Error: no weather for 'paris'")
     assert T.weather("austin, 1999-01-01").startswith("Error: no reading that far back")
 
 
 # ------------------------------------------------------------- step 4: search
-def test_step4_search_finds_the_right_entry():
+def test_given_search_finds_the_right_entry():
     assert "Shinn" in T.search("reflexion")
     assert "Paris" in T.search("what is the capital of france")
 
 
 # ----------------------------------------------------------- step 5: registry
 @needs_registry
-def test_step5_registry_has_all_four_tools():
+def test_step2_registry_has_all_four_tools():
     assert set(T.TOOLS) == {"calc", "today", "weather", "search"}
 
 
 @needs_registry
-def test_step5_prompt_lists_every_registered_tool():
+def test_step2_prompt_lists_every_registered_tool():
     prompt = A.build_prompt(T.TOOLS)
     for name in T.TOOLS:
         assert name in prompt
@@ -139,32 +139,32 @@ def test_step5_prompt_lists_every_registered_tool():
 
 
 @needs_registry
-def test_step5_unknown_tool_becomes_an_observation():
+def test_step2_unknown_tool_becomes_an_observation():
     out = A.run_tool("teleport", "mars", T.TOOLS)
     assert out.startswith("Error: unknown tool 'teleport'")
 
 
 # ------------------------------------------------------------ step 6: parsing
-def test_step6_parse_keeps_nested_brackets():
+def test_step3_parse_keeps_nested_brackets():
     assert A.parse_action("Action: calc[log(3**2 * 16 - 10)]") == (
         "calc", "log(3**2 * 16 - 10)")
 
 
-def test_step6_parse_accepts_parentheses():
+def test_step3_parse_accepts_parentheses():
     assert A.parse_action("Action: finish(7 degrees)") == ("finish", "7 degrees")
 
 
-def test_step6_parse_returns_none_when_malformed():
+def test_step3_parse_returns_none_when_malformed():
     assert A.parse_action("I think the answer is 42.") is None
     assert A.parse_action("Action: calc[1 + 2") is None
 
 
 # ---------------------------------------------------------- step 7: grounding
-def test_step7_grounded_accepts_numbers_that_came_from_tools():
+def test_step4_grounded_accepts_numbers_from_tools():
     assert A.is_grounded("7 degrees hotter", ["101.0", "94.0", "7"])
 
 
-def test_step7_grounded_rejects_an_invented_number():
+def test_step4_grounded_rejects_an_invented_number():
     # The classic failure: the model looked up today, invented yesterday.
     assert not A.is_grounded("3 degrees hotter", ["101.0"])
     assert not A.is_grounded("98.0", ["101.0", "94.0"])

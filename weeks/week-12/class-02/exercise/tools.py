@@ -75,18 +75,18 @@ def calculator(expr: str) -> str:
     log(3 XOR 22) = log(21) and return a plausible, wrong number. A tool that
     is quietly wrong is worse than one that errors.
     """
-    # TODO (STEP 1). Check with: pytest -k step1
+    # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   Evaluate arithmetic WITHOUT eval(). Return an Observation string.
+    #   Evaluate the arithmetic WITHOUT eval(). _eval_node is given and walks a
+    #   parsed expression safely.
     #
-    #   1. expr = expr.strip().replace("^", "**")
-    #      (in Python ^ is XOR, so 3^2 would silently mean 1, not 9)
-    #   2. if the expression is empty: return "Error: empty expression"
-    #   3. result = _eval_node(ast.parse(expr, mode="eval"))   _eval_node is given
-    #      catch ZeroDivisionError -> "Error: division by zero"
-    #      catch anything else     -> f"Error: could not evaluate '{expr}'"
-    #   4. if the result is a float with no fraction, make it an int
-    #   5. return str(result)
+    #   tidy the expression, and rewrite the caret so it means "to the power of"
+    #   an empty expression is an error, not a crash
+    #   parse and evaluate it, turning a division by zero into one error string
+    #       and anything else into another
+    #   if the result is a whole number, present it as an integer
+    #   hand back a string either way, and note that turning a very large
+    #       integer into a string can itself fail
     #
     #   Every failure returns a STRING. Raising would kill the agent loop.
     #
@@ -102,8 +102,6 @@ def today(_arg: str = "") -> str:
     This is the cheapest possible demonstration that a tool beats memory: the
     date is not in the weights, and no amount of prompting can put it there.
     """
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     return _dt.date.today().isoformat()
 
 
@@ -141,8 +139,6 @@ def weather(arg: str) -> str:
     model into a loop. Being forgiving about the INPUT while staying exact
     about the OUTPUT is most of good tool design.
     """
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     city, _, day = arg.partition(",")
     city = city.strip().strip('"\'').lower().replace("_", " ")
     if not city:
@@ -198,8 +194,6 @@ def _tokens(text: str) -> set[str]:
 
 def search(query: str) -> str:
     """Return the best-matching corpus entry by word overlap. Network-free."""
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     query = query.strip()
     if not query:
         return "Error: empty query"
@@ -217,11 +211,11 @@ def search(query: str) -> str:
 # The registry the agent dispatches against: tool name -> callable(str) -> str.
 # The lab builds this up one entry at a time, which is the whole point: each
 # new key is a new thing the model stops having to guess about.
-# TODO (STEP 5). Check with: pytest -k step5
+# TODO (STEP 2): implement. Check with: pytest -k step2
 #
-#   Map each tool's NAME to its function, e.g.
-#       TOOLS = {"calc": calculator, "today": today, ...}
-#   Use the names the README lists; the tests and the prompt both use them.
+#   Map each tool's NAME, as a string, to the function that implements it.
+#   Use the four names the README lists: the tests and the prompt both go
+#   through this dict, so a typo here is a tool the model can never call.
 #
 # The prompt is BUILT FROM THIS DICT, so a tool you do not register is a tool
 # the model is never told about and can never call.

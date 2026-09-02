@@ -1,149 +1,92 @@
-# W15C1 Activity: Pre-mortem Workshop (in class) + Bias Probe (take-home)
+# W15C1 Lab: Measuring Bias in Embeddings
 
-Two parts: the **in-class** activity is a **team pre-mortem** on a real deployment;
-the **bias-probing demo** is a **measure-first / take-home lab** that runs fully offline.
-Evidence beats opinion: measure first, then argue with numbers.
+## 1. Learning objective
 
-## Before you code: the picture and the math
+Turn "this model seems biased" into a number: measure how far each word leans
+along an attribute axis, and summarize a whole stereotype pattern in one score.
+
+You write three functions in `bias_probe.py`. The toy vectors and the report
+formatting are given.
+
+## 2. Understanding the math
 
 ![Bias pipeline: human text encodes stereotypes, models learn and amplify them, harm falls unevenly](../lecture/visuals/bias-fairness.png)
 
-The take-home lab measures the first arrow of that pipeline directly. Your finished code reproduces this run:
-
-![Example run of bias_probe.py showing per-word associations and the overall EFFECT score](../lecture/visuals/bias-output.png)
-
-The three functions you implement are exactly these three equations (same notation as the docstrings):
+Everything is built on cosine similarity:
 
 $$\cos(a, b) = \frac{a \cdot b}{\lVert a \rVert \, \lVert b \rVert}$$
 
+One word's association is how much closer it sits, on average, to attribute set
+$A$ than to set $B$. Averaging each side is what lets the two sets differ in size:
+
 $$s(w, A, B) = \frac{1}{|A|} \sum_{a \in A} \cos(w, a) \; - \; \frac{1}{|B|} \sum_{b \in B} \cos(w, b)$$
+
+The WEAT-style effect applies that to two groups of target words at once, and
+asks whether $X$ leans toward $A$ while $Y$ leans toward $B$:
 
 $$\mathrm{effect}(X, Y, A, B) = \frac{1}{|X|} \sum_{x \in X} s(x, A, B) \; - \; \frac{1}{|Y|} \sum_{y \in Y} s(y, A, B)$$
 
-In words: `cosine` scores how similar two word vectors are, `association` asks whether one word sits closer to attribute set A (male terms) or set B (female terms), and `effect` averages those associations over the career words X versus the care words Y. A large positive `effect` means the embedding space encodes the stereotype pattern career leans male, care leans female. **Check yourself before coding:** in the example run, why is `association(male - female)` for *nurse* negative at -1.016? (Because *nurse* has a higher mean cosine to the female attribute words than to the male ones, so the subtraction in $s(w, A, B)$ comes out below zero.)
+![Example run of bias_probe.py showing per-word associations and the overall EFFECT score](../lecture/visuals/bias-output.png)
 
----
+## 3. Getting started
 
-## Part A: Pre-mortem workshop (TEAM): IN CLASS
-
-A **pre-mortem** is a post-mortem you run before you build: you assume the project has
-**already failed**, then reverse-engineer the causes while the plan is still cheap to
-change. Klein (2007) invented it for project management; Bender et al. (2021, section 6)
-recommend it for language models specifically, as a way to evaluate the **worst** case
-rather than the average one.
-
-You are not arguing a side. Every team is on the build side.
-
-**Teams of 3-4.** Count off 1-5; your number is your case:
-
-| Team | Case |
-|------|------|
-| 1 | A county auto-translates evacuation orders into 30 languages, no human review |
-| 2 | A university ships a 24/7 LLM tutor for intro CS that also drafts TA feedback |
-| 3 | An agent categorizes a small business's expenses and drafts its quarterly filing |
-| 4 | A legal-aid nonprofit drafts eviction-defense filings for tenants with no lawyer |
-| 5 | A clinic drafts visit summaries and triages overnight patient-portal messages |
-
-**The four steps (~23 min):**
-
-1. **Write the obituary (5 min).** One year post-launch, your system is shut down and in
-   the news. Write the headline in one sentence, with a **number** in it. "It was biased"
-   does not count; "sorted 1,200 urgent messages as routine over eight months" does.
-2. **Reverse-engineer four causes (8 min).** For each, tag **which of the six fault lines**
-   it is, and **where in the pipeline it entered**: the data, the training, the prompt, the
-   missing human, or the missing evaluation. Push past the first two, the obvious ones are
-   already on somebody's checklist.
-3. **Rank them (4 min).** Score each cause 1-3 on *how bad*, *how likely*, and *how hard to
-   notice*, then multiply (1 to 27). Hard-to-notice is the axis people underweight: a loud
-   failure gets fixed in a week, a quiet one ships for a year.
-4. **Change the build, not the disclaimer (6 min).** For your top two causes, name ONE
-   concrete change: curate + datasheet the data · fine-tune in-domain · retrieval with a
-   required citation · refuse-and-escalate below a confidence threshold · a named human
-   sign-off step · a held-out eval set plus a red-team suite · logging and monitoring.
-
-**Then 2 minutes at the whiteboard.** Draw three boxes and two arrows,
-**data → model → people**, put the failure in the box it starts in, and pin the fix to the
-box it acts on. Present **one** failure and **one** fix, not the whole worksheet.
-
-Full case briefs, the scoring table and the worksheet are in `premortem-guide.md`.
-
----
-
-## Part B: Bias probe (measure-first lab, offline)
-
-**You will write three functions** in `bias_probe.py`, one per step, each with
-its own check. This is a simplified WEAT (Caliskan et al. 2017).
-
-Open a shell inside the course image, already in this lab's folder. One
-command, once per session:
+From the repository root on your own machine, once per session:
 
 ```bash
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-15/class-01/exercise course bash
 ```
 
-Everything below runs in that shell.
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
 
-Stuck for more than a few minutes on a step? The reference solution and a
-step-by-step `WALKTHROUGH.md` are in `../solutions/`. **These labs are not
-graded**, so reading them is not cheating: getting unstuck and finishing the
-idea beats staring at a blank function.
+## 4. Implement `cosine`
+
+Dot product over the two lengths, and 0.0 when a vector has no length.
 
 ```bash
 pytest -k step1 -q
 ```
 
----
+```
+....                                                                     [100%]
+4 passed, 6 deselected
+```
 
-### Step 1, Cosine similarity
+## 5. Implement `association`
 
-**Write:** `cosine(a, b)`. Return 0.0 for a zero vector.
-
-**Done when:** `-k step1` gives `4 passed, 6 deselected`.
-
-Fourth time in the course (W3C1, W3C2, W6C1, here). Worth noticing that the
-measurement instrument for a social-bias probe is the same three lines as the
-search engine.
-
----
-
-### Step 2, Association
-
-**Write:** `association(w, A, B)`, the mean cosine of `w` with attribute set `A`
-minus the mean cosine with `B`. Positive leans toward `A`.
-
-**Done when:** `-k step2` gives `3 passed, 7 deselected`.
-
----
-
-### Step 3, Effect size
-
-**Write:** `effect(X, Y, A, B)`: average `association` over target set `X`,
-average it over `Y`, return the difference.
-
-**Done when:** `-k step3` gives `3 passed, 7 deselected`.
-
-**One test checks the sign flips when the attribute sets are swapped.** That is a
-sanity property, not a detail: a probe whose sign does not respond to its own
-definition is measuring nothing.
-
----
-
-### Step 4, Run it
+Average the cosine against each set, then subtract.
 
 ```bash
-pytest -q
+pytest -k step2 -q
 ```
 
 ```
-..........                                                               [100%]
-10 passed
+...                                                                      [100%]
+3 passed, 7 deselected
 ```
+
+## 6. Implement `effect`
+
+The same subtraction, one level up, over two groups of target words.
+
+```bash
+pytest -k step3 -q
+```
+
+```
+...                                                                      [100%]
+3 passed, 7 deselected
+```
+
+## 7. Run it, then question it
 
 ```bash
 python bias_probe.py
 ```
 
 ```
+Bias probe (toy embeddings, dim=8)
   engineer     association(male - female) = +1.014
   programmer   association(male - female) = +1.021
   scientist    association(male - female) = +0.869
@@ -153,20 +96,20 @@ python bias_probe.py
   EFFECT (career leans male & care leans female) = +1.979
 ```
 
-**Read the caveat before the numbers.** These vectors are **hand-built for the
-exercise**, so the association was put there deliberately. This run proves your
-arithmetic works; it proves nothing about the world.
+These vectors were CONSTRUCTED to show this pattern, so the number proves
+nothing about any real model. What it does let you practise is interrogating a
+bias metric before you trust one.
 
-What *is* real is the instrument. Caliskan et al. 2017 ran this same probe on
-word embeddings trained on ordinary web text and recovered documented human
-implicit-association biases, including this career/family pattern. You have built
-the measuring device; the finding belongs to the papers.
-
-**Bring your number back.** "It's just math" is easier to say before someone has
-computed the effect size themselves.
-
-## Feed it back into your pre-mortem
-Use your `effect` score the way step 2 asks you to: "this embedding associates technical
-roles with men by +X, and my case pipes exactly that representation into a decision about
-a person." A cause with a measured number attached outranks four with adjectives.
-
+1. Swap the attribute sets, then swap the targets instead. Both give -1.979,
+   and `effect(X, X, A, B)` is exactly 0.000. A metric that flips sign under a
+   relabelling has no inherent direction. What does that mean for a headline
+   like "the model scores +1.98 on gender bias"?
+2. Shrink the attribute sets to one word each, `["man"]` and `["woman"]`. The
+   effect barely moves, to +1.971. On real embeddings it would move a lot. What
+   is the toy corpus hiding about how sensitive this metric is?
+3. Probe words with nothing to do with the axis: `river`, `tree`, `music` are
+   in the vocabulary. Compute their associations. What score should a truly
+   unrelated word get, and what would you conclude if it got +0.4?
+4. Suppose a real model scores +1.9 here. Name one decision you would NOT be
+   willing to make on the strength of that number alone, and say what evidence
+   you would want instead.

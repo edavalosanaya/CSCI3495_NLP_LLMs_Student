@@ -8,7 +8,7 @@ produced by running it against `qwen2.5:0.5b`.
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 The two prompt builders differ by one clause:
 
@@ -32,7 +32,7 @@ evidence. Make sure students know the real result comes from the Ollama run.
 
 ---
 
-## Step 1, Extract the answer
+## Given, `extract_answer`
 
 `re.findall(r"-?\d+", text)` then `[-1]`.
 
@@ -49,7 +49,7 @@ which is why `cot_prompt` asks for "The answer is N." at the end.
 
 ---
 
-## Step 2, Majority vote
+## Step 1, `majority_vote`
 
 Most common value, ties to the smallest, ignoring `None`.
 
@@ -65,7 +65,7 @@ same discipline as everywhere else in the course.
 
 ---
 
-## Step 3, Evaluate
+## Step 2, `evaluate`
 
 Build a prompt per item, query, extract, compare, average.
 
@@ -78,7 +78,7 @@ say why the harness cannot check it.
 
 ---
 
-## Step 4, The result
+## Running it
 
 ```
 [model] using Ollama model 'qwen2.5:0.5b'

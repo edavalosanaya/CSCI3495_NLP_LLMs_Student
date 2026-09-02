@@ -1,50 +1,66 @@
-# W15C2: Exit-Ticket Synthesis + Final Project Presentations (Session 1)
+# W15C2 Lab: Exit Ticket & Final Presentations
 
-This class is **presentation day**. There is no coding exercise. Below is the
-facilitation guide and the materials you need.
+## 1. Learning objective
 
-## Before you code: the picture and the math
+Present your project, and close the course by writing down what you think the
+field does next.
 
-No code today, but the same rule applies: understand the task before you start. This figure from the lecture is the whole assignment on one line:
+There is no code today. This is the facilitation guide and your checklist.
+
+## 2. Understanding the math
 
 ![Presentation format: 5-8 minute talk plus demo, then 2 minutes of Q&A, following the Motivation to Method to Result to Limitation to Demo arc](../lecture/visuals/presentation-format.png)
 
-The only math today is your time budget. Each group gets
+The only arithmetic today is the time budget:
 
 $$T_{\mathrm{group}} = t_{\mathrm{talk}} + t_{\mathrm{QA}}, \qquad 5 \le t_{\mathrm{talk}} \le 8, \quad t_{\mathrm{QA}} = 2 \quad (\text{minutes})$$
 
-so plan for at most $T_{\mathrm{group}} = 10$ minutes, and remember the stakes: final presentation plus report together are worth $20\%$ of the course grade (`project/RUBRICS.md`). Your talk should walk the arc in the figure, with a concrete number in the Result box. Your exit-ticket should draw on the full course arc below when you make your prediction. **Check yourself before coding:** if your section has 6 groups, how long can the talks alone run at the maximum budget? (Up to $6 \times 10 = 60$ minutes, which is why rehearsing your timing beforehand matters.)
+Plan for at most 10 minutes. Six groups at the maximum is a full hour, which is
+why rehearsing the timing matters. Presentation plus report is 20% of the
+course grade (`project/RUBRICS.md`).
 
 ![The seven-phase course arc from Foundations to Ethics, with the open frontiers where students come in](../lecture/visuals/course-arc.png)
 
-## Opener: written exit-ticket (5 min)
-Before the talks, a short **written exit-ticket** synthesizes the whole course. It is
-deliberately lightweight so it never eats into presentation time:
-- **Prompt:** *"Where is this field in 5 years?"*
-- **Format:** everyone writes, individually, on paper: no grouping, no setup. Put down
-  **one grounded prediction** (scale, evaluation, agents/workflows, or ethics) and
-  **one thing you refuse to predict, and why.**
-- Optionally read a few aloud if time allows, then start the talks. Skip the read-aloud
-  the moment the schedule is tight.
-- This is participation-friendly and primes the "principles over predictions" mindset
-  right before you present your own work.
+## 3. Getting started
 
-## Materials
-- `presentation-guide.md`, facilitation timeline, presenter checklist, and
-  audience norms.
-- `peer-feedback-form.md`, fill one out per talk (printable / copyable).
+Test your demo before class, in the same image everything else ran in:
 
-## Quick reference
-- **Per group:** 5-8 min talk + demo, **2 min Q&A**. **All members must present.**
-- **Grading:** instructor uses `project/RUBRICS.md` (final presentation + report = 20%).
-- **Audience:** complete a peer-feedback form for each talk, counts toward participation.
+```bash
+docker compose -f docker/docker-compose.yml run --rm -w /workspace/<your project> course bash
+```
 
-## Presenter story arc
+Have a fallback ready, screenshots or recorded output, in case the live demo
+fails in the room.
+
+## 4. Write the exit ticket (5 min, individually)
+
+On paper, before the talks start:
+
+- One grounded prediction about where this field is in five years. Pick a lane:
+  scale, evaluation, agents and workflows, or ethics.
+- One thing you refuse to predict, and why.
+
+## 5. Present (5-8 min + 2 min Q&A)
+
+Every member presents. Walk the arc in the figure:
+
 **Motivation → Method → Result (with a number) → Limitation → Demo.**
-Lead with *why it matters*; end with *what you'd do next*.
 
-## Logistics reminders
-- Test your demo **before** class (run it once in the course Docker image).
-- Have a **fallback** (screenshots / recorded output) in case the live demo fails.
-- Presentations continue into the **finals period**, alongside the **paper final exam**;
-  the **final report** is due then (see `project/final/report-template.md`).
+Lead with why it matters, put a concrete number in the Result box, and end with
+what you would do next. `presentation-guide.md` has the full checklist.
+
+## 6. Be an audience
+
+Fill in `peer-feedback-form.md` for every talk. It counts toward
+participation, and a room that asks real questions makes everyone's talk
+better.
+
+## 7. Reflect
+
+1. Your prediction names something that will change. What has to STAY true for
+   that prediction to make sense?
+2. Look back at the course arc figure. Which phase did your project actually
+   live in, and which one would you move it to if you had another month?
+3. Name the single result from your project you would defend to someone
+   skeptical, and the one you would not.
+4. What did you refuse to predict, and what evidence would change your mind?

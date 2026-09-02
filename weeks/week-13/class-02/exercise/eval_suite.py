@@ -53,8 +53,6 @@ def is_correct(predicted: Optional[float], gold: float, tol: float = 1e-4) -> bo
     different ways. Tolerance is relative for big numbers so 1596 vs 1596.0001
     does not fail.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     if predicted is None:
         return False
     return abs(predicted - gold) <= max(tol, abs(gold) * tol)
@@ -62,8 +60,6 @@ def is_correct(predicted: Optional[float], gold: float, tol: float = 1e-4) -> bo
 
 def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result:
     """Run one strategy on one problem. Reflexion gets the evaluator to react to."""
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     if name.startswith("Reflexion"):
         def feedback(ans):
             if is_correct(ans, problem.answer):
@@ -80,7 +76,7 @@ def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result
 def run_matrix(problems: list[Problem], strategies: dict, llm,
                progress: bool = False) -> dict[str, list[Result]]:
     """Every strategy against every problem. Returns {strategy: [Result, ...]}."""
-    # TODO (STEP 3). Check with: pytest -k step3
+    # TODO (STEP 1): implement. Check with: pytest -k step1
     #
     #   Every strategy against every problem.
     #
@@ -93,14 +89,10 @@ def run_matrix(problems: list[Problem], strategies: dict, llm,
 
 
 def success_rate(results: list[Result]) -> float:
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     return sum(r.correct for r in results) / len(results) if results else 0.0
 
 
 def avg_calls(results: list[Result]) -> float:
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     return sum(r.calls for r in results) / len(results) if results else 0.0
 
 
@@ -111,7 +103,7 @@ def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
     noise. What is actually informative is how often A solved something B did
     not, so this pairs them by problem id instead of comparing two averages.
     """
-    # TODO (STEP 5). Check with: pytest -k step5
+    # TODO (STEP 2): implement. Check with: pytest -k step2
     #
     #   Compare two strategies PROBLEM BY PROBLEM, not average against average.
     #
@@ -132,7 +124,7 @@ def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float
     that used fewer model calls is the better engineering answer, and a
     leaderboard that hides cost will always crown the most expensive entry.
     """
-    # TODO (STEP 6). Check with: pytest -k step6
+    # TODO (STEP 3): implement. Check with: pytest -k step3
     #
     #   1. for each (name, results), build (name, success_rate(rs), avg_calls(rs))
     #   2. sort by success rate DESCENDING, then by average calls ASCENDING

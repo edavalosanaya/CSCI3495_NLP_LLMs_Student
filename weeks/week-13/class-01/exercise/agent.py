@@ -93,13 +93,23 @@ def run_tool(tool: str, tool_input: str) -> str:
 # Planner  (STEP 2)
 # --------------------------------------------------------------------------
 def make_plan(task: str, planner: Optional[LLM]) -> str:
-    """Ask the planner for a short plan. No planner -> empty plan ("")."""
+    """Get a short up-front plan for the task, if there is a planner at all.
+
+    Args:
+        task: the problem to be solved.
+        planner: a model to ask, or None. None is a supported configuration,
+            not an error: the agent runs unplanned.
+
+    Returns:
+        The plan text, stripped. The empty string when there is no planner,
+        which downstream code treats as "no plan section in the prompt".
+    """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   1. if planner is None: return ""      the agent still runs, just unplanned
-    #   2. build a prompt asking for 2-4 short numbered steps and ONLY the steps,
-    #      with the task on its own line
-    #   3. return planner(prompt).strip()
+    #   with no planner there is no plan, and that is a normal answer
+    #   otherwise ask for a handful of short numbered steps and NOTHING else,
+    #       with the task on its own line
+    #   return what came back, trimmed
     #
     raise NotImplementedError
 
@@ -108,8 +118,6 @@ def make_plan(task: str, planner: Optional[LLM]) -> str:
 # Single ReAct attempt (memory + plan injected into the prompt)
 # --------------------------------------------------------------------------
 def _build_header(task: str, plan: str, memory: Memory) -> str:
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     header = (
         "You solve problems by calling tools. Reply with EXACTLY two lines:\n"
         "Thought: <one short sentence>\n"

@@ -5,7 +5,7 @@ stuck on.** The complete files are in this folder.
 
 ---
 
-## Step 1, Memory
+## Given, `Memory`
 
 `add` appends; `as_prompt` returns `""` when empty, else a
 "Lessons from previous attempts:" block with one bullet per note.
@@ -17,7 +17,7 @@ emit a section it has no content for.
 
 ---
 
-## Step 2, Planner
+## Step 1, `make_plan`
 
 `None` planner returns `""`. The planner is optional and the agent must run
 without one, which is what `test_step2_make_plan_none_planner_is_empty` checks.
@@ -27,7 +27,7 @@ unbounded planner produces a wall of text that crowds out the actual task.
 
 ---
 
-## Step 3, Put them in the prompt
+## Given, `_build_header` and `react_attempt`
 
 Append the `Plan:` block if non-empty, then `memory.as_prompt()`.
 
@@ -42,7 +42,7 @@ and the reason W11's RAG machinery reappears in agent frameworks.
 
 ---
 
-## Step 4, The Reflexion loop
+## Steps 2 and 3, `reflect` and `run_reflexion_agent`
 
 Attempt, and on failure ask the reflector what went wrong, store the note, retry.
 Four tests, one per behavior:
@@ -64,7 +64,7 @@ the real structure, where the note depends on what went wrong.
 
 ---
 
-## Step 5, Running it
+## Running it
 
 Have students read the **second attempt's prompt**. The lesson from attempt 1 is
 sitting in it, and the model's behavior changes as a result. That is Reflexion
