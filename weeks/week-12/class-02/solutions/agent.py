@@ -126,9 +126,16 @@ def parse_action(text: str) -> Optional[tuple[str, str]]:
     m = _ACTION_OPEN.search(text)
     if not m:
         return None
-    tool, opener = m.group(1), m.group(2)
-    closer = "]" if opener == "[" else ")"
-    depth, out, i = 1, [], m.end()
+    tool = m.group(1)
+    opener = m.group(2)
+    if opener == "[":
+        closer = "]"
+    else:
+        closer = ")"
+
+    depth = 1
+    out = []
+    i = m.end()
     while i < len(text):
         ch = text[i]
         if ch == opener:

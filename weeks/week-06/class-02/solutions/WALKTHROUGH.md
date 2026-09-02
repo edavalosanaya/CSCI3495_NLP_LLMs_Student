@@ -19,13 +19,24 @@ number it produces is a smoke test rather than a measurement.
 ## Step 1, `top_mask_predictions`
 
 ```python
+def top_mask_predictions(sentence_with_mask: str, k: int = 5) -> list[str]:
+    # bert-tiny ships only vocab.txt (no tokenizer.json) and no `model_type` in
+    # its config, so the Auto* dispatch that `pipeline(model=...)` uses fails
+    # under transformers >= 5. Build the fast tokenizer + model explicitly and
+    # hand them to the pipeline.
     from transformers import BertForMaskedLM, BertTokenizerFast, pipeline
 
     tok = BertTokenizerFast.from_pretrained(MLM_MODEL)
     model = BertForMaskedLM.from_pretrained(MLM_MODEL)
     fill = pipeline("fill-mask", model=model, tokenizer=tok)
     results = fill(sentence_with_mask, top_k=k)
-    return [r["token_str"].strip() for r in results]
+
+    words = []
+    for r in results:
+        # Each result is a dict; the word lives under "token_str" and arrives
+        # with leading whitespace from the tokenizer.
+        words.append(r["token_str"].strip())
+    return words
 ```
 
 **The explicit tokenizer/model construction is a workaround, and the code comment
@@ -88,14 +99,22 @@ knowledge.
 ## Step 2, `finetune_and_eval`
 
 ```python
+def finetune_and_eval(epochs: int = 8, seed: int = 0) -> float:
+    import torch
+    from transformers import BertForSequenceClassification, BertTokenizerFast
+
     torch.manual_seed(seed)
 
     tok = BertTokenizerFast.from_pretrained(MLM_MODEL)
     model = BertForSequenceClassification.from_pretrained(MLM_MODEL, num_labels=2)
     model.train()
 
-    texts = [t for t, _ in TRAIN_DATA]
-    labels = torch.tensor([y for _, y in TRAIN_DATA])
+    texts = []
+    label_values = []
+    for text, y in TRAIN_DATA:
+        texts.append(text)
+        label_values.append(y)
+    labels = torch.tensor(label_values)
     enc = tok(texts, padding=True, truncation=True, return_tensors="pt")
 
     opt = torch.optim.AdamW(model.parameters(), lr=5e-4)
@@ -106,6 +125,13 @@ knowledge.
         opt.step()
 
     model.eval()
+    test_texts = [t for t, _ in TEST_DATA]
+    test_labels = torch.tensor([y for _, y in TEST_DATA])
+    tenc = tok(test_texts, padding=True, truncation=True, return_tensors="pt")
+    with torch.no_grad():
+        logits = model(**tenc).logits
+    preds = logits.argmax(dim=-1)
+    return (preds == test_labels).float().mean().item()
 ```
 
 **The "MISSING" warning is the lesson, not a problem.** Loading prints:

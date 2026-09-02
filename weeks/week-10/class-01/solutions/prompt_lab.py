@@ -64,12 +64,17 @@ def build_zeroshot_prompt(instruction: str, demos, query: str) -> str:
 
 def run_experiment(model: "Model", prompt_fn: Callable, dataset, demos,
                    instruction: str | None = None) -> tuple[list[str], float]:
-    preds, golds = [], []
+    if instruction is None:
+        instruction = INSTRUCTION
+
+    preds = []
+    golds = []
     for text, gold in dataset:
-        prompt = prompt_fn(INSTRUCTION if instruction is None else instruction, demos, text)
+        prompt = prompt_fn(instruction, demos, text)
         reply = model.generate(prompt)
         preds.append(parse_label(reply))
         golds.append(gold)
+
     return preds, accuracy(preds, golds)
 
 

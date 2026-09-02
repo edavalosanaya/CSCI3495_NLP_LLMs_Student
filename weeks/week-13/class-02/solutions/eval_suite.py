@@ -80,10 +80,14 @@ def run_matrix(problems: list[Problem], strategies: dict, llm,
     for name, fn in strategies.items():
         rows = []
         for p in problems:
-            rows.append(evaluate_one(p, name, fn, llm))
+            result = evaluate_one(p, name, fn, llm)
+            rows.append(result)
             if progress:
-                print(f"  {name:10s} {p.pid} {'ok' if rows[-1].correct else '. '}",
-                      flush=True)
+                if result.correct:
+                    mark = "ok"
+                else:
+                    mark = ". "
+                print(f"  {name:10s} {p.pid} {mark}", flush=True)
         out[name] = rows
     return out
 
@@ -103,7 +107,9 @@ def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
     noise. What is actually informative is how often A solved something B did
     not, so this pairs them by problem id instead of comparing two averages.
     """
-    by_b = {r.pid: r for r in b}
+    by_b = {}
+    for r in b:
+        by_b[r.pid] = r
     a_only = b_only = same = 0
     for ra in a:
         rb = by_b.get(ra.pid)
@@ -118,6 +124,12 @@ def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
     return a_only, b_only, same
 
 
+def rank_key(row: tuple) -> tuple:
+    """Sort key for a leaderboard row: success descending, then cost ascending."""
+    name, success, calls = row
+    return (-success, calls)
+
+
 def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float]]:
     """(strategy, success_rate, avg_calls), best first; ties broken by cost.
 
@@ -125,8 +137,13 @@ def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float
     that used fewer model calls is the better engineering answer, and a
     leaderboard that hides cost will always crown the most expensive entry.
     """
-    rows = [(name, success_rate(rs), avg_calls(rs)) for name, rs in matrix.items()]
-    return sorted(rows, key=lambda r: (-r[1], r[2]))
+    rows = []
+    for name, rs in matrix.items():
+        rows.append((name, success_rate(rs), avg_calls(rs)))
+
+    # Highest success first; when two tie, the cheaper one wins.
+    rows.sort(key=rank_key)
+    return rows
 
 
 def format_leaderboard(matrix: dict[str, list[Result]]) -> str:

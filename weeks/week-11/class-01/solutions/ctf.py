@@ -96,7 +96,10 @@ def guard_input(user: str) -> tuple[str, list[str]]:
         # An exfiltration request remains, neutralize it to a harmless lookup.
         flags.append("injection:exfiltration")
         m = re.search(r"\b(\d{3,})\b", user)
-        clean = f"look up order {m.group(1)}" if m else "(message withheld: suspicious input)"
+        if m:
+            clean = f"look up order {m.group(1)}"
+        else:
+            clean = "(message withheld: suspicious input)"
     if _PRIV_RE.search(clean):
         # Privileged verb stays in the request; the tool allow-list + human
         # approval (not the input guard) decides whether it may run.

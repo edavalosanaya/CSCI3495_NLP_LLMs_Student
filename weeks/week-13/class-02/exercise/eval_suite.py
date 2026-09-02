@@ -117,6 +117,12 @@ def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
     raise NotImplementedError
 
 
+def rank_key(row: tuple) -> tuple:
+    """Sort key for a leaderboard row: success descending, then cost ascending."""
+    name, success, calls = row
+    return (-success, calls)
+
+
 def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float]]:
     """(strategy, success_rate, avg_calls), best first; ties broken by cost.
 

@@ -170,9 +170,15 @@ the table top-left to bottom-right and read the answer off the last cell.
 
 ```python
 def edit_distance(a: str, b: str) -> int:
-    m, n = len(a), len(b)
-    # D[i][j] = edit distance between a[:i] and b[:j]
-    d = [[0] * (n + 1) for _ in range(m + 1)]
+    m = len(a)
+    n = len(b)
+
+    # d[i][j] = edit distance between the first i chars of a and first j of b.
+    # One row per prefix of a, one column per prefix of b.
+    d = []
+    for i in range(m + 1):
+        row = [0] * (n + 1)
+        d.append(row)
     for i in range(m + 1):
         d[i][0] = i
     for j in range(n + 1):

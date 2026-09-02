@@ -51,8 +51,14 @@ def train_bpe(corpus: list[str], num_merges: int) -> list[tuple[str, str]]:
         pairs = count_pairs(vocab)
         if not pairs:
             break
-        # Most frequent pair; deterministic tie-break by the pair itself.
-        best = max(pairs.items(), key=lambda kv: (kv[1], kv[0]))[0]
+        # Most frequent pair. When two pairs tie, the larger pair wins, so
+        # two runs on the same corpus always learn the same merges.
+        best = None
+        best_count = -1
+        for pair, count in pairs.items():
+            if count > best_count or (count == best_count and pair > best):
+                best = pair
+                best_count = count
         vocab = merge_pair(best, vocab)
         merges.append(best)
     return merges

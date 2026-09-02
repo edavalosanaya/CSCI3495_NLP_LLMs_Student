@@ -62,14 +62,20 @@ secretly Reflexion.
 
 ```python
 def run_matrix(problems: list[Problem], strategies: dict, llm,
+               progress: bool = False) -> dict[str, list[Result]]:
+    """Every strategy against every problem. Returns {strategy: [Result, ...]}."""
     out: dict[str, list[Result]] = {}
     for name, fn in strategies.items():
         rows = []
         for p in problems:
-            rows.append(evaluate_one(p, name, fn, llm))
+            result = evaluate_one(p, name, fn, llm)
+            rows.append(result)
             if progress:
-                print(f"  {name:10s} {p.pid} {'ok' if rows[-1].correct else '. '}",
-                      flush=True)
+                if result.correct:
+                    mark = "ok"
+                else:
+                    mark = ". "
+                print(f"  {name:10s} {p.pid} {mark}", flush=True)
         out[name] = rows
     return out
 ```
@@ -97,7 +103,15 @@ give you `0.0`, not a `ZeroDivisionError` in the middle of a 15-minute run.
 
 ```python
 def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
-    by_b = {r.pid: r for r in b}
+    """Per-problem head to head: (a_only, b_only, both_or_neither).
+
+    On 20 problems a 3-point gap in success rate is 0.6 of a problem, which is
+    noise. What is actually informative is how often A solved something B did
+    not, so this pairs them by problem id instead of comparing two averages.
+    """
+    by_b = {}
+    for r in b:
+        by_b[r.pid] = r
     a_only = b_only = same = 0
     for ra in a:
         rb = by_b.get(ra.pid)
@@ -136,8 +150,19 @@ Reflexion vs ReAct   Reflexion only: 2   ReAct only: 0   same: 18
 
 ```python
 def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float]]:
-    rows = [(name, success_rate(rs), avg_calls(rs)) for name, rs in matrix.items()]
-    return sorted(rows, key=lambda r: (-r[1], r[2]))
+    """(strategy, success_rate, avg_calls), best first; ties broken by cost.
+
+    Cost is in the sort on purpose. If two strategies tie on accuracy the one
+    that used fewer model calls is the better engineering answer, and a
+    leaderboard that hides cost will always crown the most expensive entry.
+    """
+    rows = []
+    for name, rs in matrix.items():
+        rows.append((name, success_rate(rs), avg_calls(rs)))
+
+    # Highest success first; when two tie, the cheaper one wins.
+    rows.sort(key=rank_key)
+    return rows
 ```
 
 **Why cost is in the sort key.** With accuracy alone, Reflexion (30%, 4.1 calls)

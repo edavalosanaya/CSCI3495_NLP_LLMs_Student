@@ -46,14 +46,28 @@ class TfidfRetriever:
 
     def retrieve(self, query: str, k: int = 3) -> list[Chunk]:
         from sklearn.metrics.pairwise import cosine_similarity
+
+        # transform, NOT fit_transform: the vectorizer was already fitted on
+        # the corpus, and refitting would put the query in its own space.
         qv = self.vectorizer.transform([query])
         scores = cosine_similarity(qv, self.matrix)[0]
+
+        # argsort is ascending, so the BEST scores are at the end. Reverse it,
+        # then take the first k.
         order = scores.argsort()[::-1][:k]
-        return [self.chunks[i] for i in order]
+
+        best = []
+        for i in order:
+            best.append(self.chunks[i])
+        return best
 
 
 def build_prompt(query: str, chunks: list[Chunk]) -> str:
-    context = "\n".join(f"[{i}] {c.text}" for i, c in enumerate(chunks, start=1))
+    # Number the chunks from 1 so the model has something to cite.
+    numbered = []
+    for i, c in enumerate(chunks, start=1):
+        numbered.append(f"[{i}] {c.text}")
+    context = "\n".join(numbered)
     return (
         "Use ONLY the context below to answer the question. Cite the sources you "
         'use like [1], [2]. If the answer is not in the context, say "I don\'t know."\n\n'

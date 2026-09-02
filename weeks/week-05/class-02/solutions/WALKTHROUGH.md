@@ -190,10 +190,21 @@ more heads means narrower heads: the total compute is roughly constant.
 ```python
 def multi_head_attention(X, Wq, Wk, Wv, Wo, num_heads, mask=None):
     """X:(T,d_model); W*:(d_model,d_model). Returns (T, d_model)."""
-    Q, K, V = X @ Wq, X @ Wk, X @ Wv
-    Qh, Kh, Vh = (split_heads(M, num_heads) for M in (Q, K, V))
-    out_h, _ = scaled_dot_product_attention(Qh, Kh, Vh, mask=mask)
-    return combine_heads(out_h) @ Wo
+    # The same X becomes queries, keys AND values: that is what makes this
+    # SELF attention.
+    Q = X @ Wq
+    K = X @ Wk
+    V = X @ Wv
+
+    Qh = split_heads(Q, num_heads)
+    Kh = split_heads(K, num_heads)
+    Vh = split_heads(V, num_heads)
+
+    # Every head attends at once: the head axis rides along as a batch axis.
+    out_h, weights = scaled_dot_product_attention(Qh, Kh, Vh, mask=mask)
+
+    combined = combine_heads(out_h)
+    return combined @ Wo
 ```
 
 **Four lines, one per stage of the right-hand diagram in Vaswani Fig. 2:**

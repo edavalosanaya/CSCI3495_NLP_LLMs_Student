@@ -173,13 +173,21 @@ def reflect(task: str, trace: Trace, reflector: Optional[LLM]) -> str:
     """Produce a short verbal self-critique from a failed trace."""
     if reflector is None:
         # Deterministic fallback reflection so the loop works without any LLM.
-        actions = ", ".join(f"{s.tool}[{s.tool_input}]" for s in trace.steps if s.tool)
+        tried = []
+        for s in trace.steps:
+            if s.tool:
+                tried.append(f"{s.tool}[{s.tool_input}]")
+        actions = ", ".join(tried)
         return (
             f"Last attempt failed ({trace.stopped_reason}). "
             f"Tried: {actions or 'nothing useful'}. "
             "Next time, search for the key fact first, then compute, then finish."
         )
-    summary = "; ".join(f"{s.tool}[{s.tool_input}] -> {s.observation}" for s in trace.steps if s.tool)
+    steps_text = []
+    for s in trace.steps:
+        if s.tool:
+            steps_text.append(f"{s.tool}[{s.tool_input}] -> {s.observation}")
+    summary = "; ".join(steps_text)
     prompt = (
         "You are reflecting on a FAILED attempt. In one or two sentences, say what "
         "went wrong and what to do differently next time.\n"

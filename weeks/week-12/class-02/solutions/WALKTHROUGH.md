@@ -174,12 +174,26 @@ is the most common "my agent ignores my tool" bug, and it is always this.
 
 ```python
 def parse_action(text: str) -> Optional[tuple[str, str]]:
+    """Extract the FIRST `Action: tool[input]` from model text.
+
+    Scans for the delimiter that matches the one it opened with, so nested
+    brackets survive: `calc[log(3**2 * 16 - 10)]` keeps its whole expression.
+    Accepts `tool(input)` too, because small models slip into parentheses and
+    there is nothing to be gained by failing on that.
+    """
     m = _ACTION_OPEN.search(text)
     if not m:
         return None
-    tool, opener = m.group(1), m.group(2)
-    closer = "]" if opener == "[" else ")"
-    depth, out, i = 1, [], m.end()
+    tool = m.group(1)
+    opener = m.group(2)
+    if opener == "[":
+        closer = "]"
+    else:
+        closer = ")"
+
+    depth = 1
+    out = []
+    i = m.end()
     while i < len(text):
         ch = text[i]
         if ch == opener:
