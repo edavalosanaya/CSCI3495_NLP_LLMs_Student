@@ -1,8 +1,4 @@
-"""A tiny corpus of CSCI 3495 course notes for the mini-RAG exercise.
-
-Each document is a (source, text) pair; documents contain several passages
-separated by blank lines (the chunker splits on those).
-"""
+"""A tiny corpus of CSCI 3495 course notes for the mini-RAG exercise."""
 
 NOTES: list[tuple[str, str]] = [
     ("week01-text-processing.md",

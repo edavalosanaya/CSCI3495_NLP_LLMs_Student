@@ -1,15 +1,4 @@
-"""W13C2 reference solution: the evaluation harness.
-
-The four strategies are given (`strategies.py`). This file is the part that
-decides what "better" means, which is the actual skill:
-
-  * is_correct     numeric match with a tolerance, not string equality
-  * evaluate_one   run one strategy on one problem, record answer AND cost
-  * run_matrix     every strategy x every problem
-  * success_rate / avg_calls
-  * paired_wins    per-problem head to head, the honest small-sample comparison
-  * leaderboard    rank by success, break ties by cost
-"""
+"""W13C2 reference solution: the evaluation harness."""
 from __future__ import annotations
 
 import json

@@ -1,15 +1,4 @@
-"""W12C2 reference solution, a ReAct agent that grows one tool at a time.
-
-The agent logic (prompt building, action parsing, the loop, the guards) is
-fully testable WITHOUT an LLM: we inject an `llm` callable that maps the
-running transcript to the model's next chunk of text. Tests pass a scripted
-fake; the demo passes an Ollama-backed function.
-
-Action grammar, one per step:
-    Action: calc[log(3**2 * 16 - 10)]
-    Action: weather[san antonio, yesterday]
-    Action: finish[7.0 degrees hotter]
-"""
+"""W12C2 reference solution, a ReAct agent that grows one tool at a time."""
 from __future__ import annotations
 
 import os

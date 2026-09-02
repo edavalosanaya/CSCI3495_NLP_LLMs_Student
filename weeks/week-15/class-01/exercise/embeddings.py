@@ -1,21 +1,5 @@
 #!/usr/bin/env python3
-"""W15C1, Provided toy word embeddings (offline, deterministic).
-
-These are SMALL, HAND-CONSTRUCTED 8-d vectors, not trained on real text. They
-are built so that a bias probe will *find* a stereotype-aligned pattern, letting
-students measure it transparently without any downloads.
-
-How they're built (so it's not magic):
-  * dim 0 = a "gender" axis: +x = male-coded, -x = female-coded.
-  * dim 1 = a "career vs. care" axis: +y = career-coded, -y = care-coded.
-  * remaining dims = small deterministic noise so vectors aren't degenerate.
-
-We then *correlate* the two axes for the target words (career words also placed
-on the male side, care words on the female side), mirroring the real, documented
-association in trained embeddings (e.g., word2vec/GloVe, Week 3).
-
-In Week 3 you probed REAL embeddings; here we isolate the mechanism on toy data.
-"""
+"""W15C1, Provided toy word embeddings (offline, deterministic)."""
 from __future__ import annotations
 
 import numpy as np

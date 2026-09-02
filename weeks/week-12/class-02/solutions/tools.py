@@ -1,21 +1,4 @@
-"""W12C2 reference solution, the agent's tools.
-
-Four safe, deterministic, network-free tools:
-
-  * calc[expr]         a SAFE calculator (parses to an AST, never calls eval)
-  * today[]            the real current date
-  * weather[city, day] a high temperature from a local stand-in service
-  * search[query]      keyword search over a small FIXED local corpus
-
-Every tool takes ONE string and returns ONE string Observation. Tools never
-raise to the caller: an error becomes a readable Observation so the agent can
-read it and recover. That contract is what makes the loop robust.
-
-The weather series is keyed by OFFSET FROM TODAY (0 = today, 1 = yesterday),
-not by absolute date, so this lab produces the same numbers whatever day you
-run it. A real deployment would call an API here; the shape of the tool, one
-string in and one string out, would be identical.
-"""
+"""W12C2 reference solution, the agent's tools."""
 from __future__ import annotations
 
 import ast

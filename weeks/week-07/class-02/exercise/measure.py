@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 """W7C2, measure scaling behavior across real model sizes (via Ollama).
 
-Runs the TASKS suite from scaling.py on two or more models of different sizes and
-prints an accuracy-vs-size table. This is scaling, observed on your laptop.
-
-Run inside the course container (Ollama running, models pulled):
-    python weeks/week-07/class-02/exercise/measure.py
-
-Degrades gracefully: any model that isn't available is skipped with a note; if
-no models are reachable, it prints setup instructions and exits 0.
+    python measure.py
 """
 from __future__ import annotations
 
@@ -99,4 +92,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    # A student running this before finishing scaling.py should see a
+    # sentence, not a traceback: an unwritten step is a normal state.
+    try:
+        raise SystemExit(main())
+    except NotImplementedError:
+        print("scaling.py is not finished yet: fill in the next TODO there, then re-run.")

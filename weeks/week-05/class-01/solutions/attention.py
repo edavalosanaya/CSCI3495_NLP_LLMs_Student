@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""W5C1 reference solution, additive (Bahdanau) attention + text heatmap.
-
-# TEST_SWEEP
-Run inside the course container:
-    python weeks/week-05/class-01/solutions/attention.py
-"""
+"""W5C1 reference solution, additive (Bahdanau) attention + text heatmap."""
 from __future__ import annotations
 
 import torch

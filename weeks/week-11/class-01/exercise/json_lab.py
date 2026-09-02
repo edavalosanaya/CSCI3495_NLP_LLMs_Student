@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
-"""W11C1 starter, schema-constrained JSON generation + validation.
-
-Work through the companion-lab section of `README.md`. Each STEP has its own
-check (python -m pytest ... -k step1 -q). Or run everything:
-    python -m pytest weeks/week-11/class-01/exercise/test_json_lab.py -q
-
-End-to-end (real local model if available, else stub):
-    python weeks/week-11/class-01/exercise/json_lab.py
-"""
+"""W11C1 starter, schema-constrained JSON generation + validation."""
 from __future__ import annotations
 import json
 import os

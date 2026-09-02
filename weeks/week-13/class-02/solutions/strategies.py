@@ -1,18 +1,4 @@
-"""Four agent strategies, fully implemented. You EVALUATE these, you do not write them.
-
-    naive      one call, "just the number"
-    cot        one call, "think step by step", take the last number
-    react      Thought/Action/Observation loop with a calculator
-    reflexion  react, but on a wrong answer take the evaluator's feedback,
-               write a lesson, and retry once
-
-Each returns a `Run`: the answer, how many model calls it cost, and the trace.
-Cost is part of the result on purpose. A strategy that is two points better and
-four times slower is not obviously better, and your leaderboard should be able
-to say so.
-
-The model is injected as a callable so the tests can run without Ollama.
-"""
+"""Four agent strategies, fully implemented. You EVALUATE these, you do not write them."""
 from __future__ import annotations
 
 import os

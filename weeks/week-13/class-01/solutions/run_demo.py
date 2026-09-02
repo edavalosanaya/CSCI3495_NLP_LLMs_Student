@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""W13C1 demo, memory + planning + Reflexion, deterministically (no Ollama).
-
-Shows an agent that FAILS its first attempt, writes a reflection to memory,
-and SUCCEEDS on the retry, the core Reflexion (Shinn et al., 2023) idea.
-
-    python run_demo.py
-"""
+"""W13C1 demo, memory + planning + Reflexion, deterministically (no Ollama)."""
 from __future__ import annotations
 
 from agent import run_reflexion_agent

@@ -1,12 +1,9 @@
-"""W13C2: run all four strategies over the GSM8K slice and print the leaderboard.
+"""W13C2: run every strategy over the problem slice and print the leaderboard.
 
-    docker compose -f docker/docker-compose.yml run --rm --no-deps \\
-      -e OLLAMA_HOST=http://host.docker.internal:11434 \\
-      course python weeks/week-13/class-02/solutions/run_bench.py [--n 8]
+    python run_bench.py [--n 4]
 
-Needs Ollama with COURSE_MODEL pulled (default qwen2.5:1.5b). The full 20
-problems x 4 strategies takes a while on a CPU, so pass `--n` for a quick pass
-during the lab and run the full suite once at the end.
+The full 20 problems x 5 strategies takes over an hour on CPU, so pass --n for
+a quick pass in class and run the whole suite once at the end.
 """
 from __future__ import annotations
 

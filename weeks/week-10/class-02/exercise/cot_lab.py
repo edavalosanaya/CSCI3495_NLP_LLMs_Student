@@ -1,12 +1,5 @@
 #!/usr/bin/env python3
-"""W10C2 starter, chain-of-thought vs. direct prompting harness.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step1 -q
-
-Full comparison (real local model if available, else stub):
-    python weeks/week-10/class-02/exercise/cot_lab.py
-"""
+"""W10C2 starter, chain-of-thought vs. direct prompting harness."""
 from __future__ import annotations
 import os
 import re

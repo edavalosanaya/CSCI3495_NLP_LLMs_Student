@@ -1,26 +1,4 @@
-"""W9C2 starter, build a mini evaluation harness + catch a hallucination + a
-position-bias-aware LLM-as-judge.
-
-A benchmark = dataset + metric + protocol. Here you implement the *metric and
-protocol* part of a harness in three parts:
-
-PART 1 (factuality scoring): normalize answers, score with exact-match and a
-multiple-choice scorer, aggregate accuracy, and flag a hallucination on an
-UNANSWERABLE question (the model should abstain, not invent an answer).
-
-PART 2 (LLM-as-judge): when there is no single gold answer (open-ended chat),
-a common shortcut is to ask a *strong model to judge*. But judges have biases.
-You will build a tiny PAIRWISE judge harness that detects POSITION BIAS by
-asking the same comparison twice with the order swapped (A,B then B,A) and only
-trusting a verdict that survives the swap.
-
-Work through the lab in `README.md`. Each STEP below has its own check, and
-everything is testable WITHOUT any model:
-    python -m pytest weeks/week-09/class-02/exercise/test_eval_harness.py -k step1 -q
-
-The optional live runs (`run_model_eval`, `run_judge_demo`) degrade gracefully
-if Ollama is down.
-"""
+"""W9C2 starter, an evaluation harness with a position-bias-aware judge."""
 from __future__ import annotations
 
 import os

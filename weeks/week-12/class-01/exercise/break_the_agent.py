@@ -1,22 +1,7 @@
 #!/usr/bin/env python3
 """W12C1, "Break the Agent" adversarial game (no Ollama required).
 
-You play the role of the LLM. Type the agent's next move each turn:
-    Thought: <whatever>
-    Action: calc[<expr>]   |   search[<query>]   |   finish[<answer>]
-
-Your mission: try to BREAK the agent loop, make it crash, loop forever,
-run unsafe code, or give a wrong Observation. The robust agent should
-survive everything you throw at it (budget stops, safe calc, caught errors).
-Score = how many distinct failure modes you *fail* to trigger (higher = the
-agent is more robust). Then read the agent code and explain WHY each attack
-was defended.
-
-This imports the reference agent from the Week-12 Class-2 solution so you can
-experiment before you build your own.
-
-Run:
-    python weeks/week-12/class-01/exercise/break_the_agent.py
+    python break_the_agent.py
 """
 from __future__ import annotations
 

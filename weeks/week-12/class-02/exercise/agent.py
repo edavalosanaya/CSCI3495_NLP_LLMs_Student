@@ -1,15 +1,4 @@
-"""W12C2 lab, a ReAct agent that grows one tool at a time (starter).
-
-The agent logic (prompt building, action parsing, the loop, the guards) is
-fully testable WITHOUT an LLM: we inject an `llm` callable that maps the
-running transcript to the model's next chunk of text. Tests pass a scripted
-fake; the demo passes an Ollama-backed function.
-
-Action grammar, one per step:
-    Action: calc[log(3**2 * 16 - 10)]
-    Action: weather[san antonio, yesterday]
-    Action: finish[7.0 degrees hotter]
-"""
+"""W12C2 lab, a ReAct agent that grows one tool at a time (starter)."""
 from __future__ import annotations
 
 import os
@@ -116,12 +105,20 @@ class Trace:
 
 
 def parse_action(text: str) -> Optional[tuple[str, str]]:
-    """Extract the FIRST `Action: tool[input]` from model text.
+    """Extract the FIRST `Action: tool[input]` out of the model's text.
 
-    Scans for the delimiter that matches the one it opened with, so nested
-    brackets survive: `calc[log(3**2 * 16 - 10)]` keeps its whole expression.
-    Accepts `tool(input)` too, because small models slip into parentheses and
-    there is nothing to be gained by failing on that.
+    Args:
+        text: the model's raw reply. It may contain prose, several actions, a
+            malformed action, or none at all.
+
+    Returns:
+        (tool name, input) for the first action, or None when there is no
+        parsable action. None is a normal answer, not an error: the loop turns
+        it into a corrective Observation.
+
+    Nested brackets survive, so `calc[log(3**2 * 16 - 10)]` keeps its whole
+    expression. `tool(input)` is accepted too, because small models slip into
+    parentheses and there is nothing to gain by failing on that.
     """
     # TODO (STEP 3): implement. Check with: pytest -k step3
     #
@@ -161,12 +158,20 @@ _NUM_RE = re.compile(r"-?\d+(?:\.\d+)?")
 
 
 def is_grounded(answer: str, observations: list[str]) -> bool:
-    """True if every number in the answer also appears in some Observation.
+    """Check that every number in the answer actually came from a tool.
 
-    Why this exists: with tools available, the most common failure of a small
-    model is not a broken tool call, it is SKIPPING one and writing a
-    plausible number from memory instead. The loop cannot tell a real lookup
-    from an invented one, but this check can.
+    Args:
+        answer: the text the model wants to finish with.
+        observations: every Observation the loop recorded this run. These are
+            the only numbers the model is entitled to use.
+
+    Returns:
+        True when every number in the answer appears in some observation. An
+        answer with no numbers in it is trivially grounded.
+
+    With tools available, the most common failure of a small model is not a
+    broken tool call: it is SKIPPING one and writing a plausible number from
+    memory. The loop cannot tell a real lookup from an invented one; this can.
     """
     # TODO (STEP 4): implement. Check with: pytest -k step4
     #

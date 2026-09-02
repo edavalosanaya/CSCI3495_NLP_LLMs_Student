@@ -1,19 +1,4 @@
-"""W9C1 starter, LoRA fine-tuning + quantization bake-off (CPU, tiny, fast).
-
-Two ideas, hands-on, in pure PyTorch (no downloads):
-  Part A: implement a LoRA adapter on a frozen Linear layer and fine-tune it on
-          a toy task. Only the low-rank A, B train; the base weight is frozen.
-  Part B: quantize a tensor of weights to k bits and measure the error vs.
-          memory saved -- the quantization "bake-off".
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-09/class-01/exercise/test_lora_lab.py -k step1 -q
-
-When every step is done, the demo runs:
-    python weeks/week-09/class-01/exercise/lora_lab.py
-
-Everything is tiny and seeded so it finishes in well under a minute on CPU.
-"""
+"""W9C1 starter, LoRA fine-tuning + quantization bake-off (CPU, tiny, fast)."""
 from __future__ import annotations
 
 import torch
@@ -33,8 +18,6 @@ class LoRALinear(nn.Module):
     """
 
     def __init__(self, in_features: int, out_features: int, r: int = 4, alpha: int = 8):
-        super().__init__()
-        self.linear = nn.Linear(in_features, out_features, bias=False)
         """Set up a frozen base layer plus a trainable low-rank adapter.
 
         Args:
@@ -46,6 +29,9 @@ class LoRALinear(nn.Module):
             alpha: scaling numerator. The adapter is scaled by alpha/r so that
                 changing r does not silently change how strong it is.
         """
+        super().__init__()
+        self.linear = nn.Linear(in_features, out_features, bias=False)
+
         # TODO (STEP 1): implement. Check with: pytest -k step1
         #
         #   The formula is in README section 2.

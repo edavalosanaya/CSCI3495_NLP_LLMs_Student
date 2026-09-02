@@ -1,17 +1,7 @@
 #!/usr/bin/env python3
-"""W14C2, Reproducibility quick-check (offline, no network).
+"""W14C2, reproducibility quick-check: does a file parse, and does it seed?
 
-A tiny pre-final sanity tool. Given a Python entry point, it checks the two
-things graders look at first:
-
-  1. Does the file import/parse cleanly inside the course Docker image?
-  2. Does it *look* deterministic (does it seed the common RNGs)?
-
-This makes NO network calls and runs nothing dangerous, it parses the source
-and reports hints. It is deliberately simple and fully unit-testable.
-
-Usage:
-    python weeks/week-14/class-02/exercise/repro_check.py path/to/entrypoint.py
+    python repro_check.py path/to/entrypoint.py
 """
 from __future__ import annotations
 

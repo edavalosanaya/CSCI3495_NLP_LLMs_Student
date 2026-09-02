@@ -1,16 +1,4 @@
-"""W5C2 starter, build scaled dot-product & multi-head attention from scratch.
-
-Work through the lab in `README.md`. Each STEP has its own check:
-    python -m pytest weeks/week-05/class-02/exercise/test_attention_lab.py -k step1 -q
-
-RUN the file at any point to see how far you have got (it prints the last
-milestone that works and which one is next):
-  docker compose -f docker/docker-compose.yml run --rm --no-deps \
-      course python weeks/week-05/class-02/exercise/attention_lab.py
-Then verify with the tests:
-  docker compose -f docker/docker-compose.yml run --rm --no-deps \
-      course python -m pytest weeks/week-05/class-02/exercise/test_attention_lab.py -q
-"""
+"""W5C2 starter, build scaled dot-product & multi-head attention from scratch."""
 from __future__ import annotations
 import numpy as np
 

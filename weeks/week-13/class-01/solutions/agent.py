@@ -1,18 +1,4 @@
-"""W13 reference solution, a reasoning agent with memory, planning, reflection.
-
-We extend the W12 ReAct loop with three architectural pieces (see the
-agent-architecture visual):
-
-  * Memory  , short-term (the running trace) + long-term (notes that persist
-               across attempts, e.g. reflections).
-  * Planner , a single up-front planning step that decomposes the task.
-  * Reflection (Reflexion, Shinn et al., 2023), on a failed attempt, write a
-               verbal self-critique to memory and RETRY with the lesson in context.
-
-As in W12, everything is testable WITHOUT an LLM: inject an `llm` callable that
-maps a transcript to the next chunk of model text. A planner LLM is injected
-separately so tests stay deterministic.
-"""
+"""W13 reference solution, a reasoning agent with memory, planning, reflection."""
 from __future__ import annotations
 
 import re

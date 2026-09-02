@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
-"""W10C1 starter, a tiny prompt-experiment harness.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-10/class-01/exercise/test_prompt_lab.py -k step1 -q
-
-When every step is done, run the full experiment (real local model if
-available, else a stub):
-    python weeks/week-10/class-01/exercise/prompt_lab.py
-
-Design notes:
-- The LLM call degrades gracefully: if Ollama / the model is missing we fall
-  back to a deterministic keyword stub so the pipeline + metric still run.
-- Hold decoding fixed (temperature 0) so score differences are due to the PROMPT.
-"""
+"""W10C1 starter, a tiny prompt-experiment harness."""
 from __future__ import annotations
 import os
 import re
@@ -47,17 +34,18 @@ def accuracy(preds: list[str], golds: list[str]) -> float:
 
 # ----------------------------- TODO 2 -----------------------------
 def build_fewshot_prompt(instruction: str, demos: list[tuple[str, str]], query: str) -> str:
-    """Assemble: instruction, then 'Input -> Output' demos, then the query + cue.
+    """Build the four-part few-shot prompt: instruction, demos, query, cue.
 
-    Use a CONSISTENT template, e.g.:
-        <instruction>
+    Args:
+        instruction: the task description, first line of the prompt.
+        demos: (text, label) pairs to show as worked examples. May be empty,
+            which makes this a zero-shot prompt.
+        query: the item the model is actually being asked about.
 
-        Review: <demo input>
-        Sentiment: <demo label>
-        ...
-        Review: <query>
-        Sentiment:
-    The trailing 'Sentiment:' is the output cue the model should complete.
+    Returns:
+        One prompt string ending in a BARE output cue with no label after it.
+        That dangling cue is what tells the model the shape to answer in, and
+        leaving it off is the usual bug.
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #

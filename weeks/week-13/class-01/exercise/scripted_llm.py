@@ -1,11 +1,4 @@
-"""Deterministic fake "LLMs" for testing the W13 agent WITHOUT Ollama.
-(Provided for you, no edits needed.)
-
-  * ScriptedLLM([...]) , replays a fixed list of outputs (per call).
-  * ReflexiveLLM(...)  , switches from a "before" to an "after" script once a
-                          reflection note appears in the transcript, so you can
-                          test that reflection actually changes behavior.
-"""
+"""Deterministic fake "LLMs" for testing the W13 agent WITHOUT Ollama."""
 from __future__ import annotations
 
 from typing import Callable

@@ -1,17 +1,4 @@
-"""W8C2 starter, be the reward model.
-
-Part A (on paper / in the dataset): you label which of two responses is better.
-Part B (here): turn those *comparisons* into numeric scores by fitting a tiny
-Bradley-Terry reward model, exactly the idea behind RLHF's Stage 2.
-
-A "preference" is a pair where response `w` (winner) was preferred over `l`
-(loser). The Bradley-Terry model gives each response a scalar score `s`, and
-says the probability that w beats l is sigmoid(s_w - s_l). We fit the scores by
-gradient descent to maximize the likelihood of YOUR labels.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-08/class-02/exercise/test_preferences.py -k step1 -q
-"""
+"""W8C2 starter, be the reward model."""
 from __future__ import annotations
 
 import math

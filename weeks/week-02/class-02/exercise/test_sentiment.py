@@ -63,13 +63,13 @@ def test_step3_unknown_words_are_skipped():
     assert noisy == pytest.approx(plain)
 
 
-def test_step4_predicts_clear_examples():
+def test_given_predicts_clear_examples():
     m = sm.train_nb(DOCS, LABELS)
     assert sm.predict(m, sm.tokenize("wonderful brilliant great loved")) == "pos"
     assert sm.predict(m, sm.tokenize("terrible boring dreadful awful")) == "neg"
 
 
-def test_step4_test_set_f1_is_perfect():
+def test_given_test_set_f1_is_perfect():
     m = sm.train_nb(DOCS, LABELS)
     gold = [y for _, y in sm.TEST]
     pred = [sm.predict(m, sm.tokenize(t)) for t, _ in sm.TEST]

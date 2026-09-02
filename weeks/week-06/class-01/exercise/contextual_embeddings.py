@@ -1,16 +1,4 @@
-"""W6C1 starter, static vs. contextual embeddings.
-
-Goal: show that a *static* embedding gives the SAME vector for a word in any
-sentence, while a *contextual* model (a tiny BERT) gives DIFFERENT vectors
-depending on the sentence.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-06/class-01/exercise/test_contextual.py -k step1 -q
-
-Everything runs CPU-only with a TINY model (prajjwal1/bert-tiny). The first run
-downloads a few MB; after that it is cached. If transformers/torch are missing,
-the helpers raise a clear error.
-"""
+"""W6C1 starter, static vs. contextual embeddings."""
 from __future__ import annotations
 
 import math

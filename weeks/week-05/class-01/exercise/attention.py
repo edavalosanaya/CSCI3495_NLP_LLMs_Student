@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""W5C1 starter, additive (Bahdanau) attention from scratch + a text heatmap.
-
-Run inside the course container:
-    python weeks/week-05/class-01/exercise/attention.py
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-05/class-01/exercise/test_attention.py -k step1 -q
-
-Tiny + CPU-only + deterministic.
-"""
+"""W5C1 starter, additive (Bahdanau) attention from scratch + a text heatmap."""
 from __future__ import annotations
 
 import torch

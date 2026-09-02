@@ -1,15 +1,4 @@
-"""W13C2 lab: the evaluation harness (starter).
-
-The four strategies are given (`strategies.py`). This file is the part that
-decides what "better" means, which is the actual skill:
-
-  * is_correct     numeric match with a tolerance, not string equality
-  * evaluate_one   run one strategy on one problem, record answer AND cost
-  * run_matrix     every strategy x every problem
-  * success_rate / avg_calls
-  * paired_wins    per-problem head to head, the honest small-sample comparison
-  * leaderboard    rank by success, break ties by cost
-"""
+"""W13C2 lab: the evaluation harness (starter)."""
 from __future__ import annotations
 
 import json
@@ -75,7 +64,18 @@ def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result
 
 def run_matrix(problems: list[Problem], strategies: dict, llm,
                progress: bool = False) -> dict[str, list[Result]]:
-    """Every strategy against every problem. Returns {strategy: [Result, ...]}."""
+    """Run every strategy against every problem, so the cells are comparable.
+
+    Args:
+        problems: the task suite. Every strategy sees exactly these.
+        strategies: name -> the callable that solves one problem.
+        llm: the model handed to each strategy. One model for all of them, or
+            the comparison measures the model rather than the strategy.
+        progress: print a line per run, since a full matrix is slow.
+
+    Returns:
+        strategy name -> one Result per problem, in the problems' own order.
+    """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
     #   Every strategy against every problem.
@@ -97,11 +97,20 @@ def avg_calls(results: list[Result]) -> float:
 
 
 def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
-    """Per-problem head to head: (a_only, b_only, both_or_neither).
+    """Compare two strategies problem by problem, not average against average.
+
+    Args:
+        a: one strategy's results.
+        b: the other strategy's results. Matched to `a` by problem id, so the
+            two lists need not be in the same order, and a problem missing
+            from either side is skipped rather than counted.
+
+    Returns:
+        (a_only, b_only, both_or_neither): how many problems each solved that
+        the other did not, and how many they agreed on.
 
     On 20 problems a 3-point gap in success rate is 0.6 of a problem, which is
-    noise. What is actually informative is how often A solved something B did
-    not, so this pairs them by problem id instead of comparing two averages.
+    noise. How often A solved something B did not is the informative number.
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
@@ -124,10 +133,16 @@ def rank_key(row: tuple) -> tuple:
 
 
 def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float]]:
-    """(strategy, success_rate, avg_calls), best first; ties broken by cost.
+    """Rank the strategies by success, breaking ties on cost.
 
-    Cost is in the sort on purpose. If two strategies tie on accuracy the one
-    that used fewer model calls is the better engineering answer, and a
+    Args:
+        matrix: the dict run_matrix returned.
+
+    Returns:
+        (strategy, success_rate, avg_calls) rows, best first.
+
+    Cost is in the sort on purpose. When two strategies tie on accuracy the
+    one that used fewer model calls is the better engineering answer, and a
     leaderboard that hides cost will always crown the most expensive entry.
     """
     # TODO (STEP 3): implement. Check with: pytest -k step3

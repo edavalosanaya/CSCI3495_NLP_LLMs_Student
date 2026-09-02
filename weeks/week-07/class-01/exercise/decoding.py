@@ -1,14 +1,4 @@
-"""W7C1 starter, decoding strategies, from scratch.
-
-You implement the core math of decoding on a toy next-token distribution (pure
-Python, no model needed). Then `playground.py` lets you feel the SAME knobs on a
-real local LLM via Ollama (skips cleanly if Ollama isn't running).
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-07/class-01/exercise/test_decoding.py -k step1 -q
-
-A "distribution" here is a dict {token: probability} that sums to ~1.0.
-"""
+"""W7C1 starter, decoding strategies, from scratch."""
 from __future__ import annotations
 
 import math

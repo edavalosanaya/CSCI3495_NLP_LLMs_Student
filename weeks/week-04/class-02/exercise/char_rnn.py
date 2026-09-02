@@ -1,21 +1,5 @@
 #!/usr/bin/env python3
-"""W4C2 starter, a character-level RNN that invents names.
-
-Train on a tiny list of dinosaur names; learn next-character prediction; then
-generate brand-new names by sampling. Run inside the course container:
-    python weeks/week-04/class-02/exercise/char_rnn.py
-
-NOTE ON RANDOMNESS: by default this runs with a fixed seed (SEED = 1), so
-EVERYONE in class gets the exact same names; that keeps the run reproducible
-and the tests deterministic. Before the name-vote activity, make the names
-YOURS by passing your own seed, e.g.:
-    python char_rnn.py --seed 42        (any number you like)
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-04/class-02/exercise/test_char_rnn.py -k step1 -q
-
-Everything is tiny and CPU-only.
-"""
+"""W4C2 starter, a character-level RNN that invents names."""
 from __future__ import annotations
 
 import argparse

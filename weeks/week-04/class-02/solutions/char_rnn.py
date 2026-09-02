@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""W4C2 reference solution, a character-level RNN that invents names.
-
-# TEST_SWEEP
-Run inside the course container:
-    python weeks/week-04/class-02/solutions/char_rnn.py
-"""
+"""W4C2 reference solution, a character-level RNN that invents names."""
 from __future__ import annotations
 
 import argparse

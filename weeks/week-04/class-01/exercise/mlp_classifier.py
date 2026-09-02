@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""W4C1 starter, an MLP text classifier in PyTorch.
-
-Input recipe: tokenize -> look up embeddings -> AVERAGE them -> feed an MLP.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-04/class-01/exercise/test_mlp_classifier.py -k step1 -q
-
-When every step is done, the demo runs:
-    python weeks/week-04/class-01/exercise/mlp_classifier.py
-
-Everything is tiny and CPU-only.
-"""
+"""W4C1 starter, an MLP text classifier in PyTorch."""
 from __future__ import annotations
 
 import torch

@@ -1,25 +1,5 @@
 #!/usr/bin/env python3
-"""W11C1 Injection CTF, starter.
-
-You are defending a small "support assistant" that can read a customer's order
-and (optionally) refund it. It also holds a SECRET admin token it must NEVER
-reveal, and it must NEVER refund without human approval.
-
-The model is a *deterministic stand-in* (no network) so the whole CTF runs
-CPU-only and is reproducible. If a local Ollama tiny model is available the
-stretch goal swaps it in, but every required task is testable offline.
-
-Two phases:
-  PHASE 1 (ATTACK)  -> craft strings that make the UNGUARDED assistant misbehave
-                       (leak the secret, or fire the forbidden refund tool).
-  PHASE 2 (DEFEND)  -> implement guard_input / guard_output / tool_allowed so
-                       the SAME attacks are blocked.
-
-Run the tests:
-    python -m pytest weeks/week-11/class-01/exercise/test_ctf.py -q
-End-to-end demo (offline stand-in, or Ollama if present):
-    python weeks/week-11/class-01/exercise/ctf.py
-"""
+"""W11C1 Injection CTF, starter."""
 from __future__ import annotations
 
 import os
@@ -125,14 +105,17 @@ def attack_force_refund() -> str:
 # ===========================================================================
 # ----------------------------- STEP 3 -----------------------------
 def guard_input(user: str) -> tuple[str, list[str]]:
-    """Sanitize / screen untrusted user input BEFORE the model sees it.
+    """Screen untrusted user text BEFORE the model ever sees it.
 
-    Return (clean_text, flags). Add a flag string when you detect an injection
-    attempt (e.g. "ignore previous instructions", "reveal the token", "refund").
-    Treat the user text as UNTRUSTED data, not as commands.
+    Args:
+        user: whatever the user sent. Treat it as DATA, never as instructions,
+            however much it is phrased like a command.
 
-    Suggested flags: "injection:override", "injection:exfiltration",
-    "injection:privileged". You may also strip/neutralize the offending text.
+    Returns:
+        (clean text, flags). The text may be rewritten, not just flagged: an
+        exfiltration attempt is replaced with a harmless lookup rather than
+        passed through. Flags are strings like "injection:override",
+        "injection:exfiltration" and "injection:privileged".
     """
     # TODO (STEP 3). Check with: pytest -k step3
     #

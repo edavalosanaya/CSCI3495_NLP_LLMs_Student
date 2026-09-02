@@ -1,18 +1,5 @@
 #!/usr/bin/env python3
-"""W3C2 starter, explore word embeddings: neighbors, analogies, bias.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step1 -q
-
-When every step is done, the demo runs:
-    python weeks/week-03/class-02/exercise/embeddings.py
-
-We ship a small, hand-built embedding table (EMB) so everything runs offline,
-CPU-only, and deterministically. The math you write here is exactly what you'd
-run on real word2vec/GloVe vectors. The optional `load_pretrained()` helper at
-the bottom shows how to use real vectors if they're available, and degrades
-gracefully if they aren't.
-"""
+"""W3C2 starter, explore word embeddings: neighbors, analogies, bias."""
 from __future__ import annotations
 import math
 

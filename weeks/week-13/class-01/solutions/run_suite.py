@@ -1,15 +1,6 @@
 """W13C1: does long-term memory actually make the agent better?
 
-Runs the ten-problem suite twice with the SAME model and the SAME tools, and
-changes exactly one thing: whether reflections written on problem N are still
-in the prompt at problem N+1.
-
-    docker compose -f docker/docker-compose.yml run --rm --no-deps \\
-      -e OLLAMA_HOST=http://host.docker.internal:11434 \\
-      course python weeks/week-13/class-01/solutions/run_suite.py
-
-Needs Ollama with COURSE_MODEL pulled (default qwen2.5:1.5b); prints a message
-and exits cleanly if it is missing.
+    python run_suite.py
 """
 from __future__ import annotations
 

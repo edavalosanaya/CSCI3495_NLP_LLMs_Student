@@ -1,17 +1,4 @@
-"""W13C1 starter, add MEMORY, PLANNING, and REFLECTION to your agent.
-
-You already have a robust ReAct loop (W12). This week you add three pieces:
-  * Memory  , long-term notes (reflections) that persist across attempts.
-  * Planner , one up-front step that decomposes the task.
-  * Reflexion (Shinn et al., 2023), on failure, write a self-critique to memory
-               and RETRY with the lesson in context.
-
-Everything stays testable WITHOUT an LLM: we inject `llm` (and optional
-`planner` / `reflector`) callables. Fill in the TODOs.
-
-Run the tests:
-    python -m pytest weeks/week-13/class-01/exercise/test_agent.py -q
-"""
+"""W13C1 starter, add MEMORY, PLANNING, and REFLECTION to your agent."""
 from __future__ import annotations
 
 import re
@@ -185,7 +172,18 @@ def react_attempt(task: str, llm: LLM, memory: Memory, plan: str = "", max_steps
 # Reflection  (STEP 4) , Reflexion (Shinn et al., 2023)
 # --------------------------------------------------------------------------
 def reflect(task: str, trace: Trace, reflector: Optional[LLM]) -> str:
-    """Produce a short verbal self-critique from a FAILED trace."""
+    """Turn a failed attempt into advice the next attempt can use.
+
+    Args:
+        task: the original task, for context in the prompt.
+        trace: the attempt that just failed, including the steps it tried.
+        reflector: a model to write the critique, or None to use the
+            deterministic fallback so the lab runs with no model at all.
+
+    Returns:
+        One or two sentences, stripped. This text goes into memory and shows
+        up in the NEXT attempt's prompt, which is the whole mechanism.
+    """
     if reflector is None:
         # Deterministic fallback so the loop works with no LLM at all.
         actions = ", ".join(f"{s.tool}[{s.tool_input}]" for s in trace.steps if s.tool)

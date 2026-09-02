@@ -1,10 +1,6 @@
 """W12C2 demo: the same questions, asked with and without tools.
 
-    python weeks/week-12/class-02/solutions/run_demo.py
-
-Needs a local Ollama with COURSE_MODEL pulled (default qwen2.5:0.5b); prints a
-clear message and exits if it is missing. Everything else in this lab runs
-without a model.
+    python run_demo.py
 """
 from __future__ import annotations
 

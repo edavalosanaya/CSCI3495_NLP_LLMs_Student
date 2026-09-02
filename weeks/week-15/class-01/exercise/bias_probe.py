@@ -1,19 +1,5 @@
 #!/usr/bin/env python3
-"""W15C1, Bias probing in word embeddings (STARTER).
-
-Offline, deterministic, no network. We measure how strongly *target* words
-(e.g., career vs. family) associate with *attribute* words (e.g., male vs.
-female terms) using cosine similarity, a small, transparent version of the
-WEAT test (Caliskan et al., 2017) that surfaces stereotype associations encoded
-in embeddings.
-
-We ship a tiny, *provided* set of toy embeddings in `embeddings.py` so the demo
-runs anywhere with no downloads. The point is the *method*, not the model.
-
-Work through the lab in `README.md`. Each STEP has its own check
-(python -m pytest ... -k step1 -q). Or run everything:
-    python -m pytest weeks/week-15/class-01/exercise/test_bias_probe.py -q
-"""
+"""W15C1, Bias probing in word embeddings (STARTER)."""
 from __future__ import annotations
 
 import numpy as np

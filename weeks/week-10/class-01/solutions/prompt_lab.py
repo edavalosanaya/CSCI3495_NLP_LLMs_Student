@@ -1,23 +1,5 @@
 #!/usr/bin/env python3
-"""W10C1 reference solution, prompt-experiment harness.
-
-Measured on qwen2.5:0.5b (temperature 0, seed 0, num_predict 8), 8-item set:
-
-    variant                   words  accuracy
-    zero-shot (baseline)         17       88%
-    few-shot (baseline)          30       50%   <- MORE demos, WORSE score
-    few-shot + constraint        33      100%
-    zero-shot + constraint       20      100%
-    golf: 'One word only.'       11      100%
-    golf too far                  8       12%
-
-The lesson: the baseline few-shot prompt does not fail at sentiment, it fails
-at FORMAT. Asked to "classify", the model starts a sentence ("The sentiment of
-this review is ...") that num_predict=8 truncates, and in the few-shot layout it
-latches onto "Positive" for every item. One clause pinning the output shape
-("Answer with one word: positive or negative.") takes it to 100%, and the same
-constraint golfs down to two words before accuracy falls off a cliff.
-"""
+"""W10C1 reference solution, prompt-experiment harness."""
 from __future__ import annotations
 import os
 import re

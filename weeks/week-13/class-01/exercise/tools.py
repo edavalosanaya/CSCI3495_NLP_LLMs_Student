@@ -1,10 +1,4 @@
-"""W13C1, agent tools (PROVIDED COMPLETE; same safe tools you built in W12).
-
-You do NOT need to edit this file, focus on memory/planning/reflection in
-agent.py. These are the same safe, network-free tools from Week 12:
-  * calc[expr]    -> SAFE arithmetic (AST whitelist, no eval)
-  * search[query] -> keyword search over a FIXED local corpus
-"""
+"""W13C1, agent tools (PROVIDED COMPLETE; same safe tools you built in W12)."""
 from __future__ import annotations
 
 import ast

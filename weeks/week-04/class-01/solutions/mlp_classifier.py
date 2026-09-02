@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""W4C1 reference solution, an MLP text classifier in PyTorch.
-
-# TEST_SWEEP
-Run inside the course container:
-    python weeks/week-04/class-01/solutions/mlp_classifier.py
-"""
+"""W4C1 reference solution, an MLP text classifier in PyTorch."""
 from __future__ import annotations
 
 import torch

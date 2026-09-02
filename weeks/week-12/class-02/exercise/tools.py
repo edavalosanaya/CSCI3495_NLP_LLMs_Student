@@ -1,21 +1,4 @@
-"""W12C2 lab, the agent's tools (starter).
-
-Four safe, deterministic, network-free tools:
-
-  * calc[expr]         a SAFE calculator (parses to an AST, never calls eval)
-  * today[]            the real current date
-  * weather[city, day] a high temperature from a local stand-in service
-  * search[query]      keyword search over a small FIXED local corpus
-
-Every tool takes ONE string and returns ONE string Observation. Tools never
-raise to the caller: an error becomes a readable Observation so the agent can
-read it and recover. That contract is what makes the loop robust.
-
-The weather series is keyed by OFFSET FROM TODAY (0 = today, 1 = yesterday),
-not by absolute date, so this lab produces the same numbers whatever day you
-run it. A real deployment would call an API here; the shape of the tool, one
-string in and one string out, would be identical.
-"""
+"""W12C2 lab, the agent's tools (starter)."""
 from __future__ import annotations
 
 import ast
@@ -68,7 +51,15 @@ def _eval_node(node: ast.AST) -> float:
 
 
 def calculator(expr: str) -> str:
-    """Evaluate an arithmetic expression safely. Returns an Observation string.
+    """Evaluate an arithmetic expression safely, never with eval().
+
+    Args:
+        expr: the expression the model asked for, in whatever state it wrote
+            it. It may be empty, malformed, or actively hostile.
+
+    Returns:
+        An Observation STRING, always. Every failure returns an error string
+        rather than raising, because an exception kills the agent loop.
 
     `^` is rewritten to `**` first. This matters more than it looks: in Python
     `^` is bitwise XOR, so `log(3^2 * 16 - 10)` would silently evaluate as

@@ -1,20 +1,5 @@
 #!/usr/bin/env python3
-"""W14C1, Router + Workers workflow (STARTER).
-
-You will build a small *agentic workflow*: a router classifies an incoming
-request, then dispatches it to a specialized worker. This is the "routing"
-pattern from Anthropic's "Building Effective Agents" (2024).
-
-Design goals (mirror real systems):
-  * The router returns a label from a FIXED set, with a safe `unknown` fallback.
-  * Each worker is its own small function (its own "prompt"/behavior).
-  * The whole thing runs against an injectable `llm` callable, so we can pass a
-    deterministic MOCK in tests and the real Ollama client in production.
-
-Work through the lab in `README.md`. Each STEP has its own check
-(python -m pytest ... -k step1 -q). Or run everything:
-    python -m pytest weeks/week-14/class-01/exercise/test_workflow.py -q
-"""
+"""W14C1, Router + Workers workflow (STARTER)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-"""W11C2 starter, a minimal RAG pipeline over course notes.
-
-Work through the lab in `README.md`. Each STEP below has its own check
-(python -m pytest ... -k step1 -q). Or run everything:
-    python -m pytest weeks/week-11/class-02/exercise/test_rag.py -q
-
-End-to-end (real local model if available, else stub generator):
-    python weeks/week-11/class-02/exercise/rag.py
-
-Everything except the optional LLM call runs fully offline (TF-IDF retriever).
-"""
+"""W11C2 starter, a minimal RAG pipeline over course notes."""
 from __future__ import annotations
 import os
 import re

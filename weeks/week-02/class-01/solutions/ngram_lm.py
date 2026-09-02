@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""W2C1 reference solution, N-gram Bard.
-
-Run:
-    python weeks/week-02/class-01/solutions/ngram_lm.py
-"""
+"""W2C1 reference solution, N-gram Bard."""
 from __future__ import annotations
 import math
 import random

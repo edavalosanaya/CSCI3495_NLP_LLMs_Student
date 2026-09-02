@@ -1,17 +1,4 @@
-"""W13C1: a ten-problem benchmark for the math-solver agent, plus the evaluator.
-
-This is the "external feedback" half of Reflexion (Shinn et al., 2023). The
-agent never sees `answer`; it only ever sees what `evaluate()` says back, and
-that message is what its reflection is written from. A bare "wrong" produces a
-vague lesson; a message that says WHAT was expected produces a usable one.
-
-Every problem is solvable with the tools the lab provides:
-  * P1-P6, P8-P10   arithmetic only          -> calc
-  * P7              needs an outside fact    -> search, then calc
-
-Answers are numbers so the evaluator can be exact instead of fuzzy. They were
-checked by running `python problems.py`.
-"""
+"""W13C1: a ten-problem benchmark for the math-solver agent, plus the evaluator."""
 from __future__ import annotations
 
 import re

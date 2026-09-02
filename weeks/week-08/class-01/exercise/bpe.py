@@ -1,16 +1,4 @@
-"""W8C1 starter, train a Byte-Pair Encoding (BPE) tokenizer from scratch.
-
-No network, no libraries beyond the standard library.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step1 -q
-
-Representation we use throughout:
-- A "word" is split into a tuple of symbols, e.g. ("l", "o", "w", "</w>").
-- We append the end-of-word marker "</w>" so the tokenizer knows where words
-  end (and so "er" at a word end differs from "er" inside a word).
-- A "vocab" is a dict {word_tuple: frequency} over the training corpus.
-"""
+"""W8C1 starter, train a Byte-Pair Encoding (BPE) tokenizer from scratch."""
 from __future__ import annotations
 
 from collections import Counter

@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""W11C1 Injection CTF, reference solution.
-
-See exercise/ctf.py for the full description. The defenses here are deliberately
-simple and readable: defense-in-depth (input guard + output guard + tool
-allow-list with human-in-the-loop), so a gullible model still cannot leak the
-secret or fire a privileged tool.
-"""
+"""W11C1 Injection CTF, reference solution."""
 from __future__ import annotations
 
 import os

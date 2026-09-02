@@ -1,15 +1,4 @@
-"""W7C2 starter, measure scaling behavior across model sizes.
-
-Idea: run the SAME small task suite on two or three Ollama models of different
-sizes (e.g. qwen2.5:0.5b vs. llama3.2:1b) and see whether the bigger model does
-better. That's scaling, observed on a laptop.
-
-You implement the pure-Python *scoring* core (fully tested, no model needed).
-`measure.py` then drives real models via Ollama and skips cleanly if absent.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-07/class-02/exercise/test_scaling.py -k step1 -q
-"""
+"""W7C2 starter, measure scaling behavior across model sizes."""
 from __future__ import annotations
 import string
 

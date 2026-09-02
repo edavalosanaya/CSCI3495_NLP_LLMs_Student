@@ -1,8 +1,4 @@
-"""W13 agent tools, provided (same safe, network-free tools as W12).
-
-  * calc[expr]    -> SAFE arithmetic (AST whitelist, no eval)
-  * search[query] -> keyword search over a FIXED local corpus
-"""
+"""W13 agent tools, provided (same safe, network-free tools as W12)."""
 from __future__ import annotations
 
 import ast

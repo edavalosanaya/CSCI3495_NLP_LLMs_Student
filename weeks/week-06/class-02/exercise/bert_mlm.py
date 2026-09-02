@@ -1,16 +1,4 @@
-"""W6C2 starter, fill in the [MASK] + fine-tune a tiny BERT.
-
-Part A, Masked LM: feed a sentence with a [MASK] to a pretrained masked-LM and
-read off the top predicted words. This is BERT's pretraining objective in action.
-
-Part B, Fine-tuning: train a tiny BERT classifier on a tiny sentiment dataset
-(a handful of sentences) and watch accuracy rise above chance. CPU-only, seconds.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-06/class-02/exercise/test_bert_mlm.py -k step1 -q
-
-Models (tiny, CPU): prajjwal1/bert-tiny. First run downloads a few MB, then cached.
-"""
+"""W6C2 starter, fill in the [MASK] + fine-tune a tiny BERT."""
 from __future__ import annotations
 
 MLM_MODEL = "prajjwal1/bert-tiny"

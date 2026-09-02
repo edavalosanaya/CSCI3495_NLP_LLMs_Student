@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 """W7C1, decoding-strategy playground on a REAL local LLM (via Ollama).
 
-Run the SAME prompt under different decoding settings and feel the difference:
-greedy vs. high temperature, varying top_k / top_p, and watch for repetition.
-
-Run inside the course container:
-    python weeks/week-07/class-01/exercise/playground.py
-
-Degrades gracefully: if Ollama or the model isn't available, it prints clear
-setup instructions and exits 0 (so it never breaks the test sweep).
+    python playground.py
 """
 from __future__ import annotations
 

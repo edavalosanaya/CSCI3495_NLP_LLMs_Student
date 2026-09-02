@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-"""W1C1, Hello, NLP: your first local LLM prompt via Ollama.
-
-Work through the lab in `README.md`. Steps 1-3 set up and verify the
-environment; STEPS 4-6 are the edits you make in this file.
-
-Run inside the course container:
-    python weeks/week-01/class-01/exercise/hello_nlp.py
-
-This script degrades gracefully: if Ollama or the model isn't available, it
-prints clear setup instructions instead of crashing.
-"""
+"""W1C1, Hello, NLP: your first local LLM prompt via Ollama."""
 from __future__ import annotations
 import os
 import sys
