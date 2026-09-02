@@ -44,8 +44,9 @@ def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch
         text: the raw document. Tokenizing it is part of this function's job.
         vocab: token -> row index in the embedding table. Index 0 is the
             unknown-word row, and any token missing from the vocab uses it.
-        emb: the embedding table. Calling it on a LongTensor of ids returns
-            one row per id, and emb.embedding_dim is the width of a row.
+        emb: the embedding table. Calling it on a LongTensor of ids (build one
+            with torch.LongTensor) returns one row per id, and
+            emb.embedding_dim is the width of a row.
 
     Returns:
         A 1-D tensor of shape (embedding_dim,). A document with no tokens at
@@ -61,24 +62,7 @@ def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch
     #   wrap the indices in a LongTensor and look them all up in one call
     #   average the resulting rows down to a single vector
     #
-    #   Averaging over the wrong axis silently gives you a vector of the wrong
-    #   length: you want one number per embedding dimension.
-    #
-    # raise NotImplementedError
-    tokens = tokenize(text)
-    ids = []
-    for t in tokens:
-        i = 0
-        if t in vocab:
-            i = vocab[t]
-        ids.append(i)
-    ids = torch.LongTensor(ids)
-    embs = emb(ids)
-    import pdb; pdb.set_trace()
-    summed_embs = embs.sum(axis=1)
-    summed_embs = summed_embs / emb.shape[0]
-    return embs
-
+    raise NotImplementedError
 
 
 class MLP(nn.Module):

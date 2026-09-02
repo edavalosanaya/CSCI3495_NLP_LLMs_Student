@@ -65,9 +65,9 @@ occasionally.
 
 ```python
 def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
-    target = np.asarray(table[word], dtype=float)
+    target = table[word]
     scored = [
-        (w, cosine(target, np.asarray(v, dtype=float)))
+        (w, cosine(target, v))
         for w, v in table.items()
         if w != word
     ]
@@ -115,9 +115,9 @@ nearest word to the result.
 
 ```python
 def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, float]]:
-    vec_a = np.asarray(table[a], dtype=float)
-    vec_b = np.asarray(table[b], dtype=float)
-    vec_c = np.asarray(table[c], dtype=float)
+    vec_a = table[a]
+    vec_b = table[b]
+    vec_c = table[c]
 
     # The step from a to b, applied starting at c.
     target = vec_b - vec_a + vec_c
@@ -126,8 +126,7 @@ def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, 
     for word in table:
         if word == a or word == b or word == c:
             continue
-        vec = np.asarray(table[word], dtype=float)
-        score = cosine(target, vec)
+        score = cosine(target, table[word])
         scored.append((word, score))
 
     # Best score first; when two tie, the alphabetically earlier word wins.
@@ -160,8 +159,8 @@ gender offset. On real GloVe vectors the same query lands on `queen` at roughly
 
 ```python
 def bias_score(word: str, pos: str, neg: str, table: dict) -> float:
-    direction = np.asarray(table[pos], dtype=float) - np.asarray(table[neg], dtype=float)
-    return cosine(np.asarray(table[word], dtype=float), direction)
+    direction = table[pos] - table[neg]
+    return cosine(table[word], direction)
 ```
 
 **Reading the formula.** `vec(woman) - vec(man)` is a direction in the space, the

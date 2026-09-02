@@ -38,8 +38,10 @@ not graded.
 
 ## 4. Implement `embed_document`
 
-Turn a document into one vector of length `embedding_dim`. A document with no
-tokens still has to return that shape.
+Turn a document into one vector of length `embedding_dim`. Looking up a
+document's tokens gives you a 2-D tensor: one row per token, and the columns
+are the dimensions of the embedding space, so averaging the rows leaves one
+number per dimension. A document with no tokens still has to return that shape.
 
 ```bash
 pytest -k step1 -q
@@ -53,6 +55,8 @@ pytest -k step1 -q
 ## 5. Implement `MLP.forward`
 
 One line: first linear layer, activation, second linear layer. Stop there.
+A layer is called like a function, so `self.fc1(x)` runs `x` through `fc1` and
+gives you back what it produced.
 
 ```bash
 pytest -k step2 -q

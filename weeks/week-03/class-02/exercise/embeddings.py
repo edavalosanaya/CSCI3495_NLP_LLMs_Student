@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """W3C2 starter, explore word embeddings: neighbors, analogies, bias."""
 from __future__ import annotations
-import math
 
 import numpy as np
 
@@ -14,28 +13,28 @@ import numpy as np
 # ---------------------------------------------------------------------------
 # Dimensions (illustrative): 0=royal, 1=masculine, 2=feminine, 3=animal,
 # 4=pet, 5=care-work, 6=technical, 7=high-status.
-EMB: dict[str, list[float]] = {
-    "king":      [0.9, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8],
-    "queen":     [0.9, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.8],
-    "prince":    [0.8, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25],
-    "princess":  [0.8, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.25],
-    "man":       [0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1],
-    "woman":     [0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.1],
-    "uncle":     [0.1, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2],
-    "aunt":      [0.1, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.2],
-    "cat":       [0.0, 0.0, 0.0, 0.9, 0.8, 0.0, 0.0, 0.0],
-    "dog":       [0.0, 0.0, 0.0, 0.9, 0.7, 0.1, 0.0, 0.0],
-    "kitten":    [0.0, 0.0, 0.0, 0.95, 0.85, 0.0, 0.0, 0.0],
-    "nurse":     [0.0, 0.0, 0.5, 0.0, 0.0, 0.9, 0.0, 0.0],
-    "doctor":    [0.0, 0.3, 0.25, 0.0, 0.0, 0.9, 0.1, 0.1],
-    "engineer":  [0.0, 0.5, 0.0, 0.0, 0.0, 0.1, 0.9, 0.1],
-    "teacher":   [0.0, 0.1, 0.3, 0.0, 0.0, 0.5, 0.2, 0.0],
+EMB: dict[str, np.ndarray] = {
+    "king":      np.array([0.9, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8]),
+    "queen":     np.array([0.9, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.8]),
+    "prince":    np.array([0.8, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25]),
+    "princess":  np.array([0.8, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.25]),
+    "man":       np.array([0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1]),
+    "woman":     np.array([0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.1]),
+    "uncle":     np.array([0.1, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2]),
+    "aunt":      np.array([0.1, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.2]),
+    "cat":       np.array([0.0, 0.0, 0.0, 0.9, 0.8, 0.0, 0.0, 0.0]),
+    "dog":       np.array([0.0, 0.0, 0.0, 0.9, 0.7, 0.1, 0.0, 0.0]),
+    "kitten":    np.array([0.0, 0.0, 0.0, 0.95, 0.85, 0.0, 0.0, 0.0]),
+    "nurse":     np.array([0.0, 0.0, 0.5, 0.0, 0.0, 0.9, 0.0, 0.0]),
+    "doctor":    np.array([0.0, 0.3, 0.25, 0.0, 0.0, 0.9, 0.1, 0.1]),
+    "engineer":  np.array([0.0, 0.5, 0.0, 0.0, 0.0, 0.1, 0.9, 0.1]),
+    "teacher":   np.array([0.0, 0.1, 0.3, 0.0, 0.0, 0.5, 0.2, 0.0]),
 }
 
 
 def vec(word: str) -> np.ndarray:
-    """Return the embedding for `word` as a numpy array (raises KeyError if absent)."""
-    return np.asarray(EMB[word], dtype=float)
+    """Return the embedding for `word` (raises KeyError if absent)."""
+    return EMB[word]
 
 
 def cosine(u: np.ndarray, v: np.ndarray) -> float:
@@ -49,9 +48,9 @@ def cosine(u: np.ndarray, v: np.ndarray) -> float:
 
 def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
     """GIVEN. The k most similar words to `word`, itself excluded, best first."""
-    target = np.asarray(table[word], dtype=float)
+    target = table[word]
     scored = [
-        (w, cosine(target, np.asarray(v, dtype=float)))
+        (w, cosine(target, v))
         for w, v in table.items()
         if w != word
     ]
@@ -77,7 +76,8 @@ def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, 
         b: the second word of the source pair ("king"). The step from a to b
             is the relationship being transferred.
         c: the word the same step is applied to ("woman").
-        table: word -> vector. Every candidate answer is drawn from its keys.
+        table: word -> vector, each vector a numpy array. Every candidate
+            answer is drawn from its keys.
         k: how many candidates to return.
 
     Returns:

@@ -6,27 +6,27 @@ import numpy as np
 
 # Dimensions (illustrative): 0=royal, 1=masculine, 2=feminine, 3=animal,
 # 4=pet, 5=care-work, 6=technical, 7=high-status.
-EMB: dict[str, list[float]] = {
-    "king":      [0.9, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8],
-    "queen":     [0.9, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.8],
-    "prince":    [0.8, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25],
-    "princess":  [0.8, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.25],
-    "man":       [0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1],
-    "woman":     [0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.1],
-    "uncle":     [0.1, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2],
-    "aunt":      [0.1, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.2],
-    "cat":       [0.0, 0.0, 0.0, 0.9, 0.8, 0.0, 0.0, 0.0],
-    "dog":       [0.0, 0.0, 0.0, 0.9, 0.7, 0.1, 0.0, 0.0],
-    "kitten":    [0.0, 0.0, 0.0, 0.95, 0.85, 0.0, 0.0, 0.0],
-    "nurse":     [0.0, 0.0, 0.5, 0.0, 0.0, 0.9, 0.0, 0.0],
-    "doctor":    [0.0, 0.3, 0.25, 0.0, 0.0, 0.9, 0.1, 0.1],
-    "engineer":  [0.0, 0.5, 0.0, 0.0, 0.0, 0.1, 0.9, 0.1],
-    "teacher":   [0.0, 0.1, 0.3, 0.0, 0.0, 0.5, 0.2, 0.0],
+EMB: dict[str, np.ndarray] = {
+    "king":      np.array([0.9, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8]),
+    "queen":     np.array([0.9, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.8]),
+    "prince":    np.array([0.8, 0.7, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25]),
+    "princess":  np.array([0.8, 0.0, 0.7, 0.0, 0.0, 0.0, 0.0, 0.25]),
+    "man":       np.array([0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1]),
+    "woman":     np.array([0.0, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.1]),
+    "uncle":     np.array([0.1, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2]),
+    "aunt":      np.array([0.1, 0.0, 0.8, 0.0, 0.0, 0.0, 0.0, 0.2]),
+    "cat":       np.array([0.0, 0.0, 0.0, 0.9, 0.8, 0.0, 0.0, 0.0]),
+    "dog":       np.array([0.0, 0.0, 0.0, 0.9, 0.7, 0.1, 0.0, 0.0]),
+    "kitten":    np.array([0.0, 0.0, 0.0, 0.95, 0.85, 0.0, 0.0, 0.0]),
+    "nurse":     np.array([0.0, 0.0, 0.5, 0.0, 0.0, 0.9, 0.0, 0.0]),
+    "doctor":    np.array([0.0, 0.3, 0.25, 0.0, 0.0, 0.9, 0.1, 0.1]),
+    "engineer":  np.array([0.0, 0.5, 0.0, 0.0, 0.0, 0.1, 0.9, 0.1]),
+    "teacher":   np.array([0.0, 0.1, 0.3, 0.0, 0.0, 0.5, 0.2, 0.0]),
 }
 
 
 def vec(word: str) -> np.ndarray:
-    return np.asarray(EMB[word], dtype=float)
+    return EMB[word]
 
 
 def cosine(u: np.ndarray, v: np.ndarray) -> float:
@@ -38,9 +38,9 @@ def cosine(u: np.ndarray, v: np.ndarray) -> float:
 
 
 def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
-    target = np.asarray(table[word], dtype=float)
+    target = table[word]
     scored = [
-        (w, cosine(target, np.asarray(v, dtype=float)))
+        (w, cosine(target, v))
         for w, v in table.items()
         if w != word
     ]
@@ -59,9 +59,9 @@ def sort_best_first(pair: tuple) -> tuple:
 
 
 def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, float]]:
-    vec_a = np.asarray(table[a], dtype=float)
-    vec_b = np.asarray(table[b], dtype=float)
-    vec_c = np.asarray(table[c], dtype=float)
+    vec_a = table[a]
+    vec_b = table[b]
+    vec_c = table[c]
 
     # The step from a to b, applied starting at c.
     target = vec_b - vec_a + vec_c
@@ -70,8 +70,7 @@ def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, 
     for word in table:
         if word == a or word == b or word == c:
             continue
-        vec = np.asarray(table[word], dtype=float)
-        score = cosine(target, vec)
+        score = cosine(target, table[word])
         scored.append((word, score))
 
     # Best score first; when two tie, the alphabetically earlier word wins.
@@ -80,8 +79,8 @@ def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, 
 
 
 def bias_score(word: str, pos: str, neg: str, table: dict) -> float:
-    direction = np.asarray(table[pos], dtype=float) - np.asarray(table[neg], dtype=float)
-    return cosine(np.asarray(table[word], dtype=float), direction)
+    direction = table[pos] - table[neg]
+    return cosine(table[word], direction)
 
 
 def load_pretrained():
