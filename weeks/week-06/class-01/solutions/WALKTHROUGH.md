@@ -9,7 +9,7 @@ below is taken from it, and every printed value was produced by running it with
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 `load_model()` ships written, and its comment explains a real packaging wrinkle:
 
@@ -40,7 +40,7 @@ Nothing is wrong. Say so before a student spends ten minutes on it.
 
 ---
 
-## Step 1, Cosine similarity
+## Given, `cosine_similarity`
 
 ```python
 def cosine_similarity(u: list[float], v: list[float]) -> float:
@@ -66,7 +66,7 @@ the operation the whole field runs on.
 
 ---
 
-## Step 2, Contextual vector
+## Step 1, `contextual_vector`
 
 ```python
 def contextual_vector(sentence: str, word: str):
@@ -140,7 +140,7 @@ is the result the whole week is built on.
 
 ---
 
-## Step 3, Static vector
+## Step 2, `static_vector`
 
 ```python
 def static_vector(word: str):
@@ -171,7 +171,7 @@ accidentally reading a hidden state rather than the embedding table.
 
 ---
 
-## Step 4, Run the comparison
+## Running it
 
 ```
 Contextual cosine('bank' river vs. money): 0.809

@@ -94,8 +94,13 @@ def run_tool(tool: str, tool_input: str) -> str:
 # --------------------------------------------------------------------------
 def make_plan(task: str, planner: Optional[LLM]) -> str:
     """Ask the planner for a short plan. No planner -> empty plan ("")."""
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    # and return the stripped result.
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   1. if planner is None: return ""      the agent still runs, just unplanned
+    #   2. build a prompt asking for 2-4 short numbered steps and ONLY the steps,
+    #      with the task on its own line
+    #   3. return planner(prompt).strip()
+    #
     raise NotImplementedError
 
 
@@ -181,8 +186,19 @@ def reflect(task: str, trace: Trace, reflector: Optional[LLM]) -> str:
             f"Tried: {actions or 'nothing useful'}. "
             "Next time, search for the key fact first, then compute, then finish."
         )
-    # TODO (STEP 4): implement. Check with: pytest -k step4
-    # one-or-two-sentence critique; return it stripped.
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   Turn a FAILED trace into one or two sentences of advice for the next try.
+    #
+    #   1. if reflector is None, build a deterministic fallback: list the tools
+    #      tried as "tool[input], tool[input]" and return a fixed sentence naming
+    #      trace.stopped_reason and what to do differently
+    #   2. otherwise summarise the trace as "tool[input] -> observation; ..."
+    #      and ask the reflector what went wrong and what to change
+    #   3. return the reflection, stripped
+    #
+    #   The fallback keeps the whole lab runnable with no model at all.
+    #
     raise NotImplementedError
 
 
@@ -199,20 +215,43 @@ def run_reflexion_agent(
     max_attempts: int = 3,
     max_steps: int = 6,
 ) -> tuple[Trace, Memory, int]:
-    """Run up to `max_attempts` attempts, reflecting between failures.
+    """Retry a task, writing a self-critique into memory after each failure.
 
-    Returns (last_trace, memory, attempts_used). The agent never sees
-    `success_check`, it is the evaluator's oracle.
+    Args:
+        task: the question the agent is trying to answer.
+        llm: the model driving each attempt.
+        success_check: the evaluator's oracle, used only to decide whether an
+            attempt succeeded. The agent must never see it or call it as a tool.
+        planner: optional model for the up-front plan. None means no plan.
+        reflector: optional model for the self-critique. None uses the
+            deterministic fallback inside reflect().
+        max_attempts: how many attempts before giving up.
+        max_steps: the per-attempt step budget handed to react_attempt.
+
+    Returns:
+        (last trace, memory, attempts used). Attempts used counts the attempt
+        that succeeded, so a first-try success returns 1. Giving up returns
+        max_attempts and the last failing trace, not an exception.
     """
     memory = Memory()
     plan = make_plan(task, planner)
     trace = Trace(task=task)
 
-    # TODO: for attempt in 1..max_attempts:
-    #   - trace = react_attempt(task, llm, memory, plan=plan, max_steps=max_steps)
-    #   - if trace.succeeded and success_check(trace.answer): return (trace, memory, attempt)
-    #   - else: memory.add(reflect(task, trace, reflector))
-    # After the loop, return (trace, memory, max_attempts).
+    # TODO (STEP 3): implement. Check with: pytest -k step3
+    #
+    #   for each attempt, up to max_attempts:
+    #       run one attempt with react_attempt, passing the plan and the
+    #           step budget, and keep its trace
+    #       if the trace finished AND the oracle accepts its answer,
+    #           hand back that trace, the memory, and which attempt it was
+    #       otherwise write a reflection on the failure into memory, so the
+    #           next attempt sees it
+    #   if every attempt failed, hand back the last trace, the memory, and
+    #       max_attempts
+    #
+    #   The reflection has to go into memory BEFORE the next attempt starts,
+    #   or the retry is identical to the try that just failed.
+    #
     raise NotImplementedError
 
 

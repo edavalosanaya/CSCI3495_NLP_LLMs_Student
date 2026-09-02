@@ -66,38 +66,24 @@ query --> route() --> label --> dispatch --> worker --> Result(label, output, ha
 
 ## How this lab works
 
-Each step tells you **what to write**, then exactly **how to check it**.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One command,
+once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-01/exercise course bash
 ```
+
+Everything below runs in that shell. Each step says what to write and gives the
+one command that checks it:
 
 ```bash
-lab python -m pytest weeks/week-14/class-01/exercise/test_workflow.py -k step1 -q
+pytest -k step1 -q
 ```
 
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
+Steps marked **(given)** are already written for you: read them, run the check,
+move on. A step you have not written yet reports `skipped`, never a failure.
+Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
+**The labs are not graded**, so reading it is not cheating.
 ---
 
 ### Step 1, The router
@@ -159,7 +145,7 @@ cannot tell you.
 ### Step 5, Run it
 
 ```bash
-lab python -m pytest weeks/week-14/class-01/exercise/test_workflow.py -q
+pytest -q
 ```
 
 ```
@@ -170,7 +156,7 @@ lab python -m pytest weeks/week-14/class-01/exercise/test_workflow.py -q
 With Ollama running:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course python weeks/week-14/class-01/exercise/workflow.py
+python workflow.py
 ```
 
 ```
@@ -191,11 +177,3 @@ perfectly and the worker still produced a confident error. **Routing controls
 which prompt runs, not whether the answer is true**, which is why W9's evaluation
 material does not stop being relevant once you build workflows.
 
-## Stretch goals
-- Add a **`classify`** worker and label; route negative/uncertain confidence to `unknown`.
-- Make the router **rules-first** (regex keywords) and only fall back to the LLM , 
-  cheaper and more deterministic. Discuss the trade-off.
-- Add a **second stage** (prompt *chaining*): pass the worker's output through a
-  "polish" LLM call before returning. Keep tests green.
-
-A reference solution is in `../solutions/` (don't peek until you've tried!).

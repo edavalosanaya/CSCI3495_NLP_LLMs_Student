@@ -26,38 +26,38 @@ sys.modules["eval_under_test"] = eh
 _spec.loader.exec_module(eh)
 
 
-def test_step1_normalize_strips_articles_and_punct():
+def test_given_normalize_strips_articles():
     assert eh.normalize_answer("The Paris.") == "paris"
     assert eh.normalize_answer("  A   CAT! ") == "cat"
 
 
-def test_step2_exact_match():
+def test_given_exact_match():
     assert eh.exact_match("Paris", "the paris")
     assert not eh.exact_match("London", "Paris")
 
 
-def test_step3_contains_answer_in_sentence():
+def test_given_contains_answer_in_sentence():
     assert eh.contains_answer("The capital is Paris, in France.", "Paris")
     assert not eh.contains_answer("The capital is London.", "Paris")
 
 
-def test_step3_contains_answer_word_boundary():
+def test_given_contains_answer_word_boundary():
     # 'art' should not match inside 'Sparta'.
     assert not eh.contains_answer("They lived in Sparta.", "art")
 
 
-def test_step4_accuracy_basic():
+def test_given_accuracy_basic():
     preds = ["The answer is Paris.", "It is 4.", "London"]
     golds = ["Paris", "4", "Paris"]
     assert eh.accuracy(preds, golds) == pytest.approx(2 / 3)
 
 
-def test_step4_accuracy_length_mismatch_raises():
+def test_given_accuracy_length_mismatch_raises():
     with pytest.raises(ValueError):
         eh.accuracy(["a"], ["a", "b"])
 
 
-def test_step5_hallucination_flagged_when_not_abstaining():
+def test_step1_hallucination_flagged_when_not_abstaining():
     item = {"q": "Who won in 2087?", "gold": None, "answerable": False}
     # Confident fabricated answer -> hallucination.
     assert eh.is_hallucination("Dr. Jane Smith won it.", item) is True
@@ -65,7 +65,7 @@ def test_step5_hallucination_flagged_when_not_abstaining():
     assert eh.is_hallucination("That hasn't happened; 2087 is in the future.", item) is False
 
 
-def test_step5_answerable_items_never_flagged():
+def test_step1_answerable_items_never_flagged():
     item = {"q": "Capital of France?", "gold": "Paris", "answerable": True}
     assert eh.is_hallucination("Paris", item) is False
 
@@ -84,12 +84,12 @@ def _fair_judge(question, answer_a, answer_b):
     return "tie"
 
 
-def test_step0_biased_judge_always_picks_first_slot():
+def test_given_biased_judge_picks_first_slot():
     assert eh.biased_judge("q", "good", "bad") == "A"
     assert eh.biased_judge("q", "bad", "good") == "A"
 
 
-def test_step6_judge_pairwise_detects_inconsistency():
+def test_step2_judge_pairwise_detects_inconsistency():
     # The biased judge picks slot A both times -> it favors a different *answer*
     # each run -> inconsistent.
     r = eh.judge_pairwise(eh.biased_judge, "q", "first", "second")
@@ -98,7 +98,7 @@ def test_step6_judge_pairwise_detects_inconsistency():
     assert r["consistent"] is False
 
 
-def test_step6_judge_pairwise_consistent_for_fair_judge():
+def test_step2_judge_pairwise_consistent_for_fair_judge():
     # A content-aware judge picks the same *answer* regardless of order.
     q = "why blue?"
     a1 = "light scatters in the air"
@@ -109,7 +109,7 @@ def test_step6_judge_pairwise_consistent_for_fair_judge():
     assert r["consistent"] is True
 
 
-def test_step7_position_bias_rate_extremes():
+def test_step3_position_bias_rate_extremes():
     pairs = [
         ("q1", "alpha scatter", "beta"),
         ("q2", "gamma", "delta scatter"),
@@ -120,5 +120,5 @@ def test_step7_position_bias_rate_extremes():
     assert eh.position_bias_rate(_fair_judge, pairs) == pytest.approx(0.0)
 
 
-def test_step7_position_bias_rate_empty():
+def test_step3_position_bias_rate_empty():
     assert eh.position_bias_rate(eh.biased_judge, []) == pytest.approx(0.0)

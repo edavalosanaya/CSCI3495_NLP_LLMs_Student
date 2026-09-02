@@ -45,13 +45,20 @@ DATASET = [
 # ---------------------------------------------------------------------------
 # PART 1: factuality scoring
 # ---------------------------------------------------------------------------
+def _winner_of(raw: str, first: str, second: str) -> str:
+    """Map a raw 'A'/'B'/'tie' verdict back to which *answer* it favors."""
+    if raw == "A":
+        return first
+    if raw == "B":
+        return second
+    return "tie"
+
+
 def normalize_answer(s: str) -> str:
     """Lowercase, strip punctuation, drop articles (a/an/the), collapse whitespace.
 
     This is the standard SQuAD-style normalization so 'The Paris.' == 'paris'.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     s = s.lower()
     s = "".join(ch for ch in s if ch not in string.punctuation)
     tokens = [t for t in s.split() if t not in _ARTICLES]
@@ -60,8 +67,6 @@ def normalize_answer(s: str) -> str:
 
 def exact_match(pred: str, gold: str) -> bool:
     """True if normalized prediction == normalized gold."""
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     return normalize_answer(pred) == normalize_answer(gold)
 
 
@@ -71,8 +76,6 @@ def contains_answer(pred: str, gold: str) -> bool:
     Models often answer in a sentence ('The capital is Paris.'), so a lenient
     'gold is contained in pred' metric is useful alongside exact match.
     """
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     p = normalize_answer(pred)
     g = normalize_answer(gold)
     if not g:
@@ -86,8 +89,6 @@ def accuracy(preds: list[str], golds: list[str]) -> float:
 
     (Only over items with a non-None gold; raise ValueError if lengths differ.)
     """
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     if len(preds) != len(golds):
         raise ValueError("preds and golds must be the same length")
     if not preds:
@@ -97,21 +98,32 @@ def accuracy(preds: list[str], golds: list[str]) -> float:
 
 
 def is_hallucination(pred: str, item: dict) -> bool:
-    """Flag a likely hallucination on an UNANSWERABLE item.
+    """Flag a likely hallucination: a confident answer to an unanswerable question.
 
-    If item['answerable'] is False, a good model should abstain. We treat the
-    answer as a hallucination if the model did NOT abstain -- i.e. the prediction
-    contains none of the abstention cues below.
+    Args:
+        pred: the model's raw answer text, in whatever case it produced.
+        item: one eval item. Only item["answerable"] matters here: False means
+            the question has no correct answer and the model should have said so.
+
+    Returns:
+        True only when the model answered an unanswerable question without
+        abstaining. An answerable item is never flagged, however wrong the
+        prediction is: this measures fabrication, not accuracy.
     """
     abstain_cues = (
         "i don't know", "i do not know", "cannot", "can't", "no winner",
         "hasn't happened", "has not happened", "in the future", "not sure",
         "no information", "unable", "fictional", "does not exist", "doesn't exist",
     )
-    if item["answerable"]:
-        return False
-    low = pred.lower()
-    # TODO (STEP 5): implement. Check with: pytest -k step5
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   a question that HAS an answer can never be a hallucination here, so
+    #       those items are never flagged
+    #   otherwise the model should have refused to answer, so treat it as a
+    #       hallucination unless its text carries one of the abstention cues
+    #       listed above
+    #   compare case-insensitively: models capitalize unpredictably
+    #
     raise NotImplementedError
 
 
@@ -138,32 +150,53 @@ def judge_pairwise(judge, question: str, ans1: str, ans2: str) -> dict:
     SWAPPED (ans2 as A, ans1 as B). Translate each raw "A"/"B"/"tie" verdict
     back into which *answer* (1 or 2) it favors, so the two runs are comparable.
 
-    Return a dict:
-        {
-          "winner_run1": "ans1" | "ans2" | "tie",   # who won when ans1 was shown first
-          "winner_run2": "ans1" | "ans2" | "tie",   # who won when ans2 was shown first
-          "consistent": bool,                        # same winner both ways?
-        }
+    Args:
+        judge: callable (question, slot_A, slot_B) -> a raw verdict string.
+            It is asked twice, so it must be safe to call more than once.
+        question: the question both answers are responding to.
+        ans1: the first answer.
+        ans2: the second answer.
 
-    A robust harness only trusts a verdict when consistent is True.
+    Returns:
+        {"winner_run1", "winner_run2", "consistent"}. The two winners are
+        "ans1", "ans2" or "tie", named after the ANSWER not the slot, so they
+        are directly comparable across the swap. consistent is True when both
+        runs name the same winner, and only then is the verdict worth trusting.
     """
-    # TODO (STEP 6): implement. Check with: pytest -k step6
-    #   1) raw1 = judge(question, ans1, ans2); map "A"->"ans1", "B"->"ans2", "tie"->"tie".
-    #   2) raw2 = judge(question, ans2, ans1); now "A"->"ans2", "B"->"ans1", "tie"->"tie".
-    #   3) consistent = (winner_run1 == winner_run2).
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   ask the judge once with ans1 in the first slot
+    #   ask it again with ans2 in the first slot
+    #   translate each raw verdict into which ANSWER won, using the given
+    #       _winner_of helper. Mind the argument order on the second call:
+    #       the answer sitting in slot A is different that time
+    #   report both winners and whether they agree
+    #
+    #   Translating slot -> answer is the whole trick. Comparing raw verdicts
+    #   would say a position-biased judge was perfectly consistent.
+    #
     raise NotImplementedError
 
 
 def position_bias_rate(judge, pairs: list[tuple[str, str, str]]) -> float:
-    """Fraction of pairs whose verdict is INCONSISTENT under the swap.
+    """How often this judge changes its mind when the answers are swapped.
 
-    `pairs` is a list of (question, ans1, ans2). A perfectly fair judge scores
-    0.0; a fully position-biased judge (always picks the first slot) scores 1.0
-    on pairs where it would otherwise have to choose.
+    Args:
+        judge: the judge under test.
+        pairs: (question, ans1, ans2) triples to test it on.
+
+    Returns:
+        The fraction of pairs that came back inconsistent, in [0, 1]. A fair
+        judge scores 0.0; one that always picks whatever is in the first slot
+        scores 1.0. An empty list scores 0.0, not an error.
     """
-    # TODO (STEP 7): implement. Check with: pytest -k step7
-    #   run judge_pairwise on each pair; return the fraction with
-    #   consistent == False. (Empty list -> 0.0)
+    # TODO (STEP 3): implement. Check with: pytest -k step3
+    #
+    #   guard the empty case
+    #   for each pair, run the two-way comparison from step 2 and count the
+    #       ones it reports as inconsistent
+    #   divide by how many pairs there were
+    #
     raise NotImplementedError
 
 

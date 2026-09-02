@@ -41,49 +41,24 @@ You will write the parts that make those mistakes impossible.
 
 ## How this lab works
 
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One command,
+once per session:
 
 ```bash
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-02/exercise course bash
 ```
 
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes on a step? The reference solution and a
-step-by-step `WALKTHROUGH.md` are in `../solutions/`. **These labs are not
-graded**, so reading them is not cheating: getting unstuck and finishing the
-idea beats staring at a blank function.
+Everything below runs in that shell. Each step says what to write and gives the
+one command that checks it:
 
 ```bash
-lab python -m pytest test_eval.py -k step1 -q     # one step
-lab python -m pytest test_eval.py -q              # everything
+pytest -k step1 -q     # one step
 ```
 
-> Until you fill in the TODOs the suite falls back to the reference solution so
-> the course sweep stays green. A green test is not evidence *your* code works
-> until every TODO is done.
-
-The strategies in `strategies.py` are **provided and complete**. Read them, do
-not edit them, until the stretch goals.
-
+Steps marked **(given)** are already written for you: read them, run the check,
+move on. A step you have not written yet reports `skipped`, never a failure.
+Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
+**The labs are not graded**, so reading it is not cheating.
 ---
 
 ### Step 1, Score an answer (given)
@@ -182,7 +157,7 @@ sorted best first, **ties broken by fewer calls**.
 ### Step 7, Run it for real
 
 ```bash
-lab python -m pytest test_eval.py -q
+pytest -q
 ```
 
 ```
@@ -194,7 +169,7 @@ Then the benchmark, which needs Ollama (`ollama pull qwen2.5:1.5b`). Start
 small, because a full run is a few hundred model calls on a CPU:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -e OLLAMA_HOST=http://host.docker.internal:11434 course python weeks/week-13/class-02/solutions/run_bench.py --n 5 --progress
+OLLAMA_HOST=http://host.docker.internal:11434 python ../solutions/run_bench.py --n 5 --progress
 ```
 
 Full run of all 20 problems x 5 strategies, `qwen2.5:1.5b`, about 20 minutes on
@@ -251,14 +226,3 @@ Teams, full period after the break.
    (`1,050`), a negative, a trailing unit ("18 dollars"), `None`. Every
    disagreement you find is a bug one of you has.
 
-## Stretch goals
-
-- Add a fifth strategy (self-consistency: sample CoT three times at
-  temperature 0.7 and take the majority answer) and see whether it earns its
-  cost.
-- Report a bootstrap 95% confidence interval on success rate. Notice how wide
-  it is at n=20, and how that changes what you are willing to claim.
-- Run with `--n 20` twice at temperature 0. Any difference at all is a
-  reproducibility bug: find it.
-- Score by **process** as well as outcome: what fraction of ReAct's answers
-  came from a real `calc` observation rather than a guess?

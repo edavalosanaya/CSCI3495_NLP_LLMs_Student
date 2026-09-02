@@ -28,7 +28,7 @@ sys.modules["mlp_under_test"] = mc
 _spec.loader.exec_module(mc)
 
 
-def test_step0_vocab_has_unk_at_zero():
+def test_given_vocab_has_unk_at_zero():
     vocab = mc.build_vocab(["hello world"])
     assert vocab["<unk>"] == 0
     assert set(["hello", "world"]).issubset(vocab)
@@ -51,7 +51,7 @@ def test_step2_forward_returns_two_logits():
     assert out.shape == (3, 2)
 
 
-def test_step3_training_learns():
+def test_given_training_learns():
     torch.manual_seed(0)
     vocab = mc.build_vocab([t for t, _ in mc.TRAIN])
     emb = mc.nn.Embedding(len(vocab), 16)

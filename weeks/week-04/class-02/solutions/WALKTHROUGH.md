@@ -9,7 +9,7 @@ seed (`SEED = 1`).
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 `build_vocab` puts `END` (`.`) into the vocabulary alongside the letters:
 
@@ -29,7 +29,7 @@ without which nothing else in the exercise would reproduce.
 
 ---
 
-## Step 1, The forward pass
+## Step 1, `CharRNN.forward`
 
 ```python
     def forward(self, ids: torch.Tensor, h0: torch.Tensor | None = None):
@@ -68,7 +68,7 @@ is a training example, which is what makes such a tiny corpus trainable at all.
 
 ---
 
-## Step 2, Build the training pairs
+## Given, `make_training_pairs`
 
 ```python
 def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -109,7 +109,7 @@ pretraining objective for every model in the rest of the course.
 
 ---
 
-## Step 3, Sample a new name
+## Step 2, `sample`
 
 ```python
     for _ in range(max_len):
@@ -150,7 +150,7 @@ model, but the habit is worth building.
 
 ---
 
-## Step 4, Train and generate
+## Running it
 
 ```
 vocab size: 23

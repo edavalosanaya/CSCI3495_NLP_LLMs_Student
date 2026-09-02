@@ -13,7 +13,7 @@ see their position in one command.
 
 ---
 
-## Step 1, Numerically stable softmax
+## Given, `softmax`
 
 ```python
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
@@ -49,7 +49,7 @@ broadcasts along the wrong axis.
 
 ---
 
-## Step 2, Scaled dot-product attention
+## Step 1, `scaled_dot_product_attention`
 
 ```python
 def scaled_dot_product_attention(Q, K, V, mask=None):
@@ -89,7 +89,7 @@ MILESTONE 1  scaled dot-product attention: WORKS
 
 ---
 
-## Step 3, The causal mask
+## Step 2, `causal_mask`
 
 ```python
 def causal_mask(T: int) -> np.ndarray:
@@ -139,7 +139,7 @@ causal language model.
 
 ---
 
-## Step 4, Split and combine heads
+## Given, `split_heads` / `combine_heads`
 
 ```python
 def split_heads(X, num_heads):
@@ -185,7 +185,7 @@ more heads means narrower heads: the total compute is roughly constant.
 
 ---
 
-## Step 5, Multi-head attention
+## Step 3, `multi_head_attention`
 
 ```python
 def multi_head_attention(X, Wq, Wk, Wv, Wo, num_heads, mask=None):
@@ -228,7 +228,7 @@ you stack it into deep layers.
 
 ---
 
-## Step 6, The checkpoint
+## Running it
 
 ```
 .....                                                                    [100%]

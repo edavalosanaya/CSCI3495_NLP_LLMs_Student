@@ -46,35 +46,38 @@ cosine_only = pytest.mark.skipif(
 
 
 @cosine_only
-def test_step1_cosine_identical():
+def test_given_cosine_identical():
     assert math.isclose(ce.cosine_similarity([1.0, 2.0, 3.0], [1.0, 2.0, 3.0]), 1.0, rel_tol=1e-6)
 
 
 @cosine_only
-def test_step1_cosine_orthogonal():
+def test_given_cosine_orthogonal():
     assert math.isclose(ce.cosine_similarity([1.0, 0.0], [0.0, 1.0]), 0.0, abs_tol=1e-9)
 
 
 @cosine_only
-def test_step1_cosine_scale_invariant():
+def test_given_cosine_scale_invariant():
     a = ce.cosine_similarity([1.0, 1.0], [2.0, 2.0])
     assert math.isclose(a, 1.0, rel_tol=1e-6)
 
 
 def _model_ready():
-    """True if the model functions are implemented AND the model loads."""
+    """True if the tiny BERT actually loads.
+
+    Gate ONLY on the model, never on a student function. Calling static_vector
+    here used to mean step 2 had to be written before step 1's test could pass,
+    and it also swallowed real bugs in student code as "offline".
+    """
     try:
-        ce.static_vector("bank")
+        ce.load_model()
         return True
-    except NotImplementedError:
-        return False
-    except Exception:  # noqa: BLE001  (offline / download failure)
+    except Exception:  # noqa: BLE001  the model itself is unavailable
         return False
 
 
 needs_model = pytest.mark.skipif(
     not _model_ready(),
-    reason="model functions not implemented or tiny model unavailable (offline)",
+    reason="tiny model unavailable (offline)",
 )
 
 _SENT_RIVER = "I sat by the river bank and watched the water."
@@ -82,7 +85,7 @@ _SENT_MONEY = "I deposited my paycheck at the bank downtown."
 
 
 @needs_model
-def test_step3_static_is_context_independent():
+def test_step2_static_is_context_independent():
     # Static vector for the SAME word is identical regardless of any sentence.
     v1 = ce.static_vector("bank")
     v2 = ce.static_vector("bank")
@@ -90,7 +93,7 @@ def test_step3_static_is_context_independent():
 
 
 @needs_model
-def test_step2_contextual_differs_by_sentence():
+def test_step1_contextual_differs_by_sentence():
     cv_river = ce.contextual_vector(_SENT_RIVER, "bank")
     cv_money = ce.contextual_vector(_SENT_MONEY, "bank")
     sim = ce.cosine_similarity(cv_river, cv_money)
@@ -99,7 +102,7 @@ def test_step2_contextual_differs_by_sentence():
 
 
 @needs_model
-def test_step4_contextual_less_similar_than_static():
+def test_given_contextual_less_similar_than_static():
     sv = ce.cosine_similarity(ce.static_vector("bank"), ce.static_vector("bank"))
     cv = ce.cosine_similarity(
         ce.contextual_vector(_SENT_RIVER, "bank"),

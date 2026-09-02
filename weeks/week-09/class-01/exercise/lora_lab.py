@@ -35,18 +35,55 @@ class LoRALinear(nn.Module):
     def __init__(self, in_features: int, out_features: int, r: int = 4, alpha: int = 8):
         super().__init__()
         self.linear = nn.Linear(in_features, out_features, bias=False)
-        # TODO (STEP 1): freeze the base weight (requires_grad = False).
-        #                Check with: pytest -k step1
-        # TODO (STEP 2): create trainable A (r x in_features) and
-        #                B (out_features x r). Init A with small randn, B zeros.
-        #                Check with: pytest -k step2
-        # TODO (STEP 3): store scaling = alpha / r. Check with: pytest -k step3
+        """Set up a frozen base layer plus a trainable low-rank adapter.
+
+        Args:
+            in_features: width of the input.
+            out_features: width of the output.
+            r: the adapter's rank. This is the whole point: the update is
+                forced through r dimensions, so it has r*(in+out) parameters
+                instead of in*out.
+            alpha: scaling numerator. The adapter is scaled by alpha/r so that
+                changing r does not silently change how strong it is.
+        """
+        # TODO (STEP 1): implement. Check with: pytest -k step1
+        #
+        #   The formula is in README section 2.
+        #
+        #   keep the Linear above, but freeze its weight so no gradient ever
+        #       reaches it: that frozen matrix is the pretrained model
+        #   make two trainable parameters, one going DOWN from in_features to
+        #       r, and one coming back UP from r to out_features
+        #   start the down-projection small and random, and the up-projection
+        #       at exactly ZERO
+        #   store the scaling factor from the formula
+        #
+        #   Zero on the up-projection is not an arbitrary choice: it makes the
+        #   adapter contribute nothing at step 0, so training begins from the
+        #   pretrained model rather than from a randomly damaged one.
+        #
         raise NotImplementedError
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # TODO (STEP 4): return base output + scaling * low-rank update.
-        #                Bracket as (x @ A.T) @ B.T, not x @ (B @ A).
-        #                Check with: pytest -k step4
+        """Add the low-rank update to the frozen layer's output.
+
+        Args:
+            x: shape (batch, in_features).
+
+        Returns:
+            Shape (batch, out_features). Identical to the frozen layer's own
+            output until the adapter has been trained.
+        """
+        # TODO (STEP 2): implement. Check with: pytest -k step2
+        #
+        #   run x through the frozen layer to get the base output
+        #   separately, send x DOWN through the rank-r projection and then back
+        #       UP, which is the whole low-rank update
+        #   add the update to the base, scaled by the stored factor
+        #
+        #   Down first, then up. Doing it in one big matrix would work
+        #   numerically and defeat the entire purpose.
+        #
         raise NotImplementedError
 
 
@@ -67,16 +104,7 @@ def train_lora(model: LoRALinear, X: torch.Tensor, Y: torch.Tensor, steps: int =
 
 
 def quantize(w: torch.Tensor, bits: int) -> torch.Tensor:
-    """Symmetric per-tensor quantize-dequantize to `bits` integer levels.
-
-    Steps:
-      1. scale = max(abs(w)) / (2**(bits-1) - 1)
-      2. q = round(w / scale), clamped to [-(2**(bits-1)-1), 2**(bits-1)-1]
-      3. return q * scale  (the dequantized approximation, same shape/dtype)
-    Returns w unchanged behavior at high bit-depth; coarse at low bit-depth.
-    """
-    # GIVEN (STEP 5): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Quantizes to `bits` levels and back, so you can see the error."""
     qmax = 2 ** (bits - 1) - 1
     scale = w.abs().max() / qmax
     if scale == 0:

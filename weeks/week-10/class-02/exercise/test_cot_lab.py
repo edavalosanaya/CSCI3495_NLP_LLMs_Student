@@ -33,13 +33,13 @@ def _implemented(fn, *args):
         return False
 
 
-def test_step1_extract_answer_last_int():
+def test_given_extract_answer_last_int():
     assert cl.extract_answer("Start with 23, then 6, the answer is 18.") == 18
     assert cl.extract_answer("Answer: -4") == -4
     assert cl.extract_answer("no numbers here") is None
 
 
-def test_step2_majority_vote():
+def test_step1_majority_vote():
     if not _implemented(cl.majority_vote, [1]):
         pytest.skip("majority_vote not implemented")
     assert cl.majority_vote([18, 18, 19]) == 18
@@ -48,7 +48,7 @@ def test_step2_majority_vote():
     assert cl.majority_vote([None, None]) is None
 
 
-def test_step3_stub_cot_beats_direct():
+def test_step2_stub_cot_beats_direct():
     """The offline stub is built so CoT outscores direct, the lesson of the day."""
     if not _implemented(cl.evaluate, cl.StubModel(), cl.direct_prompt, cl.DATASET[:1]):
         pytest.skip("evaluate not implemented")
@@ -59,7 +59,7 @@ def test_step3_stub_cot_beats_direct():
     assert direct < cot        # direct guessing does worse
 
 
-def test_step0_stub_is_deterministic():
+def test_given_stub_is_deterministic():
     m = cl.StubModel()
     p = cl.cot_prompt(cl.DATASET[0][0])
     assert m.generate(p) == m.generate(p)

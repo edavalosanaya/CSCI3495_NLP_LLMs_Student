@@ -9,7 +9,7 @@ from it, and every printed value was produced by running it on the shipped
 
 ---
 
-## Step 1, Build the index
+## Given, `build_index`
 
 **The idea.** Two passes' worth of counting, though it fits in one loop: which
 documents contain each term (df), and the resulting idf weight.
@@ -55,7 +55,7 @@ cache (see the stretch goals).
 
 ---
 
-## Step 2, Weight the terms
+## Step 1, `tfidf_vector`
 
 ```python
 def tfidf_vector(index: dict, tokens: list[str]) -> dict:
@@ -94,7 +94,7 @@ force the conversation.
 
 ---
 
-## Step 3, Compare two vectors
+## Step 2, `cosine`
 
 ```python
 def cosine(u: dict, v: dict) -> float:
@@ -143,7 +143,7 @@ a mystifying failure.
 
 ---
 
-## Step 4, Search
+## Given, `search`
 
 ```python
 def search(index: dict, query: str, k: int = 3) -> list[tuple[int, float]]:
@@ -185,7 +185,7 @@ a precomputed matrix. That is the second stretch goal.
 
 ---
 
-## Step 5, Run the whole thing
+## Running it
 
 ```
 ============================================================

@@ -21,8 +21,6 @@ def apply_temperature(logits: dict[str, float], temperature: float) -> dict[str,
     p_i = softmax(logit_i / T). Lower T -> sharper; higher T -> flatter.
     For T very close to 0, treat it as greedy: all mass on the argmax token.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     if temperature < 1e-6:
         # Greedy: all mass on the argmax.
         best = max(logits, key=logits.get)
@@ -36,21 +34,56 @@ def apply_temperature(logits: dict[str, float], temperature: float) -> dict[str,
 
 def greedy(dist: dict[str, float]) -> str:
     """Return the single highest-probability token (ties: any is fine)."""
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     return max(dist, key=dist.get)
 
 
 def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
-    """Keep only the k highest-probability tokens; renormalize so they sum to 1."""
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    """Keep the k most likely tokens and throw the rest of the tail away.
+
+    Args:
+        dist: token -> probability, summing to 1.
+        k: how many tokens to keep. k larger than the vocabulary is not an
+            error; it just keeps everything.
+
+    Returns:
+        A new dict of at most k entries, summing to 1 again. The input is not
+        modified.
+    """
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   order the tokens by probability, most likely first, and take the first k
+    #   add up what you kept
+    #   divide each kept probability by that total
+    #
+    #   The dividing is the step people skip. After you delete the tail, what
+    #   is left no longer sums to 1, and it is no longer a distribution.
+    #
     raise NotImplementedError
 
 
 def top_p_filter(dist: dict[str, float], p: float) -> dict[str, float]:
-    """Nucleus filter: keep the smallest set of top tokens whose probabilities
-    sum to >= p; renormalize. (Always keep at least the top-1 token.)"""
-    # TODO (STEP 4): implement. Check with: pytest -k step4
+    """Keep the smallest group of top tokens that together reach probability p.
+
+    Args:
+        dist: token -> probability, summing to 1.
+        p: the mass to cover, between 0 and 1. Unlike top-k, how many tokens
+            this keeps depends on how confident the distribution is.
+        
+    Returns:
+        A new dict summing to 1. Never empty: even a p of 0 keeps the single
+        most likely token, because returning nothing to sample from is worse
+        than returning one thing.
+    """
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   order the tokens by probability, most likely first
+    #   walk that order, keeping each token and adding up the mass so far,
+    #       and stop once the running total has reached p
+    #   divide the kept probabilities by their total, as in step 1
+    #
+    #   Keep the token that TAKES you past p, then stop. Stopping before it
+    #   leaves you under p, which is the off-by-one to watch for.
+    #
     raise NotImplementedError
 
 
@@ -59,8 +92,6 @@ def sample(dist: dict[str, float], seed: int | None = None) -> str:
 
     Use random.Random(seed) for determinism in tests.
     """
-    # GIVEN (STEP 5): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     rng = random.Random(seed)
     r = rng.random()
     cum = 0.0

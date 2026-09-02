@@ -28,13 +28,23 @@ sys.modules["bert_mlm_under_test"] = bm
 _spec.loader.exec_module(bm)
 
 
+MLM_MODEL_NAME = bm.MLM_MODEL
+
+
 def _mlm_ready():
+    """True if the tiny BERT actually loads.
+
+    Gate ONLY on the model, never on a student function. Calling the student's
+    top_mask_predictions here meant any bug in it -- a NameError, a wrong
+    shape -- was reported as "offline" and skipped, so a broken lab looked
+    finished.
+    """
     try:
-        bm.top_mask_predictions("Paris is the capital of [MASK].", k=3)
+        from transformers import BertForMaskedLM, BertTokenizerFast
+        BertTokenizerFast.from_pretrained(MLM_MODEL_NAME)
+        BertForMaskedLM.from_pretrained(MLM_MODEL_NAME)
         return True
-    except NotImplementedError:
-        return False
-    except Exception:  # noqa: BLE001  (offline / download failure)
+    except Exception:  # noqa: BLE001  the model itself is unavailable
         return False
 
 
@@ -52,7 +62,7 @@ def _ft_ready():
 
 
 needs_mlm = pytest.mark.skipif(
-    not _mlm_ready(), reason="MLM not implemented or model unavailable (offline)"
+    not _mlm_ready(), reason="tiny model unavailable (offline)"
 )
 needs_ft = pytest.mark.skipif(
     not _ft_ready(), reason="finetune not implemented"

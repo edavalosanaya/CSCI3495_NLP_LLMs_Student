@@ -56,35 +56,19 @@ This handout is a sequence of steps. Each step is one function, and **each step
 ends with a test you can run**, so you always know whether you are done before
 you move on. Work them in order: later steps import earlier ones.
 
-From the repository root, inside the course image:
+Open a shell inside the course image, already in this homework's folder.
+One command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw4/tests -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/homeworks/hw4 course bash
 ```
 
-`hw` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw4/tests -q'
-
-# Windows, PowerShell
-function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw4/tests -q @args }
-
-# Windows, Command Prompt
-doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw4/tests -q $*
-```
-
-Then:
+Everything below runs in that shell:
 
 ```bash
-hw -k step3      # check ONLY step 3
-hw               # run every step
+pytest -k step3 -q      # check ONLY step 3
+pytest -q               # run every step
 ```
-
-If you already work inside the container (`... run --rm --no-deps course bash`),
-drop the docker prefix and just use `python -m pytest homeworks/hw4/tests -q`.
 
 **Before you write anything, every test skips.** That is expected: the suite
 detects the unfinished starter and skips rather than drowning you in failures.
@@ -102,7 +86,7 @@ pretrained backbone. You are not training a language model here; you are buildin
 the adapter mechanism and proving it does what the paper claims. Then:
 
 ```bash
-hw
+pytest -q
 ```
 
 You should get `11 skipped`.
@@ -111,7 +95,7 @@ You should get `11 skipped`.
 
 **Write** `__init__` and `forward`. Store the base layer, `r`, `alpha` and `scaling = alpha / r`. Create `A` of shape `(r, in_features)` initialized `N(0, 0.02)` and `B` of shape `(out_features, r)` initialized to **zeros**. Freeze `base.weight` and `base.bias`. The forward pass is `base(x) + scaling * (x @ A.T @ B.T)`.
 
-**Done when** `hw -k step1` prints `4 passed, 7 deselected`.
+**Done when** `pytest -k step1 -q` prints `4 passed, 7 deselected`.
 
 **Check it by hand**
 
@@ -133,7 +117,7 @@ False
 
 **Write** `inject_lora(model, target, r, alpha)`: walk the module tree and replace every child **named** `target` that is an `nn.Linear` with a `LoRALinear` wrapping it. Recurse into submodules; the target is often nested.
 
-**Done when** `hw -k step2` prints `2 passed, 9 deselected`.
+**Done when** `pytest -k step2 -q` prints `2 passed, 9 deselected`.
 
 **Check it by hand**
 
@@ -152,7 +136,7 @@ False
 
 **Write** the counter: return `(trainable, total)` where trainable sums `numel()` over parameters with `requires_grad == True` and total sums over all of them.
 
-**Done when** `hw -k step3` prints `2 passed, 9 deselected`.
+**Done when** `pytest -k step3 -q` prints `2 passed, 9 deselected`.
 
 **Check it by hand**
 
@@ -170,7 +154,7 @@ False
 
 **Write** the data generator. Use `torch.Generator().manual_seed(seed)` so two calls with the same seed return identical tensors. The label is 1 when the sum of the first half of the features exceeds the sum of the second half.
 
-**Done when** `hw -k step4` prints `1 passed, 10 deselected`.
+**Done when** `pytest -k step4 -q` prints `1 passed, 10 deselected`.
 
 **Check it by hand**
 
@@ -190,7 +174,7 @@ True
 
 **Write** the training loop: optimize **only** the parameters with `requires_grad == True`, run cross-entropy for `epochs` passes, and return the list of per-epoch losses.
 
-**Done when** `hw -k step5` prints `2 passed, 9 deselected`.
+**Done when** `pytest -k step5 -q` prints `2 passed, 9 deselected`.
 
 **Check it by hand**
 
@@ -208,7 +192,7 @@ True
 ### Step 6, Run the whole thing (0 pts)
 
 ```bash
-hw
+pytest -q
 ```
 
 Every step green means `11 passed`. If a step you finished earlier has gone red,
@@ -229,7 +213,7 @@ Answer in `ANSWERS.md`, 2-4 sentences each:
 
 ## What to submit
 
-- `lora.py` with every TODO filled in and `hw` fully green.
+- `lora.py` with every TODO filled in and `pytest -q` fully green.
 - `ANSWERS.md` with Q1-Q3 answered.
 - The `AI-USE:` note described below (worth 5 of the reflection points).
 

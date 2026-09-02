@@ -11,7 +11,7 @@ corpus), which has vocabulary `{the, cat, sat, ran, a, </s>}`, so $V = 6$.
 
 ---
 
-## Step 1, Count the n-grams
+## Given, `count_ngrams`
 
 **The idea.** A padded sentence is just a list of tokens. Slide a window of
 width `n` across it. Each window is an n-gram; drop its last word and you have
@@ -75,7 +75,7 @@ def count_ngrams(sentences: list[str], n: int) -> dict:
 
 ---
 
-## Step 2, Turn counts into smoothed probabilities
+## Step 1, `prob`
 
 **The idea.** The raw estimate is `count(context, word) / count(context)`. The
 problem is that a corpus this small has never seen most word pairs, so most
@@ -118,7 +118,7 @@ checks, and it is the one students most often get wrong.
 
 ---
 
-## Step 3, Babble
+## Given, `generate`
 
 **The idea.** Generation is a loop: look at the current context, score every
 word that could come next, sample one, slide the context forward, repeat until
@@ -173,7 +173,7 @@ not from the algorithm.
 
 ---
 
-## Step 4, Score the model with perplexity
+## Step 2, `perplexity`
 
 **The idea.** Perplexity asks: on held-out text, how surprised was the model, on
 average? Compute the probability the model assigns to each token, average the
@@ -183,13 +183,9 @@ log-probabilities, and exponentiate back.
 def perplexity(model: dict, n: int, sentences: list[str]) -> float:
     log_sum = 0.0
     count = 0
-    for s in sentences:
-        toks = pad(tokenize(s), n)
-        for i in range(n - 1, len(toks)):
-            context = tuple(toks[i - n + 1 : i])
-            word = toks[i]
-            log_sum += math.log(prob(model, context, word))
-            count += 1
+    for context, word in iter_predictions(n, sentences):
+        log_sum += math.log(prob(model, context, word))
+        count += 1
     if count == 0:
         return float("inf")
     return math.exp(-log_sum / count)
@@ -232,7 +228,7 @@ genuinely narrows down what comes next.
 
 ---
 
-## Step 5, Run the whole thing
+## Running it
 
 ```
 ============================================================

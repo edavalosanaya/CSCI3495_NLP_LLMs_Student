@@ -49,15 +49,21 @@ def _load_pair(src: Path):
                 sys.modules[k] = v
 
 
+# No fallback to the reference solution. It used to load ../solutions when the
+# starter still raised NotImplementedError, which meant a student could write
+# nothing, run pytest, see everything pass, and believe the lab was finished.
+# The course sweep verifies the reference by setting AGENT_FROM=solution
+# (scripts/test_all.sh exports every *_FROM var), so nothing needs the fallback.
 T, A = _load_pair(_SRC)
-try:                      # is the starter actually implemented yet?
-    T.calculator("2 + 2")
-    A.parse_action("Action: finish[x]")
-except NotImplementedError:
-    # Fall back to the reference so the course sweep stays green on a fresh
-    # checkout. NOTE FOR STUDENTS: this means a green suite is NOT by itself
-    # evidence that YOUR code works until every TODO is filled in.
-    T, A = _load_pair(_HERE.parent / "solutions")
+
+
+# STEP 5 is a dict, not a function, so it cannot raise NotImplementedError and
+# the conftest hook cannot turn it into a skip. Gate on it being empty instead,
+# so an unwritten registry reports "skipped" like every other unwritten step
+# rather than failing with a confusing set-difference.
+needs_registry = pytest.mark.skipif(
+    not T.TOOLS, reason="not written yet (fill in this step's TODO)"
+)
 
 
 def scripted(*replies: str):
@@ -119,10 +125,12 @@ def test_step4_search_finds_the_right_entry():
 
 
 # ----------------------------------------------------------- step 5: registry
+@needs_registry
 def test_step5_registry_has_all_four_tools():
     assert set(T.TOOLS) == {"calc", "today", "weather", "search"}
 
 
+@needs_registry
 def test_step5_prompt_lists_every_registered_tool():
     prompt = A.build_prompt(T.TOOLS)
     for name in T.TOOLS:
@@ -130,6 +138,7 @@ def test_step5_prompt_lists_every_registered_tool():
     assert "finish" in prompt
 
 
+@needs_registry
 def test_step5_unknown_tool_becomes_an_observation():
     out = A.run_tool("teleport", "mars", T.TOOLS)
     assert out.startswith("Error: unknown tool 'teleport'")

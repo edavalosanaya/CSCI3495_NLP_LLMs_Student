@@ -20,7 +20,7 @@ but naming them documents intent far better than an inline string.
 
 ---
 
-## Step 1, Normalize
+## Given, `normalize`
 
 **The idea.** Two cheap transformations that make everything downstream
 countable: case-fold so `The` and `the` are one word, and squeeze whitespace so
@@ -54,7 +54,7 @@ trade.
 
 ---
 
-## Step 2, Tokenize
+## Step 1, `tokenize`
 
 **The idea.** Split on the boundary between "word characters" and everything
 else, keeping punctuation as its own token rather than discarding it.
@@ -102,7 +102,7 @@ boundaries from data instead of from a human's regex, and typically keeps
 
 ---
 
-## Step 3, Extract
+## Given, `extract`
 
 **The idea.** Three independent patterns run over the **raw** text, one per
 category.
@@ -162,7 +162,7 @@ rule-based NLP usually look like this, plausible garbage rather than a crash.
 
 ---
 
-## Step 4, Edit distance
+## Step 2, `edit_distance`
 
 **The idea.** `D[i][j]` is the edit distance between the first `i` characters of
 `a` and the first `j` of `b`. Every cell is decided by three neighbors, so fill
@@ -227,7 +227,7 @@ the alignment in the stretch goal.
 
 ---
 
-## Step 5, Run everything
+## Running it
 
 ```
 ..........                                                               [100%]

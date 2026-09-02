@@ -31,8 +31,6 @@ PREFERENCES: list[tuple[str, str]] = [
 
 def sigmoid(x: float) -> float:
     """Numerically-stable logistic sigmoid."""
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     if x >= 0:
         z = math.exp(-x)
         return 1.0 / (1.0 + z)
@@ -43,26 +41,66 @@ def sigmoid(x: float) -> float:
 def neg_log_likelihood(
     scores: dict[str, float], prefs: list[tuple[str, str]]
 ) -> float:
-    """Average negative log-likelihood of the preferences under Bradley-Terry.
+    """How surprised the model is by the humans' choices, on average.
 
-    For each (w, l): probability w beats l is sigmoid(scores[w] - scores[l]).
-    Return the MEAN of -log(that probability) over all preferences.
+    Args:
+        scores: response -> current scalar score. Only differences between
+            scores matter, never their absolute size.
+        prefs: (winner, loser) pairs. The order inside each pair IS the label:
+            a human said the first one was better.
+
+    Returns:
+        The mean over all pairs. Low means winners reliably score above losers.
+        Always finite: a probability of exactly 0 would make the log blow up,
+        so clamp it away from 0 before taking the log.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The loss is in README section 2.
+    #
+    #   for each winner/loser pair:
+    #       the model's probability the winner wins is the sigmoid of the
+    #           winner's score minus the loser's
+    #       nudge that probability away from 0 before taking its log
+    #       add the negative log of it to a running total
+    #   divide by how many pairs there were
+    #
     raise NotImplementedError
 
 
 def fit_reward_model(
     prefs: list[tuple[str, str]], lr: float = 0.5, steps: int = 500
 ) -> dict[str, float]:
-    """Fit per-response scalar scores by gradient descent on the BT loss.
+    """Learn a score per response from nothing but pairwise human choices.
 
-    Start every score at 0.0. For each (w, l), the gradient of -log sigmoid(s_w - s_l)
-    pushes s_w up and s_l down by  (1 - sigmoid(s_w - s_l)).
-    After each full pass, re-center scores to mean 0 (scores are only
-    meaningful up to a constant). Return the final {response: score} dict.
+    Args:
+        prefs: (winner, loser) pairs, the whole training signal.
+        lr: gradient-descent step size.
+        steps: how many full passes over prefs to run.
+
+    Returns:
+        response -> score, for every response mentioned anywhere in prefs.
+        The scores are re-centred to mean 0, because only DIFFERENCES are
+        identifiable: adding 5 to every score describes the same preferences.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   Plain gradient descent, written out by hand. No autograd.
+    #
+    #   collect every distinct response mentioned in prefs, and start all their
+    #       scores at zero
+    #   repeat `steps` times:
+    #       start a fresh gradient of zero for every response
+    #       for each winner/loser pair, work out how wrong the model currently
+    #           is: one minus its probability the winner wins. Push the winner
+    #           up by that amount and the loser down by the same amount
+    #       move every score along its gradient, scaled by lr and averaged over
+    #           the number of pairs
+    #       subtract the mean score from every score
+    #
+    #   That last line is not cosmetic. Without it the scores drift together
+    #   forever and never settle, because nothing pins down where zero is.
+    #
     raise NotImplementedError
 
 

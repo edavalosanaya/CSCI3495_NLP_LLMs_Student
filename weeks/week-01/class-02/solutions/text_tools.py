@@ -7,6 +7,8 @@ _EMAIL_RE = re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")
 _URL_RE = re.compile(r"https?://\S+")
 _MENTION_RE = re.compile(r"(?<!\w)@(\w+)")
 
+SAMPLE = "  Email A.B+x@Mail.co  or ping @alice at https://x.io/p?q=1 !! "
+
 
 def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower()).strip()
@@ -41,3 +43,21 @@ def edit_distance(a: str, b: str) -> int:
                 d[i - 1][j - 1] + cost, # substitution
             )
     return d[m][n]
+
+
+def _demo() -> None:
+    print("=" * 60)
+    print("Text tools")
+    print("=" * 60)
+    print(f"  raw        {SAMPLE!r}")
+    print(f"  normalized {normalize(SAMPLE)!r}")
+    print(f"  tokens     {tokenize(SAMPLE)}")
+    for k, v in extract(SAMPLE).items():
+        print(f"  {k:<10} {v}")
+    print()
+    for a, b in [("intention", "execution"), ("kitten", "sitting"), ("same", "same")]:
+        print(f"  edit_distance({a!r}, {b!r}) = {edit_distance(a, b)}")
+
+
+if __name__ == "__main__":
+    _demo()

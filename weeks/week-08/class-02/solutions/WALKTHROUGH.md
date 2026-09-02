@@ -8,7 +8,7 @@ taken from it, and every printed value was produced by running it.
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 ```python
 PREFERENCES = [("A","B"), ("A","C"), ("A","D"), ("B","C"), ("B","D"), ("C","D")]
@@ -22,7 +22,7 @@ comparisons and the scalar is inferred.
 
 ---
 
-## Step 1, Numerically stable sigmoid
+## Given, `sigmoid`
 
 ```python
 def sigmoid(x: float) -> float:
@@ -49,7 +49,7 @@ once training has separated the extremes, so this is not hypothetical.
 
 ---
 
-## Step 2, The loss
+## Step 1, `neg_log_likelihood`
 
 ```python
     total = 0.0
@@ -94,7 +94,7 @@ wired correctly.
 
 ---
 
-## Step 3, Fit the model
+## Step 2, `fit_reward_model`
 
 ```python
     items = sorted({x for pair in prefs for x in pair})
@@ -149,7 +149,7 @@ comparison, and infinitely many score pairs fit equally well.
 
 ---
 
-## Step 4, Run the whole thing
+## Running it
 
 ```
 Learned reward-model scores (higher = more preferred):

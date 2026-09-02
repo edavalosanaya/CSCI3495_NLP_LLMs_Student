@@ -29,7 +29,7 @@ _spec.loader.exec_module(ng)
 TRAIN = ["the cat sat", "the cat ran", "a cat sat"]
 
 
-def test_step1_count_bigrams():
+def test_given_count_bigrams():
     m = ng.count_ngrams(TRAIN, 2)
     # "the cat" appears twice; context "the" appears twice.
     assert m["ngram"][("the", "cat")] == 2
@@ -38,7 +38,7 @@ def test_step1_count_bigrams():
     assert m["ngram"][("sat", "</s>")] == 2
 
 
-def test_step2_prob_is_smoothed_distribution():
+def test_step1_prob_is_smoothed():
     m = ng.count_ngrams(TRAIN, 2)
     v = len(m["vocab"])
     # Unseen pair gets nonzero probability (add-one).
@@ -47,13 +47,13 @@ def test_step2_prob_is_smoothed_distribution():
     assert ng.prob(m, ("the",), "cat") == pytest.approx((2 + 1) / (2 + v))
 
 
-def test_step2_prob_normalizes_over_vocab():
+def test_step1_prob_normalizes_over_vocab():
     m = ng.count_ngrams(TRAIN, 2)
     total = sum(ng.prob(m, ("the",), w) for w in m["vocab"])
     assert total == pytest.approx(1.0, abs=1e-9)
 
 
-def test_step3_generate_is_deterministic_and_clean():
+def test_given_generate_is_deterministic():
     m = ng.count_ngrams(TRAIN, 2)
     a = ng.generate(m, 2, seed=3)
     b = ng.generate(m, 2, seed=3)
@@ -61,7 +61,7 @@ def test_step3_generate_is_deterministic_and_clean():
     assert ng.BOS not in a and ng.EOS not in a  # padding stripped
 
 
-def test_step4_perplexity_lower_for_better_fit():
+def test_step2_perplexity_lower_for_better_fit():
     # A model trained on a corpus should be less perplexed by an in-domain
     # sentence than a unigram model that ignores context.
     uni = ng.count_ngrams(TRAIN, 1)
@@ -71,7 +71,7 @@ def test_step4_perplexity_lower_for_better_fit():
     assert ng.perplexity(bi, 2, held) > 1.0  # never perfect on smoothed model
 
 
-def test_step4_perplexity_matches_manual_unigram():
+def test_step2_perplexity_matches_manual_unigram():
     m = ng.count_ngrams(["a a a"], 1)
     pp = ng.perplexity(m, 1, ["a a a"])
     # Recompute independently from prob().

@@ -1,93 +1,45 @@
-# W8C1 Lab: Train a BPE Tokenizer from Scratch
+# W8C1 Lab: Byte Pair Encoding
 
-Build **Byte-Pair Encoding** end to end: learn merges from a corpus, then use
-them to tokenize a word the tokenizer has never seen. Standard library only, no
-network.
+## 1. Learning objective
 
-**You will write three functions** in `bpe.py`. The other two are already
-written for you, to read and run. Every step has its own check.
+Build the tokenizer every modern LLM uses: start from characters and
+repeatedly fuse the most frequent adjacent pair, until common words are single
+symbols and rare ones survive as pieces.
 
-**The representation used throughout:**
+You write three functions in `bpe.py`. The initial vocabulary and the encoder
+are given.
 
-- A "word" is a tuple of symbols, e.g. `("l", "o", "w", "</w>")`.
-- The end-of-word marker `</w>` is appended so the tokenizer knows where words
-  end, and so `er` at a word end differs from `er` inside a word.
-- A "vocab" is a dict `{word_tuple: frequency}` over the training corpus.
-
-## Before you code: the picture and the math
+## 2. Understanding the math
 
 ![BPE merges: start from characters, repeatedly fuse the most frequent adjacent pair](../lecture/visuals/bpe-merges.png)
 
-BPE is one greedy loop. Starting from characters, repeat `num_merges` times:
+Each round picks the most frequent adjacent pair across the whole corpus and
+replaces it everywhere with one new symbol:
 
 $$(a, b)^* = \arg\max_{(a,b)} \; \mathrm{count}(a, b) \qquad \text{then replace every adjacent } (a,b) \text{ with the single symbol } ab$$
 
-where counts are summed over the corpus, weighted by word frequency. The learned output is not a vocabulary list but an **ordered list of merges**, and encoding a new word means replaying those merges in the same order.
+Counts are weighted by word frequency, so a word appearing five times pushes
+its pairs five times as hard. The merges are an ordered list, and encoding
+replays them from the start.
 
-**Check yourself before coding:** why does the order of the merge list matter when encoding? (Because a later merge can only fire on symbols produced by earlier ones: `low` has to exist before `low` + `</w>` can merge.)
+## 3. Getting started
 
-## How this lab works
-
-Each step tells you **what to write**, then exactly **how to check it**. The
-steps are strictly sequential: Step 4 orchestrates Steps 1 to 3.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+From the repository root on your own machine, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-08/class-01/exercise course bash
 ```
 
-Check **one step**:
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 4. Implement `count_pairs`
+
+Walk each word's adjacent pairs and add that word's frequency, not 1.
 
 ```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step1 -q
-```
-
-Check **everything**:
-
-```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -q
-```
-
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
----
-
-### Step 1, Build the vocabulary (given)
-
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-**What it does:** `build_vocab(corpus)`. Lowercase each line, split on whitespace, turn
-each word into a tuple of its characters plus `END`, and count.
-
-**Done when:**
-
-```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step1 -q
+pytest -k step1 -q
 ```
 
 ```
@@ -95,34 +47,13 @@ lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step1 -q
 1 passed, 7 deselected
 ```
 
-**Check it by hand:**
+## 5. Implement `merge_pair`
 
-```python
->>> import sys; sys.path.insert(0, "weeks/week-08/class-01/exercise")
->>> from bpe import build_vocab
->>> build_vocab(["low low"])
-{('l', 'o', 'w', '</w>'): 2}
-```
-
-**Why the tuple, not the string.** Tuples are hashable (so they can be dict keys)
-and immutable, and they let a merged symbol like `"low"` sit in a single slot
-alongside single characters. The whole algorithm is about symbols growing, and a
-string could not represent "these three characters are now one symbol".
-
----
-
-### Step 2, Count adjacent pairs
-
-**Write:** `count_pairs(vocab)`, a `Counter` of `(sym_a, sym_b)` to total count,
-**weighted by word frequency**.
-
-`zip(symbols, symbols[1:])` walks adjacent pairs. Add `freq`, not 1: a pair
-inside a word seen 100 times counts 100 times.
-
-**Done when:**
+Scan left to right, emitting the joined symbol and skipping both halves.
+Add frequencies when two words collapse to the same symbols.
 
 ```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step2 -q
+pytest -k step2 -q
 ```
 
 ```
@@ -130,70 +61,13 @@ lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step2 -q
 1 passed, 7 deselected
 ```
 
-**Check it by hand:**
+## 6. Implement `train_bpe`
 
-```python
->>> from bpe import count_pairs
->>> count_pairs({('l', 'o', 'w', '</w>'): 2})[('l', 'o')]
-2
-```
-
----
-
-### Step 3, Merge a pair
-
-**Write:** `merge_pair(pair, vocab)`, returning a **new** vocab where every
-adjacent occurrence of `pair` has become one symbol.
-
-Walk each word left to right with an index. When positions `i` and `i+1` match
-the pair, append the concatenation and advance by **2**; otherwise append one
-symbol and advance by **1**.
-
-**Do not use `str.replace` on a joined string.** Merging `("e","r")` must not
-touch an `e` and `r` that are not adjacent as symbols, and once symbols are
-multi-character, string replacement matches across symbol boundaries.
-
-**Accumulate into the new vocab with `+=`**, since two different words can merge
-into the same tuple and their frequencies must add.
-
-**Done when:**
+Count, pick the winner with a deterministic tie-break, merge, record. Stop
+early when no pairs remain.
 
 ```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step3 -q
-```
-
-```
-.                                                                        [100%]
-1 passed, 7 deselected
-```
-
-**Check it by hand:**
-
-```python
->>> from bpe import merge_pair
->>> merge_pair(('e', 'r'), {('l', 'o', 'w', 'e', 'r', '</w>'): 1})
-{('l', 'o', 'w', 'er', '</w>'): 1}
-```
-
----
-
-### Step 4, Train
-
-**Write:** `train_bpe(corpus, num_merges)`, returning the **ordered list of
-merges**.
-
-Loop `num_merges` times: count pairs, pick the most frequent, merge it, record
-it. Stop early if there are no pairs left.
-
-**Break ties deterministically.** `max(pairs.items(), key=lambda kv: (kv[1], kv[0]))`
-sorts by count first, then by the pair itself. Without the tie-break, two pairs
-with equal counts resolve by dict order and your merge list changes between runs,
-which one of the tests checks.
-
-**Done when:**
-
-```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step4 -q
+pytest -k step3 -q
 ```
 
 ```
@@ -201,67 +75,10 @@ lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step4 -q
 3 passed, 5 deselected
 ```
 
-**Check it by hand:**
-
-```python
->>> from bpe import train_bpe
->>> train_bpe(["low low low low low", "lower lower",
-...            "newest newest newest", "widest"], num_merges=3)
-[('o', 'w'), ('l', 'ow'), ('low', '</w>')]
-```
-
-**Watch the merges compound.** Merge 1 creates `ow`. Merge 2 can then use it to
-build `low`. Merge 3 attaches the end marker. Each merge operates on the output of
-the last, which is why the *order* is the model.
-
----
-
-### Step 5, Encode (given)
-
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-It builds on the functions from the earlier steps, so its check reports
-`skipped` until you have written those.
-
-**What it does:** `encode_word(word, merges)`. Start from characters plus `END`, then
-apply **every learned merge in order**, fusing all adjacent occurrences of each.
-
-The inner loop is the same walk as Step 3. The difference is that you replay the
-whole merge list, in training order, on a single word.
-
-**Done when:**
+## 7. Run it, then break it
 
 ```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -k step5 -q
-```
-
-```
-..                                                                       [100%]
-2 passed, 6 deselected
-```
-
-**Check it by hand:**
-
-```python
->>> from bpe import encode_word, train_bpe
->>> merges = train_bpe(["low low low low low", "lower lower",
-...                     "newest newest newest", "widest"], num_merges=10)
->>> encode_word("lowest", merges)
-['low', 'est</w>']
-```
-
-**`lowest` was never in the training corpus.** It came out as two subwords, both
-learned from other words: `low` from "low"/"lower", and `est</w>` from
-"newest"/"widest". That is the entire point of subword tokenization, and you just
-watched it happen.
-
----
-
-### Step 6, Run the whole thing
-
-```bash
-lab python weeks/week-08/class-01/exercise/bpe.py
+python bpe.py
 ```
 
 ```
@@ -280,35 +97,21 @@ Learned merges (in order):
 Encoding 'lowest': ['low', 'est</w>']
 ```
 
-And the full suite:
+`lowest` never appeared in the training corpus, yet it encodes into two clean
+pieces. Each experiment below is a one-line edit; undo it before the next.
 
-```bash
-lab python -m pytest weeks/week-08/class-01/exercise/test_bpe.py -q
-```
-
-```
-........                                                                 [100%]
-8 passed
-```
-
-**Read the merge list as a story.** The algorithm never saw a dictionary. It
-found `ow`, then `low`, then `low</w>` because "low" is frequent in this corpus.
-Separately it built `t</w>`, `st</w>`, `est</w>`, discovering the English suffix
-*-est* purely from the fact that "newest" and "widest" both end that way. No
-linguist told it that *-est* is a morpheme; frequency did.
-
-That is why BPE handles words it has never seen, why vocabulary size is a knob
-you choose rather than a property of the language, and why every model in the
-rest of this course tokenizes this way.
-
-## Stretch goals
-
-- Train on a bigger corpus (paste a few paragraphs) with `num_merges=100`. How
-  many merges before recognizable words appear as single tokens?
-- Count how many tokens `encode_word` produces for common vs rare words. Rare
-  words should fragment more, which is the "fertility" measure from lecture.
-- Try a word in another language, or with an emoji. What happens, and why is that
-  a fairness issue for speakers of under-represented languages?
-
-A full reference solution is in `../solutions/bpe.py`, and the step-by-step
-explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).
+1. Count pairs the wrong way. In `count_pairs`, add `1` instead of the word's
+   frequency. The top pairs go from `[('l','o'), 7), (('o','w'), 7)]` to counts
+   of 2, and the merge order changes. Which idea about language does weighting
+   by frequency encode?
+2. Starve it of merges. Encode `lowest` after 0, 2 and 10 merges:
+   `['l','o','w','e','s','t','</w>']`, then `['low','e','s','t','</w>']`, then
+   `['low','est</w>']`. Sketch the curve of "tokens per word" against merges.
+   Where would it flatten out, and why?
+3. Feed it a word from another language: `encode_word("zebra", merges)` gives
+   `['z','e','b','r','a','</w>']`, every character separate. The tokenizer did
+   not fail, so what did it actually do, and what does that cost at run time?
+4. Compare `newest` and `lower`: one encodes to a single symbol
+   `['newest</w>']`, the other to three. Both are real English words. What
+   decided the difference, and is that a property of the language or of the
+   corpus?

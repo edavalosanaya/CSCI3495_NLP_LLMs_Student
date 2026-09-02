@@ -40,6 +40,14 @@ def vocab(sentences: list[str]) -> set[str]:
     return v
 
 
+def iter_predictions(n: int, sentences: list[str]):
+    """Yield every (context, word) pair the model is asked to predict."""
+    for s in sentences:
+        toks = pad(tokenize(s), n)
+        for i in range(n - 1, len(toks)):
+            yield tuple(toks[i - n + 1 : i]), toks[i]
+
+
 def count_ngrams(sentences: list[str], n: int) -> dict:
     ngram = defaultdict(int)
     context = defaultdict(int)
@@ -83,16 +91,14 @@ def generate(model: dict, n: int, max_len: int = 20, seed: int = 0) -> list[str]
 def perplexity(model: dict, n: int, sentences: list[str]) -> float:
     log_sum = 0.0
     count = 0
-    for s in sentences:
-        toks = pad(tokenize(s), n)
-        for i in range(n - 1, len(toks)):
-            context = tuple(toks[i - n + 1 : i])
-            word = toks[i]
-            log_sum += math.log(prob(model, context, word))
-            count += 1
+    for context, word in iter_predictions(n, sentences):
+        log_sum += math.log(prob(model, context, word))
+        count += 1
     if count == 0:
         return float("inf")
     return math.exp(-log_sum / count)
+
+
 
 
 def _demo() -> None:

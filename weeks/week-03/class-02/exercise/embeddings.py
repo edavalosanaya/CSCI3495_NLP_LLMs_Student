@@ -52,9 +52,7 @@ def vec(word: str) -> np.ndarray:
 
 
 def cosine(u: np.ndarray, v: np.ndarray) -> float:
-    """Cosine similarity between two vectors. Return 0.0 if either norm is 0."""
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Cosine similarity, 0.0 if either vector has zero length."""
     nu = float(np.linalg.norm(u))
     nv = float(np.linalg.norm(v))
     if nu == 0.0 or nv == 0.0:
@@ -63,12 +61,7 @@ def cosine(u: np.ndarray, v: np.ndarray) -> float:
 
 
 def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
-    """Return the k most cosine-similar words to `word` (excluding `word` itself).
-
-    Each result is (other_word, similarity), sorted by similarity descending.
-    """
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. The k most similar words to `word`, itself excluded, best first."""
     target = np.asarray(table[word], dtype=float)
     scored = [
         (w, cosine(target, np.asarray(v, dtype=float)))
@@ -80,24 +73,55 @@ def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
 
 
 def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, float]]:
-    """Solve 'a is to b as c is to ?' via vec(b) - vec(a) + vec(c).
+    """Solve "a is to b as c is to ?" by arithmetic on the word vectors.
 
-    Return the top-k closest words by cosine to that target vector, EXCLUDING
-    the three input words a, b, c. (Classic example: a=man, b=king, c=woman.)
+    Args:
+        a: the first word of the source pair (classic example: "man").
+        b: the second word of the source pair ("king"). The step from a to b
+            is the relationship being transferred.
+        c: the word the same step is applied to ("woman").
+        table: word -> vector. Every candidate answer is drawn from its keys.
+        k: how many candidates to return.
+
+    Returns:
+        Up to k (word, similarity) pairs, best first, ties broken by the word
+        itself. a, b and c are never returned: they sit closest to the target
+        vector by construction, and returning them answers nothing.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
-    # Without the exclusion this returns "king", not "queen".
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The target vector is in README section 2.
+    #
+    #   build the target by stepping from a to b, then applying that step at c
+    #   score every word in the table against the target with cosine
+    #   leave out the three input words
+    #   best score first, and when two tie put the earlier word first
+    #   hand back the first k pairs
+    #
     raise NotImplementedError
 
 
 def bias_score(word: str, pos: str, neg: str, table: dict) -> float:
-    """Projection of `word` onto the (pos - neg) direction, via cosine.
+    """How far a word leans along the axis running from `neg` to `pos`.
 
-    cosine(vec(word), vec(pos) - vec(neg)). A positive score leans toward `pos`,
-    negative toward `neg`. Use it to probe, e.g., how 'nurse' vs 'engineer'
-    align with the woman - man direction.
+    Args:
+        word: the word being probed, e.g. "nurse".
+        pos: the word defining the positive end of the axis, e.g. "she".
+        neg: the word defining the negative end, e.g. "he".
+        table: word -> vector, unused here beyond looking the words up.
+
+    Returns:
+        A float in [-1, 1]. Positive leans toward `pos`, negative toward `neg`,
+        and near 0 means the axis says nothing about this word. Swapping pos
+        and neg flips the sign.
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   The formula is in README section 2.
+    #
+    #   the axis is the vector that points from neg to pos
+    #   the answer is how closely the word's own vector aligns with that axis
+    #
     raise NotImplementedError
 
 

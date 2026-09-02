@@ -8,7 +8,7 @@ taken from it, and every printed value was produced by running it at `SEED = 0`.
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 The module holds three learned tensors:
 
@@ -30,7 +30,7 @@ an accident.
 
 ---
 
-## Step 1, Score every key
+## Step 1, `additive_scores`
 
 ```python
     sq = query @ W_s.T              # (attn,)
@@ -65,7 +65,7 @@ represent interactions between them. The `tanh` is what makes this an *additive*
 
 ---
 
-## Step 2, Softmax and blend
+## Step 2, `AdditiveAttention.forward`
 
 ```python
         e = additive_scores(query, keys, self.W_s, self.W_h, self.v)
@@ -106,7 +106,7 @@ is the honest state of an untrained model.
 
 ---
 
-## Step 3, Draw the heatmap
+## Given, `heatmap`
 
 ```python
         for c in range(cols):
@@ -126,7 +126,7 @@ shape.
 
 ---
 
-## Step 4, Run the whole thing
+## Running it
 
 ```
 UNTRAINED attention weights: [0.328, 0.322, 0.35]

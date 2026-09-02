@@ -20,12 +20,12 @@ m = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(m)
 
 
-def test_step1_softmax_sums_to_one():
+def test_given_softmax_sums_to_one():
     w = m.softmax(np.array([1.0, 2.0, 3.0]))
     assert np.isclose(w.sum(), 1.0) and np.all(w > 0)
 
 
-def test_step2_uniform_scores_average_values():
+def test_step1_uniform_scores_average_values():
     # Equal Q·K for all keys -> uniform weights -> output is mean of V
     Q = np.zeros((1, 4)); K = np.zeros((3, 4))
     V = np.array([[1.0, 0], [3.0, 0], [5.0, 0]])
@@ -34,7 +34,7 @@ def test_step2_uniform_scores_average_values():
     assert np.allclose(out, [3.0, 0])  # mean
 
 
-def test_step3_causal_mask_zeros_future():
+def test_step2_causal_mask_zeros_future():
     T, d = 4, 8
     rng = np.random.default_rng(0)
     Q = rng.normal(size=(T, d)); K = rng.normal(size=(T, d)); V = rng.normal(size=(T, d))
@@ -44,12 +44,12 @@ def test_step3_causal_mask_zeros_future():
     assert np.allclose(w.sum(axis=-1), 1.0)
 
 
-def test_step4_split_combine_roundtrip():
+def test_given_split_combine_roundtrip():
     X = np.arange(2 * 8).reshape(2, 8).astype(float)
     assert np.allclose(m.combine_heads(m.split_heads(X, 4)), X)
 
 
-def test_step5_multihead_shape_and_single_head_matches_plain():
+def test_step3_multihead_shape_and_single_head_matches_plain():
     rng = np.random.default_rng(1)
     T, d = 5, 12
     X = rng.normal(size=(T, d))

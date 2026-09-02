@@ -9,7 +9,7 @@ logits `{"sunny": 2.0, "cloudy": 1.2, "cold": 0.6, "nice": 0.1, "banana": -3.0}`
 
 ---
 
-## Step 1, Temperature
+## Given, `apply_temperature`
 
 ```python
 def apply_temperature(logits: dict[str, float], temperature: float) -> dict[str, float]:
@@ -54,7 +54,7 @@ what it did.
 
 ---
 
-## Step 2, Greedy
+## Given, `greedy`
 
 ```python
 def greedy(dist: dict[str, float]) -> str:
@@ -73,7 +73,7 @@ output) greedy is usually correct. W11's structured-output work leans on that.
 
 ---
 
-## Step 3, Top-k
+## Step 1, `top_k_filter`
 
 ```python
 def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
@@ -110,7 +110,7 @@ the model's confidence, which is Step 4.
 
 ---
 
-## Step 4, Top-p (nucleus)
+## Step 2, `top_p_filter`
 
 ```python
 def top_p_filter(dist: dict[str, float], p: float) -> dict[str, float]:
@@ -155,7 +155,7 @@ serving.
 
 ---
 
-## Step 5, Sample
+## Given, `sample`
 
 ```python
 def sample(dist: dict[str, float], seed: int | None = None) -> str:
@@ -198,7 +198,7 @@ True
 
 ---
 
-## Step 6, Run the whole thing
+## Running it
 
 ```
 temp=0.5 -> {'sunny': 0.778, 'cloudy': 0.157, 'cold': 0.047, 'nice': 0.017, 'banana': 0.0}

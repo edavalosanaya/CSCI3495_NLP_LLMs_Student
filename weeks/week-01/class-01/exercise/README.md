@@ -91,7 +91,7 @@ that the Ollama line finds your model.
 ### Step 3, Run your first LLM prompt
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course python weeks/week-01/class-01/exercise/hello_nlp.py
+python hello_nlp.py
 ```
 
 **Done when** you get a completion:
@@ -196,8 +196,8 @@ works.
 - **Ollama not reachable:** `docker compose -f docker/docker-compose.yml up -d ollama`,
   then re-pull the model.
 - **`The 'ollama' package is missing`:** you are running the script on your host
-  Python instead of inside the container. Use the full `docker compose ... run`
-  command.
+  Python instead of inside the container. Open the lab shell first (see
+  "How this lab works").
 - **Build is very slow or fails partway:** see `docker/README.md`.
 
 A step-by-step companion, including what each command is actually doing and the

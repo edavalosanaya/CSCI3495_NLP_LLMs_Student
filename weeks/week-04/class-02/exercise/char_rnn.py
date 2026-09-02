@@ -54,26 +54,36 @@ class CharRNN(nn.Module):
         self.out = nn.Linear(hidden, vocab_size)
 
     def forward(self, ids: torch.Tensor, h0: torch.Tensor | None = None):
-        """ids: (batch, seq_len) long. Returns (logits, h_n).
+        """Score every next-character option at every position in the sequence.
 
-        logits: (batch, seq_len, vocab_size); h_n: final hidden state.
+        Args:
+            ids: shape (batch, seq_len), character indices.
+            h0: the hidden state to start from, or None to start from zeros.
+                Sampling passes the previous call's state back in here, which
+                is what lets the model carry context across calls.
+
+        Returns:
+            (logits, h_n). logits is (batch, seq_len, vocab_size): one score
+            per vocabulary character at every position, raw, no softmax. h_n
+            is the final hidden state, to be fed back in on the next call.
         """
         # TODO (STEP 1): implement. Check with: pytest -k step1
-        #   1) x = self.emb(ids)                # (batch, seq, emb_dim)
-        #   2) out, h_n = self.rnn(x, h0)        # out: (batch, seq, hidden)
-        #   3) logits = self.out(out)           # (batch, seq, vocab_size)
-        #   return logits, h_n
+        #
+        #   The recurrence is in README section 2. Three of the layers built
+        #   in __init__ do all the work, in the order they were defined.
+        #
+        #   turn the ids into vectors with the embedding layer
+        #   run those through the RNN, handing it the incoming hidden state
+        #   project the RNN's output to one score per vocabulary character
+        #   return the scores AND the final hidden state, in that order
+        #
         raise NotImplementedError
 
 
 def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, torch.Tensor]:
-    """For a name, return (input_ids, target_ids).
-
-    Input is the name; target is the name shifted left by one, ending in END.
-    Example: "abc" -> input ids for "abc", target ids for "bc."
+    """GIVEN. (input_ids, target_ids): the name, and the name shifted left
+    by one and ended with END. "abc" gives inputs for "abc", targets for "bc."
     """
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     in_chars = list(name)
     out_chars = list(name[1:]) + [END]
     xin = torch.tensor([stoi[c] for c in in_chars], dtype=torch.long)
@@ -83,22 +93,38 @@ def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, 
 
 @torch.no_grad()
 def sample(model: CharRNN, stoi, itos, seed: str = "t", max_len: int = 20) -> str:
-    """Generate a name autoregressively, starting from `seed`, stopping at END."""
+    """Generate one name character by character, starting from a seed.
+
+    Args:
+        model: the trained CharRNN.
+        stoi: character -> index, for encoding the seed.
+        itos: index -> character, for decoding what the model draws.
+        seed: the starting character(s). They appear in the output.
+        max_len: how many characters to add before giving up. A model that
+            never draws END must still terminate.
+
+    Returns:
+        The generated name INCLUDING the seed and EXCLUDING the END marker.
+    """
     model.eval()
-    result = list(seed)
-    ids = torch.tensor([[stoi[c] for c in seed]], dtype=torch.long)
-    logits, h = model(ids)
-    for _ in range(max_len):
-        last_logits = logits[0, -1]               # (vocab_size,)
-        probs = torch.softmax(last_logits, dim=-1)
-        nxt = int(torch.multinomial(probs, num_samples=1))
-        ch = itos[nxt]
-        # TODO (STEP 3): implement. Check with: pytest -k step3
-        #   if ch == END: break; otherwise append ch to result, then feed the
-        #   new id back through the model WITH the hidden state h, reassigning
-        #   both: logits, h = model(ids, h)
-        raise NotImplementedError
-    return "".join(result)
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   start the result off as the seed's characters
+    #   encode the seed as a (1, seq_len) tensor and run it through the model
+    #       once, keeping both the scores and the hidden state
+    #   then, up to max_len times:
+    #       take the scores at the LAST position only
+    #       turn them into probabilities and draw ONE character from that
+    #           distribution
+    #       stop as soon as you draw the END marker
+    #       otherwise add the character to the result, and run just that one
+    #           character back through the model, passing the hidden state in
+    #   join the result into a string
+    #
+    #   Draw from the distribution, do not take the most likely character, or
+    #   every name this model generates will be the same name.
+    #
+    raise NotImplementedError
 
 
 def train(model, names, stoi, epochs: int = 400, lr: float = 0.01) -> list[float]:

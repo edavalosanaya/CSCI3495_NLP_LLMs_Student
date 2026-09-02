@@ -29,11 +29,14 @@ def get_vector(word: str) -> np.ndarray:
 def cosine(a: np.ndarray, b: np.ndarray) -> float:
     """Cosine similarity between two vectors.
 
-    STEP 1 (check with: pytest -k step1): implement
-    cos(a, b) = (a . b) / (||a|| * ||b||).
-    Guard against zero-norm vectors (return 0.0 if either norm is 0).
     """
-    raise NotImplementedError("Implement cosine()")
+    # TODO (STEP 1). Check with: pytest -k step1
+    #
+    #   1. na, nb = np.linalg.norm(a), np.linalg.norm(b)
+    #   2. if either norm is 0.0: return 0.0
+    #   3. return float(np.dot(a, b) / (na * nb))
+    #
+    raise NotImplementedError
 
 
 def association(word: str, set_a: list[str], set_b: list[str]) -> float:
@@ -43,10 +46,15 @@ def association(word: str, set_a: list[str], set_b: list[str]) -> float:
 
     Positive => `word` is, on average, closer to set A than to set B.
 
-    STEP 2 (check with: pytest -k step2): compute the two mean cosines
-    and return their difference.
     """
-    raise NotImplementedError("Implement association()")
+    # TODO (STEP 2). Check with: pytest -k step2
+    #
+    #   1. v = get_vector(word)
+    #   2. mean_a = mean of cosine(v, get_vector(w)) for every w in set_a
+    #   3. mean_b = the same over set_b
+    #   4. return float(mean_a - mean_b)
+    #
+    raise NotImplementedError
 
 
 def effect(targets_x: list[str], targets_y: list[str],
@@ -56,10 +64,14 @@ def effect(targets_x: list[str], targets_y: list[str],
     Returns mean_{x in X} s(x, A, B) - mean_{y in Y} s(y, A, B).
     A large positive value indicates a stereotype-aligned association pattern.
 
-    STEP 3 (check with: pytest -k step3): average association() over X and
-    over Y; return the difference.
     """
-    raise NotImplementedError("Implement effect()")
+    # TODO (STEP 3). Check with: pytest -k step3
+    #
+    #   1. mean_x = mean of association(x, attr_a, attr_b) for x in targets_x
+    #   2. mean_y = the same over targets_y
+    #   3. return float(mean_x - mean_y)
+    #
+    raise NotImplementedError
 
 
 def report(targets_x, targets_y, attr_a, attr_b, labels=None) -> str:
@@ -81,11 +93,16 @@ def report(targets_x, targets_y, attr_a, attr_b, labels=None) -> str:
 
 
 if __name__ == "__main__":
-    # A classic probe shape: career/family vs. male/female terms.
-    X = ["engineer", "programmer", "scientist"]   # "career"-coded targets
-    Y = ["nurse", "teacher", "homemaker"]         # "family"/care-coded targets
-    A = ["man", "he", "male"]
-    B = ["woman", "she", "female"]
-    print(report(X, Y, A, B, labels=("career", "care", "male", "female")))
-    print("Reflect: the toy vectors were *constructed* to show this pattern.")
-    print("Real embeddings (Week 3) show similar, well-documented biases.")
+    # A student running this before finishing should see a sentence, not a
+    # traceback: an unwritten step is a normal state, not a crash.
+    try:
+        # A classic probe shape: career/family vs. male/female terms.
+        X = ["engineer", "programmer", "scientist"]   # "career"-coded targets
+        Y = ["nurse", "teacher", "homemaker"]         # "family"/care-coded targets
+        A = ["man", "he", "male"]
+        B = ["woman", "she", "female"]
+        print(report(X, Y, A, B, labels=("career", "care", "male", "female")))
+        print("Reflect: the toy vectors were *constructed* to show this pattern.")
+        print("Real embeddings (Week 3) show similar, well-documented biases.")
+    except NotImplementedError:
+        print("bias_probe.py is not finished yet: fill in the next TODO in this file, then re-run.")

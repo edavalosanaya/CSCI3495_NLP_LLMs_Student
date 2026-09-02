@@ -80,7 +80,15 @@ def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result
 def run_matrix(problems: list[Problem], strategies: dict, llm,
                progress: bool = False) -> dict[str, list[Result]]:
     """Every strategy against every problem. Returns {strategy: [Result, ...]}."""
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 3). Check with: pytest -k step3
+    #
+    #   Every strategy against every problem.
+    #
+    #   1. for each (name, fn) in strategies.items():
+    #         for each problem: evaluate_one(p, name, fn, llm), collect the Result
+    #         if progress: print one line per problem so a slow run shows life
+    #   2. return {strategy_name: [Result, ...]}
+    #
     raise NotImplementedError
 
 
@@ -103,8 +111,17 @@ def paired_wins(a: list[Result], b: list[Result]) -> tuple[int, int, int]:
     noise. What is actually informative is how often A solved something B did
     not, so this pairs them by problem id instead of comparing two averages.
     """
-    # TODO (STEP 5): implement. Check with: pytest -k step5
-    # Pair the two lists BY PROBLEM ID, not by position.
+    # TODO (STEP 5). Check with: pytest -k step5
+    #
+    #   Compare two strategies PROBLEM BY PROBLEM, not average against average.
+    #
+    #   1. index b by problem id: {r.pid: r for r in b}
+    #   2. for each result ra in a, find rb with the same pid (skip if absent):
+    #         ra correct and rb not -> a_only += 1
+    #         rb correct and ra not -> b_only += 1
+    #         otherwise             -> same += 1
+    #   3. return (a_only, b_only, same)
+    #
     raise NotImplementedError
 
 
@@ -115,8 +132,15 @@ def leaderboard(matrix: dict[str, list[Result]]) -> list[tuple[str, float, float
     that used fewer model calls is the better engineering answer, and a
     leaderboard that hides cost will always crown the most expensive entry.
     """
-    # TODO (STEP 6): implement. Check with: pytest -k step6
-    # Highest success first; where success ties, FEWER calls ranks higher.
+    # TODO (STEP 6). Check with: pytest -k step6
+    #
+    #   1. for each (name, results), build (name, success_rate(rs), avg_calls(rs))
+    #   2. sort by success rate DESCENDING, then by average calls ASCENDING
+    #         key=lambda r: (-r[1], r[2])
+    #   3. return the sorted list
+    #
+    #   Cost is in the sort on purpose: on a tie, the cheaper strategy wins.
+    #
     raise NotImplementedError
 
 

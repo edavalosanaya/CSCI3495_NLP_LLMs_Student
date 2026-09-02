@@ -66,7 +66,7 @@ P7 needs `search` first, because the agent cannot know the population of Paris.
 lesson written on P1 is still in the prompt at P8. Run it both ways:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -e OLLAMA_HOST=http://host.docker.internal:11434 course python weeks/week-13/class-01/solutions/run_suite.py
+OLLAMA_HOST=http://host.docker.internal:11434 python ../solutions/run_suite.py
 ```
 
 Real output, `qwen2.5:1.5b`:
@@ -97,44 +97,24 @@ Two things worth arguing about afterwards:
 
 ## How this lab works
 
-Each step tells you **what to write**, then exactly **how to check it**. Steps 1
-to 3 add the pieces; Step 4 is the loop that uses them.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One command,
+once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-13/class-01/exercise course bash
 ```
+
+Everything below runs in that shell. Each step says what to write and gives the
+one command that checks it:
 
 ```bash
-lab python -m pytest weeks/week-13/class-01/exercise/test_agent.py -k step1 -q
+pytest -k step1 -q
 ```
 
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
+Steps marked **(given)** are already written for you: read them, run the check,
+move on. A step you have not written yet reports `skipped`, never a failure.
+Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
+**The labs are not graded**, so reading it is not cheating.
 ---
 
 ### Step 1, Memory (given)
@@ -203,7 +183,7 @@ Four tests, one per behavior:
 ### Step 5, Run it
 
 ```bash
-lab python -m pytest weeks/week-13/class-01/exercise/test_agent.py -q
+pytest -q
 ```
 
 ```
@@ -216,13 +196,3 @@ is sitting in it. That is Reflexion (Shinn et al. 2023) in one screen, and note
 what it is **not**: no weights changed. The "learning" is a note in the context
 window that disappears when the process exits.
 
-## Stretch goals
-- Cap memory at the **last K** reflections (don't let the prompt grow forever).
-- Add a *planning-revision* step: re-plan after the first failed attempt.
-- Make `reflect` quote the specific wrong Observation it should avoid repeating.
-- Add one of the unbuilt tools from the activity menu (`solve`, `convert`,
-  `table`) and write two new problems that need it.
-- Cap the carried memory at the last 3 lessons and rerun `run_suite.py`. Does
-  first-attempt success drop? Which lesson was carrying the run?
-
-A reference solution is in `../solutions/` (don't peek until you've tried!).

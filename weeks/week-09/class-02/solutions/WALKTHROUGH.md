@@ -9,7 +9,7 @@ taken from it, and every printed value was produced by running it against
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 The dataset is four items, and the fourth is a trap:
 
@@ -28,7 +28,7 @@ model, so the swap test can be demonstrated offline with no Ollama.
 
 ---
 
-## Steps 1 and 2, Normalize and exact match
+## Given, `normalize_answer` / `exact_match`
 
 Standard SQuAD-style normalization: lowercase, drop punctuation, drop articles,
 collapse whitespace. Every QA benchmark ships something like this, and the details
@@ -40,7 +40,7 @@ strictest grader available, and it is what most leaderboards report.
 
 ---
 
-## Step 3, Lenient containment
+## Given, `contains_answer`
 
 **Token boundaries, not raw substrings.** This is the step with a real trap, and
 there is a dedicated test for it: gold `"4"` must **not** match a prediction
@@ -59,7 +59,7 @@ live output and compare; the gap is usually larger than they expect.
 
 ---
 
-## Step 4, Aggregate
+## Given, `accuracy`
 
 The `ValueError` on mismatched lengths is worth defending explicitly. Python's
 `zip` stops at the shorter input, so an off-by-one in the prediction list would
@@ -69,7 +69,7 @@ loudly is the whole feature.
 
 ---
 
-## Step 5, Flag hallucinations
+## Step 1, `is_hallucination`
 
 ```python
     if item["answerable"]:
@@ -94,7 +94,7 @@ floor, and knowing why it is a floor is more valuable than a better list.
 
 ---
 
-## Step 6, The swap test
+## Step 2, `judge_pairwise`
 
 ```python
     #   1) raw1 = judge(question, ans1, ans2); map "A"->"ans1", "B"->"ans2"
@@ -115,7 +115,7 @@ survive is discarded. It does not address verbosity or self-enhancement bias
 
 ---
 
-## Step 7, Measure the bias
+## Step 3, `position_bias_rate`
 
 The rate is a diagnostic on the *judge*, not on the answers. A fair judge scores
 0.0. A judge that always picks the first slot scores 1.0, since run 1 names
@@ -123,7 +123,7 @@ answer 1 and run 2 names answer 2 on every pair.
 
 ---
 
-## Step 8, Run the whole thing
+## Running it
 
 ### The factuality half
 

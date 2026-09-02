@@ -72,7 +72,15 @@ class TfidfRetriever:
         similarity against self.matrix (sklearn cosine_similarity), and take the
         k highest-scoring chunks (descending).
         """
-        # TODO (STEP 2): implement. Check with: pytest -k step2
+        # TODO (STEP 2). Check with: pytest -k step2
+        #
+        #   1. qv = self.vectorizer.transform([query])       same space as the index
+        #   2. scores = cosine_similarity(qv, self.matrix)[0]
+        #   3. order = scores.argsort()[::-1][:k]            best k, highest first
+        #   4. return [self.chunks[i] for i in order]
+        #
+        #   argsort is ascending, so [::-1] flips it.
+        #
         raise NotImplementedError
 
 
@@ -83,7 +91,19 @@ def build_prompt(query: str, chunks: list[Chunk]) -> str:
     Instruct the model to use ONLY the context, cite sources like [1], and say
     "I don't know." if the answer is not in the context.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 3). Check with: pytest -k step3
+    #
+    #   The grounding lives entirely in this string.
+    #
+    #   1. number the chunks: "[1] <text>", "[2] <text>", ... joined by newlines
+    #   2. return a prompt that:
+    #         says to use ONLY the context,
+    #         says to cite sources like [1], [2],
+    #         says to answer "I don't know." when the context does not contain it,
+    #         then Context:, the numbered chunks, Question:, the query, Answer:
+    #
+    #   Without the I-don't-know clause the model invents an answer.
+    #
     raise NotImplementedError
 
 

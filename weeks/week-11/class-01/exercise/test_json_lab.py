@@ -79,7 +79,7 @@ def test_step2_validate_bool_not_int_for_rating():
     assert any("rating" in e for e in jl.validate(rec, jl.SCHEMA))
 
 
-def test_step3_generate_valid_retries_to_success():
+def test_given_generate_valid_retries_to_success():
     if not _implemented(jl.validate, {}, jl.SCHEMA):
         pytest.skip("validate not implemented")
     if not _implemented(jl.generate_valid, jl.StubModel(), jl.SCHEMA):

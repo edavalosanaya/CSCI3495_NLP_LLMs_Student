@@ -32,45 +32,30 @@ model never writes Observations.)
 
 ## How this lab works
 
-There is no code to implement here and no unit tests: **you** play the language
-model, and the thing under test is the agent's robustness. Each step therefore
-ends with **an attack to run and the behavior you should observe**. If the agent
-does something else, that is a finding, write it down.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One command,
+once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-01/exercise course bash
 ```
 
-Stuck for more than a few minutes on a step? A step-by-step `WALKTHROUGH.md`
-is in `../solutions/`, with the expected output of every command. **These labs
-are not graded**, so reading it is not cheating: getting unstuck and finishing
-the idea beats stalling.
+Everything below runs in that shell. Each step says what to write and gives the
+one command that checks it:
 
-Everything runs offline; no Ollama needed.
+```bash
+pytest -k step1 -q
+```
 
+Steps marked **(given)** are already written for you: read them, run the check,
+move on. A step you have not written yet reports `skipped`, never a failure.
+Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
+**The labs are not graded**, so reading it is not cheating.
 ---
 
 ### Step 1, Watch a clean run (nothing to attack yet)
 
 ```bash
-lab python weeks/week-12/class-02/solutions/run_demo.py
+python ../../class-02/solutions/run_demo.py
 ```
 
 ```
@@ -94,7 +79,7 @@ repeat, then Finish. Every attack below targets one of those transitions.
 ### Step 2, Take the model's seat
 
 ```bash
-lab python weeks/week-12/class-01/exercise/break_the_agent.py
+python break_the_agent.py
 ```
 
 You now type the agent's moves. The format each turn is two lines, then a blank

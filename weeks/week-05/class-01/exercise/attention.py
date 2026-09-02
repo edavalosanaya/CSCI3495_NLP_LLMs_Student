@@ -24,15 +24,31 @@ def additive_scores(
     W_h: torch.Tensor,       # (attn, hidden)
     v: torch.Tensor,         # (attn,)
 ) -> torch.Tensor:
-    """Return the score e_i for each key:  e_i = vᵀ tanh(W_s s + W_h h_i).
+    """Score how well each key matches the query, Bahdanau style.
 
-    Output shape: (num_keys,).
+    Args:
+        query: shape (hidden,). The decoder state doing the looking.
+        keys: shape (num_keys, hidden). One encoder state per source position.
+        W_s: shape (attn, hidden). Projects the query into the scoring space.
+        W_h: shape (attn, hidden). Projects each key into the same space.
+        v: shape (attn,). Collapses a scoring-space vector to one number.
+
+    Returns:
+        Shape (num_keys,): one raw score per key. Not yet a distribution, so
+        the values may be negative and do not sum to anything in particular.
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
-    #   sq = query @ W_s.T                  # (attn,)
-    #   kh = keys @ W_h.T                   # (num_keys, attn)
-    #   pre = torch.tanh(sq + kh)           # broadcast -> (num_keys, attn)
-    #   return pre @ v                      # (num_keys,)
+    #
+    #   The score formula is the first third of README section 2.
+    #
+    #   project the query with W_s, giving one vector of length attn
+    #   project every key with W_h, giving one such vector per key
+    #   add the query's projection to each key's, squash with tanh
+    #   collapse each row to a single number with v
+    #
+    #   The query is added to EVERY row: one projected query broadcasts across
+    #   all the keys, which is why no loop is needed.
+    #
     raise NotImplementedError
 
 
@@ -46,26 +62,36 @@ class AdditiveAttention(nn.Module):
     def forward(
         self, query: torch.Tensor, keys: torch.Tensor, values: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Return (context, weights).
+        """Attend over the values and report where the attention went.
 
-        context: (hidden,) weighted blend of values.
-        weights: (num_keys,) attention distribution that sums to 1.
+        Args:
+            query: shape (hidden,). The state doing the looking.
+            keys: shape (num_keys, hidden). What the query is matched against.
+            values: shape (num_keys, hidden). What gets blended. Same number of
+                rows as keys, because row i of each describes position i.
+
+        Returns:
+            (context, weights). context is (hidden,), one blended vector.
+            weights is (num_keys,) and sums to 1, and is returned so the
+            attention can be inspected rather than just used.
         """
         # TODO (STEP 2): implement. Check with: pytest -k step2
-        #   1) e = additive_scores(query, keys, self.W_s, self.W_h, self.v)
-        #   2) weights = torch.softmax(e, dim=0)
-        #   3) context = weights @ values        # (hidden,)
-        #   return context, weights
+        #
+        #   Three lines, the rest of README section 2, in order.
+        #
+        #   score every key against the query, using this module's parameters
+        #   turn those scores into a distribution over the keys
+        #   blend the values by those weights
+        #   return the blend and the weights, in that order
+        #
+        #   Softmax over the key axis, not over the hidden axis: you want one
+        #   number per key that all sum to 1.
+        #
         raise NotImplementedError
 
 
 def heatmap(weights: torch.Tensor, row_labels=None, col_labels=None) -> str:
-    """Render an attention matrix (num_rows, num_cols) as an ASCII shaded grid.
-
-    Use the shade ramp below: higher weight -> denser character.
-    """
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Renders an attention matrix as an ASCII shaded grid."""
     ramp = " .:-=+*#%@"
     W = weights.detach()
     if W.ndim == 1:

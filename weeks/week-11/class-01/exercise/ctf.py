@@ -26,6 +26,18 @@ import os
 import re
 from dataclasses import dataclass, field
 
+_OVERRIDE_RE = re.compile(
+    r"ignore\s+(all\s+)?(previous|prior|above)\s+(instructions|rules|prompt)"
+    r"|disregard\s+(the\s+)?(rules|instructions)"
+    r"|debug\s+mode|developer\s+mode|jailbreak",
+    re.IGNORECASE,
+)
+_EXFIL_RE = re.compile(
+    r"(reveal|print|show|tell|leak|repeat|expose).{0,40}(token|secret|admin|password|system\s+prompt)",
+    re.IGNORECASE,
+)
+_PRIV_RE = re.compile(r"\b(refund|delete|wire|transfer|charge)\b", re.IGNORECASE)
+
 MODEL = os.environ.get("COURSE_MODEL", "qwen2.5:0.5b")
 
 # The crown jewels the assistant must protect.
@@ -122,7 +134,21 @@ def guard_input(user: str) -> tuple[str, list[str]]:
     Suggested flags: "injection:override", "injection:exfiltration",
     "injection:privileged". You may also strip/neutralize the offending text.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 3). Check with: pytest -k step3
+    #
+    #   Clean the user's text before it reaches the model. Return (clean, flags).
+    #
+    #   1. clean = _OVERRIDE_RE.sub("[removed]", user)
+    #      if that changed anything, flag "injection:override"
+    #   2. if _EXFIL_RE still matches clean: flag "injection:exfiltration" and
+    #      replace the message with a harmless lookup, e.g. "look up order 1003"
+    #      using the first 3+ digit number in the original
+    #   3. if _PRIV_RE matches clean: flag "injection:privileged" but leave the
+    #      text alone; the allow-list decides whether that tool may run
+    #   4. return clean, flags
+    #
+    #   All three regexes are defined above.
+    #
     raise NotImplementedError
 
 
@@ -134,7 +160,14 @@ def guard_output(text: str) -> tuple[str, list[str]]:
     and add the flag "leak:secret". Return (clean_text, flags). This is an
     output-validation defense: even a tricked model cannot exfiltrate.
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
+    # TODO (STEP 4). Check with: pytest -k step4
+    #
+    #   Last line of defence: never emit the secret, even if the model was tricked.
+    #
+    #   1. build a pattern for SECRET_TOKEN or ADMIN-TOKEN-<anything>, ignoring case
+    #   2. if it matches text: flag "leak:secret" and substitute "[REDACTED]"
+    #   3. return text, flags
+    #
     raise NotImplementedError
 
 

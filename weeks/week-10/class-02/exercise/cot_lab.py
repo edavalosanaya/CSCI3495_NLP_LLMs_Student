@@ -42,27 +42,61 @@ def extract_answer(text: str) -> int | None:
     CoT replies put the final number at the end (e.g. 'the answer is 18').
     Hint: re.findall(r'-?\\d+', text) then take the last match.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     matches = re.findall(r"-?\d+", text)
     return int(matches[-1]) if matches else None
 
 
 # ----------------------------- TODO 2 -----------------------------
 def majority_vote(answers: list[int]) -> int | None:
-    """Most common value; break ties by choosing the smallest value.
+    """Pick the answer that the most reasoning chains agreed on.
 
-    Used for self-consistency. Ignore None entries. Return None if all None.
+    Args:
+        answers: one extracted answer per sampled chain. A chain that produced
+            no parsable number contributes None, and those are ignored rather
+            than counted as a vote.
+
+    Returns:
+        The winning value, or None if every chain failed. Ties go to the
+        SMALLEST value, so the same input always gives the same answer.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The vote is the formula in README section 2.
+    #
+    #   throw away the chains that produced nothing; if none are left, there
+    #       is no answer to give
+    #   count how many chains voted for each value
+    #   find the highest count, and among the values that reached it, return
+    #       the smallest
+    #
+    #   Sorting the tie deliberately is what stops two identical runs from
+    #   disagreeing.
+    #
     raise NotImplementedError
 
 
 # ----------------------------- TODO 3 -----------------------------
 def evaluate(model: "Model", prompt_fn, dataset) -> float:
-    """Build a prompt per item with prompt_fn(question), query the model,
-    extract the integer answer, return exact-match accuracy in [0, 1]."""
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    """Score one prompting strategy on the whole dataset.
+
+    Args:
+        model: anything with .generate(prompt) -> str.
+        prompt_fn: called as prompt_fn(question). Swapping this between
+            direct_prompt and cot_prompt is the experiment.
+        dataset: (question, gold integer answer) pairs.
+
+    Returns:
+        Exact-match accuracy in [0, 1]. A chain that produced no parsable
+        number simply counts as wrong.
+    """
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   for each question and its gold answer:
+    #       build the prompt and ask the model
+    #       pull the integer out of the reply with the given extract_answer,
+    #           and count it right only if it matches the gold exactly
+    #   divide by how many questions there were
+    #
     raise NotImplementedError
 
 

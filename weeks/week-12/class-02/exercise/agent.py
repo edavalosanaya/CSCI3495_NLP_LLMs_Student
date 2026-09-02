@@ -123,10 +123,19 @@ def parse_action(text: str) -> Optional[tuple[str, str]]:
     Accepts `tool(input)` too, because small models slip into parentheses and
     there is nothing to be gained by failing on that.
     """
-    # TODO (STEP 6): implement. Check with: pytest -k step6
-    # _ACTION_OPEN gives you the tool name and which bracket it opened with.
-    # Walk forward counting depth so nested brackets survive, and return
-    # (tool, input) at depth 0. Never closed -> None.
+    # TODO (STEP 6). Check with: pytest -k step6
+    #
+    #   Pull the FIRST `Action: tool[input]` out of the model's text.
+    #
+    #   1. m = _ACTION_OPEN.search(text); no match -> return None
+    #   2. tool, opener = m.group(1), m.group(2); closer is "]" for "[", else ")"
+    #   3. walk forward from m.end() keeping a depth counter: +1 on opener,
+    #      -1 on closer; when depth hits 0 you have found the real end
+    #   4. return (tool, the collected input)
+    #
+    #   Depth counting is why calc[log(3**2 * 16 - 10)] survives; a plain
+    #   regex would stop at the first ) and cut the expression in half.
+    #
     raise NotImplementedError
 
 
@@ -157,7 +166,15 @@ def is_grounded(answer: str, observations: list[str]) -> bool:
     plausible number from memory instead. The loop cannot tell a real lookup
     from an invented one, but this check can.
     """
-    # TODO (STEP 7): implement. Check with: pytest -k step7
+    # TODO (STEP 7). Check with: pytest -k step7
+    #
+    #   Did the answer invent a number the tools never returned?
+    #
+    #   1. seen = every number _NUM_RE finds across all observations
+    #   2. return True only if every number _NUM_RE finds in answer is in seen
+    #
+    #   An answer with no numbers is trivially grounded, which is correct.
+    #
     raise NotImplementedError
 
 

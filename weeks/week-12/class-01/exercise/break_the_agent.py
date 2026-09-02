@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 # Reuse the reference agent + tools from W12C2 solutions.
-_SOL = Path(__file__).resolve().parents[2] / "week-12" / "class-02" / "solutions"
+_SOL = Path(__file__).resolve().parents[2] / "class-02" / "solutions"
 sys.path.insert(0, str(_SOL))
 
 from agent import run_agent  # noqa: E402

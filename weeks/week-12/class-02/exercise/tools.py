@@ -75,13 +75,21 @@ def calculator(expr: str) -> str:
     log(3 XOR 22) = log(21) and return a plausible, wrong number. A tool that
     is quietly wrong is worse than one that errors.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    # 1. strip the expression and rewrite "^" as "**"
-    # 2. empty -> "Error: empty expression"
-    # 3. _eval_node(ast.parse(expr, mode="eval")) inside try/except
-    #    ZeroDivisionError -> "Error: division by zero"
-    #    anything else     -> f"Error: could not evaluate '{expr}'"
-    # 4. render a whole float as an int, then return str(result)
+    # TODO (STEP 1). Check with: pytest -k step1
+    #
+    #   Evaluate arithmetic WITHOUT eval(). Return an Observation string.
+    #
+    #   1. expr = expr.strip().replace("^", "**")
+    #      (in Python ^ is XOR, so 3^2 would silently mean 1, not 9)
+    #   2. if the expression is empty: return "Error: empty expression"
+    #   3. result = _eval_node(ast.parse(expr, mode="eval"))   _eval_node is given
+    #      catch ZeroDivisionError -> "Error: division by zero"
+    #      catch anything else     -> f"Error: could not evaluate '{expr}'"
+    #   4. if the result is a float with no fraction, make it an int
+    #   5. return str(result)
+    #
+    #   Every failure returns a STRING. Raising would kill the agent loop.
+    #
     raise NotImplementedError
 
 
@@ -209,7 +217,25 @@ def search(query: str) -> str:
 # The registry the agent dispatches against: tool name -> callable(str) -> str.
 # The lab builds this up one entry at a time, which is the whole point: each
 # new key is a new thing the model stops having to guess about.
-# TODO (STEP 5): register your tools here. Check with: pytest -k step5
+# TODO (STEP 5). Check with: pytest -k step5
+#
+#   Map each tool's NAME to its function, e.g.
+#       TOOLS = {"calc": calculator, "today": today, ...}
+#   Use the names the README lists; the tests and the prompt both use them.
+#
 # The prompt is BUILT FROM THIS DICT, so a tool you do not register is a tool
 # the model is never told about and can never call.
 TOOLS = {}
+
+
+if __name__ == "__main__":
+    # Orientation: run this file to see which tools answer and which are still
+    # waiting for you. No traceback either way.
+    for name, fn, arg in (("calculator", calculator, "2+2"),
+                          ("today", today, ""),
+                          ("weather", weather, "San Antonio"),
+                          ("search", search, "speed of light")):
+        try:
+            print(f"{name}({arg!r}) -> {fn(arg)}")
+        except NotImplementedError:
+            print(f"{name}({arg!r}) -> not written yet (its TODO is in this file)")

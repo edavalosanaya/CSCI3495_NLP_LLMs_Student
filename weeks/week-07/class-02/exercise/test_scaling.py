@@ -27,41 +27,41 @@ sys.modules["scaling_under_test"] = sc
 _spec.loader.exec_module(sc)
 
 
-def test_step1_normalize():
+def test_given_normalize():
     assert sc.normalize("  Paris.  ") == "paris"
     assert sc.normalize("7!") == "7"
 
 
-def test_step2_is_correct_lenient_substring():
+def test_given_is_correct_lenient_substring():
     assert sc.is_correct("The answer is 4.", "4")
     assert sc.is_correct("Paris", "paris")
     assert sc.is_correct("7 days a week", "7")
     assert not sc.is_correct("Lyon", "paris")
 
 
-def test_step3_accuracy():
+def test_step1_accuracy():
     targets = ["4", "paris", "7"]
     outs = ["4", "Lyon", "7 days"]
     assert math.isclose(sc.accuracy(outs, targets), 2 / 3, rel_tol=1e-6)
 
 
-def test_step3_accuracy_empty():
+def test_step1_accuracy_empty():
     assert sc.accuracy([], []) == 0.0
 
 
-def test_step4_scaling_trend_increasing():
+def test_step2_scaling_trend_increasing():
     assert sc.scaling_trend({"0.5b": 0.4, "1b": 0.6, "3b": 0.8}) is True
 
 
-def test_step4_scaling_trend_flat_ok():
+def test_step2_scaling_trend_flat_ok():
     assert sc.scaling_trend({"a": 0.5, "b": 0.5}) is True
 
 
-def test_step4_scaling_trend_decreasing_false():
+def test_step2_scaling_trend_decreasing_false():
     assert sc.scaling_trend({"small": 0.8, "large": 0.6}) is False
 
 
-def test_step5_end_to_end_simulated():
+def test_given_end_to_end_simulated():
     targets = [t["answer"] for t in sc.TASKS]
     small = ["4", "Lyon", "7", "green", "six"]
     large = ["4", "Paris.", "7 days", "Green", "7"]

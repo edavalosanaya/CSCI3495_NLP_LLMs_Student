@@ -1,19 +1,10 @@
 #!/usr/bin/env python3
-"""W2C2 starter, Naive Bayes sentiment classifier from scratch.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-02/class-02/exercise/test_sentiment.py -k step1 -q
-
-When every step is done, the demo runs:
-    python weeks/week-02/class-02/exercise/sentiment.py
-
-CPU-only, deterministic, no network. Build the model yourself (no sklearn).
-"""
+"""W2C2 starter, Naive Bayes sentiment classifier. See README.md."""
 from __future__ import annotations
 import math
 import re
+from collections import Counter
 
-# Tiny hand-labeled movie-review snippets. label "pos" / "neg".
 TRAIN = [
     ("a wonderful and moving film i loved it", "pos"),
     ("brilliant acting and a great story", "pos"),
@@ -39,61 +30,124 @@ CLASSES = ("pos", "neg")
 
 
 def tokenize(text: str) -> list[str]:
-    """Lowercase word tokenizer."""
+    """GIVEN. Lowercase words, punctuation dropped."""
     return re.findall(r"[a-z']+", text.lower())
 
 
-def train_nb(docs: list[str], labels: list[str]) -> dict:
-    """Train a multinomial Naive Bayes model with add-one smoothing.
+def count_corpus(docs: list[str], labels: list[str]) -> tuple[Counter, dict, set]:
+    """GIVEN. All the counting: docs per class, word counts per class, vocabulary."""
+    class_docs = Counter(labels)
+    word_counts = {c: Counter() for c in CLASSES}
+    vocab = set()
+    for doc, y in zip(docs, labels):
+        toks = tokenize(doc)
+        word_counts[y].update(toks)
+        vocab.update(toks)
+    return class_docs, word_counts, vocab
 
-    Return a dict like:
-        {
-          "classes": ("pos", "neg"),
-          "log_prior": {c: log P(c)},
-          "log_likelihood": {c: {word: log P(word | c)}},
-          "vocab": set_of_words,
-          "class_total": {c: total_word_tokens_in_c},
-        }
-    Use add-one smoothing so unseen words get nonzero probability:
-        P(w | c) = (count(w,c) + 1) / (class_total[c] + |V|)
-    For words not stored explicitly, score() will compute the smoothed
-    fallback 1 / (class_total[c] + |V|).
 
-    Smooth the priors too so a class with zero training docs is still valid:
-        P(c) = (class_docs[c] + 1) / (N + num_classes)
-    With two classes these priors still sum to 1.
+def log_prior(n_docs_in_class: int, n_docs: int, n_classes: int) -> float:
+    """The log of the smoothed class prior, log P(c).
+
+    Args:
+        n_docs_in_class: how many training documents carry this class label.
+        n_docs: how many training documents there are in total.
+        n_classes: how many classes exist (2 here, pos and neg).
+
+    Returns:
+        A negative float. A prior is a probability below 1, so its log is
+        below 0.
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   P(c) is in README section 2. Smoothing is why two of the three
+    #   arguments appear in the formula at all.
+    #
+    raise NotImplementedError
+
+
+def log_likelihood(count_w_c: int, total_words_in_c: int, vocab_size: int) -> float:
+    """The log likelihood of one word under one class, log P(w | c), smoothed.
+
+    Args:
+        count_w_c: how many times word w appears in class c's training text.
+            Zero is normal and has to keep working.
+        total_words_in_c: how many word tokens class c's training text holds
+            in total, counting repeats.
+        vocab_size: how many distinct words the whole training set uses, |V|.
+
+    Returns:
+        A negative float.
+    """
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   P(w | c) is in README section 2. Smoothing touches the top AND the
+    #   bottom of that fraction, and vocab_size is why.
+    #
     raise NotImplementedError
 
 
 def score(model: dict, tokens: list[str]) -> dict:
-    """Return {class: log-probability} for the tokenized doc.
+    """Score one tokenized document under every class.
 
-    log P(c) + sum_w log P(w | c). Words outside the vocabulary are skipped.
-    Words in the vocab but unseen in class c use the smoothed fallback.
+    Args:
+        model: the trained model returned by train_nb, holding
+            "classes":        the class names, as a tuple
+            "vocab":          every word seen anywhere in training, as a set
+            "log_prior":      class -> log P(c), from your Step 1
+            "log_likelihood": class -> word -> log P(word | c), from Step 2
+        tokens: one document, already run through tokenize.
+
+    Returns:
+        A class -> score mapping, one entry per class in model["classes"].
+        The scores are not probabilities and do not sum to 1; only their
+        order matters, which is all predict needs.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
-    # Do NOT skip an in-vocab word just because class c never saw it.
+    # TODO (STEP 3): implement. Check with: pytest -k step3
+    #
+    #   This is the arg max formula in README section 2, minus the arg max.
+    #
+    #   for each class the model knows:
+    #       start a running total at that class's log prior
+    #       for each token in the document:
+    #           if the model never saw that token, ignore it
+    #           otherwise add its log likelihood for this class
+    #       record the running total under that class's name
+    #   hand back the class-to-total mapping
+    #
+    #   Add the logs. Multiplying the probabilities is what underflows.
+    #
     raise NotImplementedError
 
 
+def train_nb(docs: list[str], labels: list[str]) -> dict:
+    """GIVEN. Counts the corpus, then calls your log_prior / log_likelihood."""
+    class_docs, word_counts, vocab = count_corpus(docs, labels)
+    v = len(vocab)
+    return {
+        "classes": CLASSES,
+        "vocab": vocab,
+        "log_prior": {
+            c: log_prior(class_docs[c], len(docs), len(CLASSES)) for c in CLASSES
+        },
+        "log_likelihood": {
+            c: {
+                w: log_likelihood(word_counts[c][w], sum(word_counts[c].values()), v)
+                for w in vocab
+            }
+            for c in CLASSES
+        },
+    }
+
+
 def predict(model: dict, tokens: list[str]) -> str:
-    """Return the class with the highest score."""
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. The argmax: whichever class scored higher."""
     scores = score(model, tokens)
     return max(scores, key=scores.get)
 
 
 def prf(gold: list[str], pred: list[str], target: str = "pos") -> dict:
-    """Precision, recall, F1 for the target class.
-
-    Return {"precision": p, "recall": r, "f1": f1}. If a denominator is 0,
-    define that metric as 0.0.
-    """
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Precision, recall and F1 for the target class (0.0 if undefined)."""
     tp = sum(1 for g, p in zip(gold, pred) if p == target and g == target)
     fp = sum(1 for g, p in zip(gold, pred) if p == target and g != target)
     fn = sum(1 for g, p in zip(gold, pred) if p != target and g == target)
@@ -105,6 +159,7 @@ def prf(gold: list[str], pred: list[str], target: str = "pos") -> dict:
 
 
 def _demo() -> None:
+    """GIVEN. Trains on TRAIN, predicts TEST, reports precision/recall/F1."""
     docs = [d for d, _ in TRAIN]
     labels = [y for _, y in TRAIN]
     model = train_nb(docs, labels)

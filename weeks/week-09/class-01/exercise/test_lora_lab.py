@@ -32,7 +32,7 @@ def test_step1_base_weight_frozen():
     assert m.linear.weight.requires_grad is False
 
 
-def test_step2_lora_params_trainable():
+def test_step1_lora_params_trainable():
     m = lab.LoRALinear(8, 4, r=4, alpha=8)
     trainable = {name for name, p in m.named_parameters() if p.requires_grad}
     assert "A" in trainable and "B" in trainable
@@ -40,21 +40,21 @@ def test_step2_lora_params_trainable():
     assert "linear.weight" not in trainable
 
 
-def test_step3_scaling_is_alpha_over_r():
+def test_step1_scaling_is_alpha_over_r():
     m = lab.LoRALinear(8, 4, r=4, alpha=8)
     assert m.scaling == pytest.approx(2.0)
     m2 = lab.LoRALinear(8, 4, r=2, alpha=8)
     assert m2.scaling == pytest.approx(4.0)
 
 
-def test_step4_forward_shape():
+def test_step2_forward_shape():
     torch.manual_seed(0)
     m = lab.LoRALinear(8, 4, r=4, alpha=8)
     x = torch.randn(5, 8)
     assert m(x).shape == (5, 4)
 
 
-def test_step4_starts_at_base_model():
+def test_step2_starts_at_base_model():
     # With B initialized to zero, the LoRA update is zero at init.
     torch.manual_seed(0)
     m = lab.LoRALinear(8, 4, r=4, alpha=8)
@@ -65,7 +65,7 @@ def test_step4_starts_at_base_model():
     assert torch.allclose(base, full, atol=1e-6)
 
 
-def test_step4_training_reduces_loss():
+def test_given_training_reduces_loss():
     torch.manual_seed(0)
     in_f, out_f, n = 8, 4, 64
     X = torch.randn(n, in_f)
@@ -76,7 +76,7 @@ def test_step4_training_reduces_loss():
     assert losses[-1] < losses[0] * 0.9
 
 
-def test_step4_only_adapter_changed():
+def test_given_only_adapter_changed():
     # Base weight values must be identical before and after training.
     torch.manual_seed(0)
     m = lab.LoRALinear(8, 4, r=4, alpha=8)
@@ -87,7 +87,7 @@ def test_step4_only_adapter_changed():
     assert torch.allclose(before, m.linear.weight.detach())
 
 
-def test_step5_quantize_error_decreases_with_bits():
+def test_given_quantize_error_decreases_with_bits():
     torch.manual_seed(0)
     w = torch.randn(1000)
     e8 = lab.quant_error(w, 8)
@@ -97,7 +97,7 @@ def test_step5_quantize_error_decreases_with_bits():
     assert e8 < e4 < e2
 
 
-def test_step5_quantize_shape_preserved():
+def test_given_quantize_shape_preserved():
     w = torch.randn(7, 3)
     q = lab.quantize(w, 4)
     assert q.shape == w.shape

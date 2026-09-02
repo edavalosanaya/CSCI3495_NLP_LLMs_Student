@@ -15,7 +15,7 @@ here, and the fact that the same probes find the same patterns in real vectors.
 
 ---
 
-## Step 1, Cosine similarity
+## Given, `cosine`
 
 **The idea.** Same formula as last class, now on dense numpy arrays instead of
 sparse dicts.
@@ -61,7 +61,7 @@ occasionally.
 
 ---
 
-## Step 2, Nearest neighbors
+## Given, `nearest`
 
 ```python
 def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
@@ -107,7 +107,7 @@ tie-break.
 
 ---
 
-## Step 3, Analogies
+## Step 1, `analogy`
 
 **The idea.** `man : king :: woman : ?` becomes vector arithmetic. Take the
 king-minus-man offset (roughly "royalty"), add it to woman, and look for the
@@ -151,7 +151,7 @@ gender offset. On real GloVe vectors the same query lands on `queen` at roughly
 
 ---
 
-## Step 4, Bias probing
+## Step 2, `bias_score`
 
 ```python
 def bias_score(word: str, pos: str, neg: str, table: dict) -> float:
@@ -202,7 +202,7 @@ out?
 
 ---
 
-## Step 5, Run the whole thing
+## Running it
 
 ```
 ============================================================

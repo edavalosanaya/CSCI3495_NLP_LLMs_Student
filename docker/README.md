@@ -31,8 +31,17 @@ docker compose -f docker/docker-compose.yml exec ollama ollama pull nomic-embed-
 ```
 
 ## Daily workflow
+
+**Work inside the container.** Each lab's README opens with one command that
+drops you into a shell already sitting in that lab's folder, so every command
+after it is short: `pytest -k step1 -q`, `python text_tools.py`. You only paste
+the long line once per session.
+
 ```bash
-# Open a shell inside the course image (repo mounted at /workspace):
+# The shape of it (each lab README gives you its own copy):
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-01/class-02/exercise course bash
+
+# Or a plain shell at the repository root:
 docker compose -f docker/docker-compose.yml run --rm course bash
 
 # Or launch JupyterLab:

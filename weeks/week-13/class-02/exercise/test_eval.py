@@ -36,12 +36,11 @@ def _load(name: str, src: Path):
 
 
 S = _load("strategies", _HERE)              # always provided, never a TODO
+# No fallback to the reference solution. It used to swap in ../solutions the
+# moment a TODO still raised, so a student who had written nothing saw a fully
+# green suite. The course sweep verifies the reference with EVAL_FROM=solution
+# (scripts/test_all.sh exports every *_FROM var), so nothing needs the fallback.
 E = _load("eval_suite", _SRC)
-try:
-    E.is_correct(1.0, 1.0)
-    E.leaderboard({})
-except NotImplementedError:
-    E = _load("eval_suite", _HERE.parent / "solutions")
 
 
 def const_llm(reply: str):

@@ -65,26 +65,14 @@ parses, and that a fixed seed is set somewhere. **There is nothing to implement*
 here, the checker ships complete. Each step below is a command and the output you
 should see, and the last step runs it on **your own project**.
 
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One
+command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-02/exercise course bash
 ```
+
+Everything below runs in that shell.
 
 Stuck for more than a few minutes on a step? A step-by-step `WALKTHROUGH.md`
 is in `../solutions/`, with the expected output of every command. **These labs
@@ -96,11 +84,11 @@ the idea beats stalling.
 ### Step 1, See a passing file
 
 ```bash
-lab python weeks/week-14/class-02/exercise/repro_check.py weeks/week-04/class-01/solutions/mlp_classifier.py
+python repro_check.py ../../../week-04/class-01/solutions/mlp_classifier.py
 ```
 
 ```
-Reproducibility check: weeks/week-04/class-01/solutions/mlp_classifier.py
+Reproducibility check: ../../../week-04/class-01/solutions/mlp_classifier.py
   [OK]   parses cleanly.
   [OK]   found seeding: torch.manual_seed
   Note: run your real entry point in Docker too; this is only a static hint.
@@ -111,13 +99,14 @@ Reproducibility check: weeks/week-04/class-01/solutions/mlp_classifier.py
 ### Step 2, See a warning
 
 ```bash
-lab python weeks/week-14/class-02/exercise/repro_check.py weeks/week-02/class-01/solutions/ngram_lm.py
+python repro_check.py ../../../week-02/class-01/solutions/ngram_lm.py
 ```
 
 ```
-Reproducibility check: weeks/week-02/class-01/solutions/ngram_lm.py
+Reproducibility check: ../../../week-02/class-01/solutions/ngram_lm.py
   [OK]   parses cleanly.
   [WARN] no RNG seeding found, set seeds for reproducible results.
+  Note: run your real entry point in Docker too; this is only a static hint.
 ```
 
 **That warning is a false positive, and noticing why is the point.** `ngram_lm.py`
@@ -130,7 +119,7 @@ pattern. A static check reports what it can see, not what is true.
 ### Step 3, See the failure modes
 
 ```bash
-lab python weeks/week-14/class-02/exercise/repro_check.py no_such_file.py
+python repro_check.py no_such_file.py
 ```
 
 A missing file and a file with a syntax error both report cleanly and return a
@@ -141,7 +130,7 @@ non-zero exit code, so this can go in a CI script.
 ### Step 4, Run it on YOUR project
 
 ```bash
-lab python weeks/week-14/class-02/exercise/repro_check.py path/to/your_entrypoint.py
+python repro_check.py path/to/your_entrypoint.py
 ```
 
 **Then do the thing the checker cannot do**: actually run your entry point inside
@@ -155,7 +144,7 @@ numbers?". This step is where you find out before they do.
 ### Smoke test
 
 ```bash
-lab python -m pytest weeks/week-14/class-02/exercise/test_repro_check.py -q
+pytest -q
 ```
 
 ```

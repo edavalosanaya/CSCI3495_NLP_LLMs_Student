@@ -53,35 +53,19 @@ This handout is a sequence of steps. Each step is one function, and **each step
 ends with a test you can run**, so you always know whether you are done before
 you move on. Work them in order: later steps import earlier ones.
 
-From the repository root, inside the course image:
+Open a shell inside the course image, already in this homework's folder.
+One command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw3 -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/homeworks/hw3 course bash
 ```
 
-`hw` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw3 -q'
-
-# Windows, PowerShell
-function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw3 -q @args }
-
-# Windows, Command Prompt
-doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw3 -q $*
-```
-
-Then:
+Everything below runs in that shell:
 
 ```bash
-hw -k step3      # check ONLY step 3
-hw               # run every step
+pytest -k step3 -q      # check ONLY step 3
+pytest -q               # run every step
 ```
-
-If you already work inside the container (`... run --rm --no-deps course bash`),
-drop the docker prefix and just use `python -m pytest homeworks/hw3 -q`.
 
 **Before you write anything, every test skips.** That is expected: the suite
 detects the unfinished starter and skips rather than drowning you in failures.
@@ -98,7 +82,7 @@ no training. You are building the forward pass only, which is exactly the part y
 will be asked to reason about on the exam. Then:
 
 ```bash
-hw
+pytest -q
 ```
 
 You should get `22 skipped`.
@@ -107,7 +91,7 @@ You should get `22 skipped`.
 
 **Write** `softmax(x, axis)`. Subtract the max along `axis` before exponentiating, then normalize. The subtraction changes nothing mathematically and everything numerically.
 
-**Done when** `hw -k step1` prints `3 passed, 19 deselected`.
+**Done when** `pytest -k step1 -q` prints `3 passed, 19 deselected`.
 
 **Check it by hand**
 
@@ -128,7 +112,7 @@ array([0.26894142, 0.73105858])
 
 **Write** the attention function: `scores = Q @ K.T / sqrt(d_k)`, add the mask if one is given, softmax over the last axis, then multiply by `V`. Return both the output and the weights.
 
-**Done when** `hw -k step2` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step2 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -151,7 +135,7 @@ array([[ 6.6976,  6.6048],
 
 **Write** `causal_mask(seq_len)`: a `(seq_len, seq_len)` array that is 0 where a position may attend and a large negative number where it may not. Build it with `np.triu` or `np.tril` rather than a Python loop.
 
-**Done when** `hw -k step3` prints `3 passed, 19 deselected`.
+**Done when** `pytest -k step3 -q` prints `3 passed, 19 deselected`.
 
 **Check it by hand**
 
@@ -169,7 +153,7 @@ array([[-0.e+00, -1.e+09, -1.e+09],
 
 **Write** the two reshapes. `_split_heads` takes `(seq, d_model)` to `(num_heads, seq, d_head)`; `_combine_heads` is its exact inverse. Get the transpose right: reshape alone puts the axes in the wrong order.
 
-**Done when** `hw -k step4` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step4 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -188,7 +172,7 @@ True
 
 **Write** `forward(x, mask)`: project `x` through `W_q`, `W_k`, `W_v`, split into heads, run step 2's attention per head (applying the mask to every head), combine, then project through `W_o`. Return the output and the per-head weights.
 
-**Done when** `hw -k step5` prints `3 passed, 19 deselected`.
+**Done when** `pytest -k step5 -q` prints `3 passed, 19 deselected`.
 
 **Check it by hand**
 
@@ -207,7 +191,7 @@ array([[1., 1., 1.],
 
 **Write** `positional_encoding(seq_len, d_model)`: sine on the even channels, cosine on the odd ones, with the wavelength geometric in the channel index. Build the position column and the `div_term` and let broadcasting do the rest.
 
-**Done when** `hw -k step6` prints `3 passed, 19 deselected`.
+**Done when** `pytest -k step6 -q` prints `3 passed, 19 deselected`.
 
 **Check it by hand**
 
@@ -225,7 +209,7 @@ array([0.8415, 0.5403, 0.01  , 1.    ])
 
 **Write** the three small pieces. `layer_norm` normalizes across the feature axis of each position (not across positions), then applies `gamma` and `beta`. `relu` is `maximum(x, 0)`. `FeedForward.forward` is `relu(x @ W1 + b1) @ W2 + b2`.
 
-**Done when** `hw -k step7` prints `4 passed, 18 deselected`.
+**Done when** `pytest -k step7 -q` prints `4 passed, 18 deselected`.
 
 **Check it by hand**
 
@@ -244,7 +228,7 @@ array([0., 0., 2.])
 
 **Write** the block: `x = layer_norm(x + attention(x))`, then `x = layer_norm(x + ffn(x))`. Two residual connections, two norms, shape preserved end to end.
 
-**Done when** `hw -k step8` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step8 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -261,7 +245,7 @@ array([ 0., 0., 0.])
 ### Step 9, Run the whole thing (0 pts)
 
 ```bash
-hw
+pytest -q
 ```
 
 Every step green means `22 passed`. If a step you finished earlier has gone red,
@@ -280,7 +264,7 @@ Answer in the module docstring or a short `REFLECTION.md`, a paragraph each:
 
 ## What to submit
 
-- `transformer.py` with every TODO filled in and `hw` fully green.
+- `transformer.py` with every TODO filled in and `pytest -q` fully green.
 - Your reflection (in the module docstring or `REFLECTION.md`).
 - The `AI-USE:` note described below.
 

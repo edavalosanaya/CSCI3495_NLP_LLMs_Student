@@ -25,31 +25,55 @@ TASKS = [
 
 
 def normalize(text: str) -> str:
-    """Lowercase and strip surrounding whitespace/punctuation for lenient matching."""
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Lowercase, and strip surrounding whitespace and punctuation."""
     return text.strip().strip(string.punctuation + " ").lower()
 
 
 def is_correct(model_output: str, target: str) -> bool:
-    """True if the normalized target appears as a substring of the normalized output."""
-    # GIVEN (STEP 2): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. True if the normalized target appears anywhere in the output."""
     return normalize(target) in normalize(model_output)
 
 
 def accuracy(outputs: list[str], targets: list[str]) -> float:
-    """Fraction of items where is_correct() is True. Returns a float in [0, 1]."""
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    """What fraction of the model's answers were right.
+
+    Args:
+        outputs: what the model said, one string per question.
+        targets: the expected answer for each, same length and same order.
+
+    Returns:
+        A float in [0, 1]. An empty run scores 0.0 rather than dividing by
+        zero: no questions asked is not the same as every question right.
+    """
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   guard the empty case first
+    #   pair each output with its target and count how many is_correct accepts
+    #   divide that count by how many questions there were
+    #
     raise NotImplementedError
 
 
 def scaling_trend(results: dict[str, float]) -> bool:
-    """Given {model_name: accuracy} ordered from SMALLEST to LARGEST model,
-    return True if accuracy is (weakly) non-decreasing with size, i.e. the
-    bigger models did at least as well. This is the 'scaling helps' check.
+    """Did accuracy hold up or improve as the models got bigger?
+
+    Args:
+        results: model name -> accuracy, ALREADY ordered smallest model first.
+            The order is the caller's promise; this function does not sort.
+
+    Returns:
+        True if accuracy never drops as you walk that order. Equal accuracies
+        count as holding up, so a flat run is True: the claim being tested is
+        "bigger did not do worse", not "bigger did better".
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   take the accuracies in the order they were given
+    #   the answer is yes exactly when no accuracy is smaller than the one
+    #       before it
+    #
+    #   One line, with a single all(...) over neighbouring pairs.
+    #
     raise NotImplementedError
 
 

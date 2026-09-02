@@ -49,18 +49,33 @@ def build_vocab(corpus: list[str]) -> dict[str, int]:
 
 
 def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch.Tensor:
-    """Average the embedding vectors of a document's tokens -> a single vector.
+    """Collapse a document into ONE vector by averaging its word embeddings.
 
-    Returns a 1-D tensor of shape (embedding_dim,).
+    Args:
+        text: the raw document. Tokenizing it is part of this function's job.
+        vocab: token -> row index in the embedding table. Index 0 is the
+            unknown-word row, and any token missing from the vocab uses it.
+        emb: the embedding table. Calling it on a LongTensor of ids returns
+            one row per id, and emb.embedding_dim is the width of a row.
+
+    Returns:
+        A 1-D tensor of shape (embedding_dim,). A document with no tokens at
+        all still has to return that shape, so return zeros rather than
+        averaging an empty list.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
-    ids = [vocab.get(tok, 0) for tok in tokenize(text)]
-    if not ids:
-        return torch.zeros(emb.embedding_dim)
-    idx = torch.tensor(ids, dtype=torch.long)
-    vectors = emb(idx)  # (num_tokens, embedding_dim)
-    return vectors.mean(dim=0)
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The averaging step is the left-hand formula in README section 2.
+    #
+    #   turn every token into its vocab index, falling back to the unknown row
+    #   if the document produced no tokens at all, hand back a vector of zeros
+    #   wrap the indices in a LongTensor and look them all up in one call
+    #   average the resulting rows down to a single vector
+    #
+    #   Averaging over the wrong axis silently gives you a vector of the wrong
+    #   length: you want one number per embedding dimension.
+    #
+    raise NotImplementedError
 
 
 class MLP(nn.Module):
@@ -71,8 +86,26 @@ class MLP(nn.Module):
         self.fc2 = nn.Linear(hidden, out_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Map a batch of document vectors to one score per class.
+
+        Args:
+            x: shape (batch, in_dim). One row per document, each row the
+                averaged vector that embed_document produced.
+
+        Returns:
+            Shape (batch, out_dim): raw scores, NOT probabilities. They are
+            free to be negative and need not sum to 1.
+        """
         # TODO (STEP 2): implement. Check with: pytest -k step2
-        # Return raw logits: no softmax (CrossEntropyLoss applies its own).
+        #
+        #   The right-hand pair of formulas in README section 2. One line.
+        #
+        #   send x through the first linear layer, then the activation,
+        #   then the second linear layer, and return that
+        #
+        #   Stop there. No softmax: CrossEntropyLoss applies it itself, and
+        #   applying it twice quietly flattens the gradients.
+        #
         raise NotImplementedError
 
 
@@ -84,9 +117,11 @@ def train(
     epochs: int = 200,
     lr: float = 0.05,
 ) -> list[float]:
-    """Train the model + embeddings jointly. Returns the per-epoch loss."""
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Trains the classifier and the embedding table jointly.
+
+    Returns the per-epoch loss. Re-embeds every step so gradients reach the
+    embedding table too.
+    """
     params = list(model.parameters()) + list(emb.parameters())
     optimizer = torch.optim.Adam(params, lr=lr)
     loss_fn = nn.CrossEntropyLoss()

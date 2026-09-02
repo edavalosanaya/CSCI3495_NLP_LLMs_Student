@@ -47,35 +47,19 @@ This handout is a sequence of steps. Each step is one function, and **each step
 ends with a test you can run**, so you always know whether you are done before
 you move on. Work them in order: later steps import earlier ones.
 
-From the repository root, inside the course image:
+Open a shell inside the course image, already in this homework's folder.
+One command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw6/tests -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/homeworks/hw6 course bash
 ```
 
-`hw` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw6/tests -q'
-
-# Windows, PowerShell
-function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw6/tests -q @args }
-
-# Windows, Command Prompt
-doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw6/tests -q $*
-```
-
-Then:
+Everything below runs in that shell:
 
 ```bash
-hw -k step3      # check ONLY step 3
-hw               # run every step
+pytest -k step3 -q      # check ONLY step 3
+pytest -q               # run every step
 ```
-
-If you already work inside the container (`... run --rm --no-deps course bash`),
-drop the docker prefix and just use `python -m pytest homeworks/hw6/tests -q`.
 
 **Before you write anything, every test skips.** That is expected: the suite
 detects the unfinished starter and skips rather than drowning you in failures.
@@ -93,7 +77,7 @@ from the reading: think, act, observe, repeat. Every step except the last is tes
 with a scripted fake LLM, so you do not need a model running. Then:
 
 ```bash
-hw
+pytest -q
 ```
 
 You should get `18 skipped`. One test stays skipped even when you are done: it only
@@ -105,7 +89,7 @@ To run it too, start `ollama serve`, `ollama pull qwen2.5:0.5b`, and set
 
 **Write** a **safe** arithmetic evaluator. Parse the expression with `ast.parse(..., mode='eval')` and walk the tree, allowing only numbers and the arithmetic operators. Anything else, and any arithmetic error, returns a string starting with `Error:`. **Do not use `eval` or `exec`.**
 
-**Done when** `hw -k step1` prints `6 passed, 12 deselected`.
+**Done when** `pytest -k step1 -q` prints `6 passed, 12 deselected`.
 
 **Check it by hand**
 
@@ -125,7 +109,7 @@ To run it too, start `ollama serve`, `ollama pull qwen2.5:0.5b`, and set
 
 **Write** keyword search over `CORPUS`: return the matching entry, or a clear no-results message. Never raise.
 
-**Done when** `hw -k step2` prints `1 passed, 17 deselected`.
+**Done when** `pytest -k step2 -q` prints `1 passed, 17 deselected`.
 
 **Check it by hand**
 
@@ -143,7 +127,7 @@ To run it too, start `ollama serve`, `ollama pull qwen2.5:0.5b`, and set
 
 **Write** the parser: pull `Thought:`, `Action:`, `Action Input:` and `Final Answer:` out of the model's text. Matching is case-insensitive and values are stripped. **A `Final Answer` wins over an `Action`** if both appear. Text with no labels at all returns a `Step` with everything `None`.
 
-**Done when** `hw -k step3` prints `4 passed, 14 deselected`.
+**Done when** `pytest -k step3 -q` prints `4 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -164,7 +148,7 @@ True
 
 **Write** the dispatcher: look the step's action up in `TOOLS` and call it with `action_input`. An unknown tool returns an error **string** naming the tool, not an exception.
 
-**Done when** `hw -k step4` prints `2 passed, 16 deselected`.
+**Done when** `pytest -k step4 -q` prints `2 passed, 16 deselected`.
 
 **Check it by hand**
 
@@ -182,7 +166,7 @@ True
 
 **Write** the prompt builder: state the question, list the available tools, show the required `Thought / Action / Action Input` format, and append the history so far so the model can see its own previous observations.
 
-**Done when** `hw -k step5` prints `1 passed, 17 deselected`.
+**Done when** `pytest -k step5 -q` prints `1 passed, 17 deselected`.
 
 **Check it by hand**
 
@@ -198,7 +182,7 @@ True
 
 **Write** the loop: build the prompt, call `llm(prompt)`, parse the step, and either return the final answer or run the tool, append the observation to the history, and go again. Stop at `max_steps` and return a dict with the answer and the transcript.
 
-**Done when** `hw -k step6` prints `3 passed, 1 skipped, 14 deselected`.
+**Done when** `pytest -k step6 -q` prints `3 passed, 1 skipped, 14 deselected`.
 
 **Check it by hand**
 
@@ -219,7 +203,7 @@ True
 ### Step 7, Run the whole thing (0 pts)
 
 ```bash
-hw
+pytest -q
 ```
 
 Every step green means `17 passed, 1 skipped`. If a step you finished earlier has gone red,
@@ -240,7 +224,7 @@ Answer in `ANSWERS.md`, 2-4 sentences each:
 
 ## What to submit
 
-- `agent.py` with every TODO filled in and `hw` green (`17 passed, 1 skipped`).
+- `agent.py` with every TODO filled in and `pytest -q` green (`17 passed, 1 skipped`).
 - `ANSWERS.md` with Q1-Q3 answered.
 - The `AI-USE:` note described below.
 

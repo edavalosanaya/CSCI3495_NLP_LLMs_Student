@@ -1,121 +1,48 @@
-# W10C2 Lab: Chain-of-Thought vs. Direct Prompting
+# W10C2 Lab: Chain-of-Thought & Self-Consistency
 
-Does "show your work" actually help? Build the harness and **measure** it on a
-small set of multi-step brain-teasers with known answers.
+## 1. Learning objective
 
-## Before you code: the picture and the math
+Make a small model better at arithmetic without touching its weights: ask it to
+reason step by step, then take a majority vote over several attempts.
+
+You write two functions in `cot_lab.py`: the majority vote and the evaluation
+loop. Answer extraction and the two prompt builders are given.
+
+## 2. Understanding the math
 
 ![Chain-of-thought vs direct prompting: the worked solution in the prompt flips the answer from 27 to 9](../lecture/visuals/assets/wei-2022-fig-1.png)
-*Wei et al. 2022 (arXiv:2201.11903), Fig. 1.*
 
-![Self-consistency: sample several chains at temperature > 0 and take the majority answer](../lecture/visuals/assets/wang-2022-fig-1.png)
-*Wang et al. 2022 (arXiv:2203.11171), Fig. 1.*
-
-The first figure is the whole experiment: the two prompts differ only in
-whether a worked step-by-step solution precedes the query, and your harness
-measures how much that changes exact-match accuracy over the $N$ problems:
+Both prompts get the same question and the same model. Only the instruction
+differs, and it is scored by exact match on the final integer:
 
 $$\text{accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}[\hat{a}_i = a_i]$$
 
-where $\hat{a}_i$ is the **last integer** your `extract_answer` pulls from the
-reply and $a_i$ is the known answer. The second figure is the stretch goal,
-implemented by `majority_vote` over $n$ sampled chains' answers
-$\hat{a}^{(1)}, \dots, \hat{a}^{(n)}$:
+![Self-consistency: sample several chains at temperature > 0 and take the majority answer](../lecture/visuals/assets/wang-2022-fig-1.png)
+
+Self-consistency samples $n$ chains and keeps whichever final answer the most
+of them reached, so one bad chain no longer decides the outcome:
 
 $$\hat{a} = \arg\max_{a} \sum_{j=1}^{n} \mathbf{1}[\hat{a}^{(j)} = a]$$
 
-So the finished code grades only the final number of each reply, never the
-prose of the chain, and reports one accuracy per prompting strategy.
-**Check yourself before coding:** in the self-consistency figure, greedy
-decoding answers \$14 while the three sampled chains end in \$18, \$26, \$18,
-so what does the vote return and why? (\$18, because two of the three sampled
-chains agree on it, so the stray \$26 path is outvoted.)
+## 3. Getting started
 
-## In-class activity: Predict, then Verify (whiteboard think-pair-share, pairs, ~25 min)
-In class this is run as a **whiteboard, think-pair-share** activity. Coding is the
-short **verification step** at the end, not the whole period.
-1. **Hand-write (~10 min, no laptops):** on the whiteboard, write a step-by-step
-   CoT trace for **these two problems**, then draw a **decomposition tree** for
-   the harder one (B). They are `WARM_UP` and `HARDER` in `cot_lab.py`:
-
-   > **A (warm-up).** A cafe had 23 muffins, sold 17, then baked 12 more. How many now?
-   >
-   > **B (harder).** There are 4 nests with 3 eggs each. 2 eggs hatch. How many unhatched eggs?
-
-   B is the one worth arguing about: the question asks for the **unhatched** eggs,
-   so the last step is a subtraction from a product, and both 12 and 2 appear in
-   the problem as tempting wrong answers.
-2. **Predict:** for each problem, predict whether CoT will beat a direct answer,
-   and **write down why**. Pair up and defend your call before any code runs.
-3. **Verify (~10 min coding):** run the harness below (direct vs CoT). Did the
-   scores match your prediction? Where were you surprised?
-4. **Share out:** each pair reports one prediction that was right and one wrong.
-   Remember: a fluent chain can still reach a wrong answer, grade the **final
-   number**, not the prose.
-
-> Note: the mid-semester checkpoint peer-review round runs in **Class 1** this
-> week, so this session's activity has its full slot.
-
-The harness and tasks below power the verification step (and stand alone as a
-take-home lab).
-
-## How this lab works
-
-Each step tells you **what to write**, then exactly **how to check it**. Steps 1
-and 2 are independent; Step 3 needs Step 1.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+From the repository root on your own machine, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-10/class-02/exercise course bash
 ```
 
-Check **one step**:
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 4. Implement `majority_vote`
+
+Drop the chains that produced nothing, count the rest, and break ties by the
+smallest value so the result is reproducible.
 
 ```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step1 -q
-```
-
-Check **everything**:
-
-```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -q
-```
-
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
----
-
-### Step 0, Orientation (nothing to write)
-
-`StubModel`, `direct_prompt` and `cot_prompt` are already written. Confirm the
-stub is deterministic:
-
-```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step0 -q
+pytest -k step1 -q
 ```
 
 ```
@@ -123,30 +50,12 @@ lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step0 -q
 1 passed, 3 deselected
 ```
 
-Read the two prompt builders and note the only difference: `cot_prompt` adds
-"Reason step by step, then end with 'The answer is N.'". That one clause is the
-entire intervention this lab measures.
+## 5. Implement `evaluate`
 
----
-
-### Step 1, Extract the answer (given)
-
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-**What it does:** `extract_answer(text)`, returning the **last** integer in the text, or
-None.
-
-`re.findall(r"-?\d+", text)` then take `[-1]`.
-
-**Why the last, not the first.** A CoT reply walks through intermediate numbers
-("23 minus 17 is 6, then 6 plus 12 is 18") and the final answer comes last.
-Taking the first would grade the model on its first arithmetic step.
-
-**Done when:**
+Prompt, generate, extract, compare, divide.
 
 ```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step1 -q
+pytest -k step2 -q
 ```
 
 ```
@@ -154,79 +63,10 @@ lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step1 -q
 1 passed, 3 deselected
 ```
 
-**Check it by hand:**
-
-```python
->>> import sys; sys.path.insert(0, "weeks/week-10/class-02/exercise")
->>> from cot_lab import extract_answer
->>> extract_answer("23 - 17 = 6, then 6 + 12 = 18. The answer is 18.")
-18
->>> extract_answer("no numbers here") is None
-True
-```
-
----
-
-### Step 2, Majority vote
-
-**Write:** `majority_vote(answers)`, the most common value, ties broken by the
-**smallest** value. Ignore `None` entries; return None if all are None.
-
-**Done when:**
+## 6. Run it, then question it
 
 ```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step2 -q
-```
-
-```
-.                                                                        [100%]
-1 passed, 3 deselected
-```
-
-**Why it matters:** this is self-consistency (Wang et al. 2022). Sample several
-chains at temperature > 0 and keep the answer they agree on. It is the stretch
-goal below, and the reason it works is that wrong chains tend to be wrong in
-*different* ways while correct chains agree.
-
----
-
-### Step 3, Evaluate
-
-**Write:** `evaluate(model, prompt_fn, dataset)`. Build a prompt per item with
-`prompt_fn(question)`, query the model, extract the integer, and return
-exact-match accuracy.
-
-**Grade the final number, never the prose.** A fluent chain that reaches the
-wrong answer is wrong, and this is the line of code that enforces it.
-
-**Done when:**
-
-```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -k step3 -q
-```
-
-```
-.                                                                        [100%]
-1 passed, 3 deselected
-```
-
----
-
-### Step 4, Run the comparison
-
-```bash
-lab python -m pytest weeks/week-10/class-02/exercise/test_cot_lab.py -q
-```
-
-```
-....                                                                     [100%]
-4 passed
-```
-
-Then against a real model:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm course python weeks/week-10/class-02/exercise/cot_lab.py
+python cot_lab.py
 ```
 
 ```
@@ -238,31 +78,19 @@ direct                33%
 chain-of-thought     100%
 ```
 
-**Compare that against your whiteboard predictions.** Direct prompting gets 2 of
-6; adding "reason step by step" gets all 6. The model did not become smarter, and
-no weights changed. It was given room to compute intermediate values instead of
-having to produce the answer in one step.
+Same model, same questions, three times the accuracy from one sentence of
+instruction.
 
-Be careful about what this does *not* show. Six problems is a tiny sample, and
-these are arithmetic word problems, the case where CoT helps most. The lecture's
-"when NOT to use CoT" slide is the other half, and Wei et al. found the benefit
-only appears at sufficient model scale.
-
-## The idea
-- A tiny dataset of word problems, each with a numeric answer.
-- A **direct** prompt ("just give the number") vs. a **chain-of-thought** prompt
-  ("reason step by step, then give the number").
-- Parse the final number from each reply and compute exact-match accuracy.
-- **Stretch:** self-consistency, sample N chains and take a majority vote.
-
-**Offline-safe:** with no Ollama, a deterministic **stub model** stands in. The
-stub even simulates the CoT effect (it "reasons" correctly only when asked to),
-so the pipeline and the metric run and are testable without a network.
-
-## Stretch goals
-- Implement self-consistency: sample N CoT chains (temperature > 0), vote.
-- Try **zero-shot CoT**: append "Let's think step by step." to a direct prompt.
-- Report where CoT *fails*, are the wrong chains fluent but mistaken?
-
-A full reference solution is in `../solutions/cot_lab.py`, and the step-by-step
-explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).
+1. Read a wrong answer. Print the direct reply for the first question, "A cafe
+   had 23 muffins, sold 17, then baked 12 more." The model writes
+   `23 - 17 + 12 = 8.` It set up the correct equation and then got 8 instead of
+   18. What does that tell you about where the failure actually is?
+2. Watch `extract_answer` in that same reply. It takes the LAST integer in the
+   text, which here is the wrong one. Construct a chain-of-thought reply where
+   taking the last integer would score a correct answer as wrong.
+3. Test the vote's tie-break. `majority_vote([7, 9])` returns 7 and
+   `majority_vote([None, 5, 5])` returns 5. Why does a tie need a rule at all,
+   and what would go wrong with `Counter.most_common(1)` alone?
+4. Self-consistency needs temperature above 0, or every chain is identical.
+   Explain why that makes the technique cost n times as much, and when you
+   would spend that.

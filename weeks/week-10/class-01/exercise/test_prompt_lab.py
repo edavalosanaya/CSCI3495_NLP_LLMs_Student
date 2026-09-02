@@ -34,21 +34,21 @@ def _implemented(fn, *args):
         return False
 
 
-def test_step1_accuracy_perfect():
+def test_given_accuracy_perfect():
     assert pl.accuracy(["positive", "negative"], ["positive", "negative"]) == 1.0
 
 
-def test_step1_accuracy_partial():
+def test_given_accuracy_partial():
     assert pl.accuracy(["positive", "positive"], ["positive", "negative"]) == 0.5
 
 
-def test_step0_parse_label():
+def test_given_parse_label():
     assert pl.parse_label("Sentiment: positive") == "positive"
     assert pl.parse_label("The answer is NEGATIVE.") == "negative"
     assert pl.parse_label("It is good, not bad") == "positive"  # first signal wins
 
 
-def test_step2_build_fewshot_prompt_structure():
+def test_step1_build_fewshot_prompt_structure():
     if not _implemented(pl.build_fewshot_prompt, "I", [("x", "positive")], "q"):
         pytest.skip("build_fewshot_prompt not implemented")
     p = pl.build_fewshot_prompt("Classify it.", [("Great!", "positive")], "Awful.")
@@ -58,14 +58,14 @@ def test_step2_build_fewshot_prompt_structure():
     assert p.rstrip().endswith("Sentiment:")  # output cue is last
 
 
-def test_step0_stub_model_is_deterministic():
+def test_given_stub_model_is_deterministic():
     m = pl.StubModel()
     p = pl.build_zeroshot_prompt(pl.INSTRUCTION, [], "Absolutely loved every minute of it.")
     assert m.generate(p) == m.generate(p)
     assert m.generate(p) == "positive"
 
 
-def test_step3_run_experiment_offline():
+def test_step2_run_experiment_offline():
     if not _implemented(pl.build_fewshot_prompt, "I", [("x", "positive")], "q"):
         pytest.skip("build_fewshot_prompt not implemented")
     m = pl.StubModel()

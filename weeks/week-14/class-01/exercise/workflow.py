@@ -40,25 +40,48 @@ class Result:
 
 
 def route(query: str, llm: LLM) -> str:
-    """Ask the LLM to classify `query` into exactly one LABEL.
+    """Classify a query into exactly one of LABELS, defensively.
 
-    The LLM is prompted to reply with a single word. We must DEFEND against
-    messy output: lowercase, strip, and map anything not in LABELS to "unknown".
+    Args:
+        query: whatever the user typed. It is not trusted to be short, clean,
+            or on-topic.
+        llm: callable taking a prompt and returning the model's raw text. Real
+            models pad, capitalize, add punctuation and sometimes refuse, so
+            nothing about the reply's shape is guaranteed.
 
-    STEP 1 (check with: pytest -k step1):
-      1. Build a prompt that lists the allowed labels and asks for ONE word.
-      2. Call `llm(prompt)`.
-      3. Normalize the reply (strip/lower, take the first word/token).
-      4. Return it if in LABELS, else return "unknown".
+    Returns:
+        One of LABELS, or "unknown". Never a raw model string: a label that is
+        not in LABELS must become "unknown" rather than flow downstream.
     """
-    raise NotImplementedError("Implement route()")
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   ask the model to answer with ONE word, listing the labels it may use
+    #   take the reply apart: trim it, lower it, and keep only the first word
+    #   hand back that word only if it is a label you recognise
+    #   anything else is "unknown"
+    #
+    #   Assume the reply is messy. "  Summarize.\n" and "SUMMARIZE" both have
+    #   to come back as "summarize".
+    #
+    raise NotImplementedError
 
 
 def worker_summarize(query: str, llm: LLM) -> str:
-    """Summarize the user's text in one sentence."""
-    # TODO (STEP 2): prompt the llm to summarize `query` in one sentence.
-    #                Check with: pytest -k step2
-    raise NotImplementedError("Implement worker_summarize()")
+    """Summarize the user's text in one sentence.
+
+    Args:
+        query: the text to summarize.
+        llm: callable taking a prompt, returning the model's text.
+
+    Returns:
+        The model's reply, unmodified. Workers do not validate; routing already
+        decided this is the right worker.
+    """
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   One line, in the same shape as worker_translate and worker_extract.
+    #
+    raise NotImplementedError
 
 
 def worker_translate(query: str, llm: LLM) -> str:
@@ -83,15 +106,40 @@ def worker_fallback(query: str, llm: LLM) -> str:
     return "Sorry, I couldn't tell what you wanted. Try: summarize, translate, or extract."
 
 
-def run_workflow(query: str, llm: LLM) -> Result:
-    """Orchestrate: route -> dispatch to a worker -> return a structured Result.
+_WORKERS: dict[str, Callable[[str, LLM], str]] = {
+    "summarize": worker_summarize,
+    "translate": worker_translate,
+    "extract": worker_extract,
+    "unknown": worker_fallback,
+}
 
-    STEP 4 (check with: pytest -k step4):
-      1. Call route() to get a label.
-      2. Pick the matching worker from a dispatch table (fallback for "unknown").
-      3. Call the worker, build and return a `Result` with a small trace.
+
+def run_workflow(query: str, llm: LLM) -> Result:
+    """Route a query to a worker and return a structured Result.
+
+    Args:
+        query: the user's request.
+        llm: callable taking a prompt, returning text. Both the routing call
+            and the worker call go through it.
+
+    Returns:
+        A Result carrying the chosen label, the worker's output, which worker
+        ran, and a short trace. An unroutable query is not an error: it goes
+        to the fallback worker and still returns a Result.
     """
-    raise NotImplementedError("Implement run_workflow()")
+    # TODO (STEP 3): implement. Check with: pytest -k step3
+    #
+    #   ask route() which label this query is
+    #   look that label up in the _WORKERS table above, defaulting to the
+    #       fallback worker when the label is not in it
+    #   run the worker on the query
+    #   package the label, the output, the worker's name and a short trace
+    #       into a Result
+    #
+    #   The dispatch table already has an "unknown" entry, so the lookup and
+    #   the fallback are the same line.
+    #
+    raise NotImplementedError
 
 
 # --------------------------------------------------------------------------

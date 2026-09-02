@@ -27,17 +27,17 @@ sys.modules["emb_under_test"] = em
 _spec.loader.exec_module(em)
 
 
-def test_step1_cosine_values():
+def test_given_cosine_values():
     assert em.cosine(np.array([1.0, 0.0]), np.array([1.0, 0.0])) == pytest.approx(1.0)
     assert em.cosine(np.array([1.0, 0.0]), np.array([0.0, 1.0])) == pytest.approx(0.0)
     assert em.cosine(np.array([0.0, 0.0]), np.array([1.0, 0.0])) == 0.0
 
 
-def test_step1_cosine_ignores_magnitude():
+def test_given_cosine_ignores_magnitude():
     assert em.cosine(np.array([1.0, 1.0]), np.array([3.0, 3.0])) == pytest.approx(1.0)
 
 
-def test_step2_nearest_excludes_self_and_finds_semantic_neighbor():
+def test_given_nearest_excludes_self():
     res = em.nearest("cat", em.EMB, k=3)
     words = [w for w, _ in res]
     assert "cat" not in words
@@ -45,32 +45,32 @@ def test_step2_nearest_excludes_self_and_finds_semantic_neighbor():
     assert "kitten" in words and "dog" in words
 
 
-def test_step2_nearest_sorted_descending():
+def test_given_nearest_sorted_descending():
     res = em.nearest("king", em.EMB, k=4)
     scores = [s for _, s in res]
     assert scores == sorted(scores, reverse=True)
     assert res[0][0] == "prince"  # closest to king in this toy space
 
 
-def test_step3_analogy_king_queen():
+def test_step1_analogy_king_queen():
     res = em.analogy("man", "king", "woman", em.EMB, k=1)
     assert res[0][0] == "queen"
 
 
-def test_step3_analogy_excludes_inputs():
+def test_step1_analogy_excludes_inputs():
     res = em.analogy("man", "king", "woman", em.EMB, k=5)
     words = [w for w, _ in res]
     assert "man" not in words and "king" not in words and "woman" not in words
 
 
-def test_step4_bias_direction_signs():
+def test_step2_bias_direction_signs():
     # Along (woman - man): aunt should lean +, uncle should lean -.
     aunt = em.bias_score("aunt", "woman", "man", em.EMB)
     uncle = em.bias_score("uncle", "woman", "man", em.EMB)
     assert aunt > 0 > uncle
 
 
-def test_step4_bias_occupation_pattern():
+def test_step2_bias_occupation_pattern():
     # The toy space encodes a (deliberately illustrative) stereotype:
     # 'nurse' leans toward woman, 'engineer' leans toward man.
     nurse = em.bias_score("nurse", "woman", "man", em.EMB)

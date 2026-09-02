@@ -18,6 +18,19 @@ import math
 MODEL_NAME = "prajjwal1/bert-tiny"
 
 
+def _word_token_ids(tok, word: str) -> list[int]:
+    """Sub-token ids for `word` alone, without special tokens."""
+    return tok(word, add_special_tokens=False)["input_ids"]
+
+def _find_positions(haystack: list[int], needle: list[int]) -> list[int]:
+    """Return the indices in `haystack` covered by the first match of `needle`."""
+    n = len(needle)
+    for i in range(len(haystack) - n + 1):
+        if haystack[i : i + n] == needle:
+            return list(range(i, i + n))
+    return []
+
+
 def cosine_similarity(u: list[float], v: list[float]) -> float:
     """Cosine similarity between two equal-length vectors.
 
@@ -34,29 +47,58 @@ def cosine_similarity(u: list[float], v: list[float]) -> float:
 
 
 def contextual_vector(sentence: str, word: str):
-    """Return the contextual embedding (a list of floats) of `word` as it
-    appears in `sentence`, using a tiny BERT model.
+    """The vector a word gets FROM the sentence it sits in.
 
-    Steps (hint):
-      1. Tokenize `sentence` with the model's tokenizer (return_tensors="pt").
-      2. Run the model with output_hidden_states; take the LAST hidden layer.
-      3. Find the token position(s) for `word` and average their vectors.
-         (A simple approach: tokenize the lone word to get its sub-token ids,
-          then find where they occur in the sentence's input_ids.)
-      4. Return the resulting vector as a plain python list of floats.
+    Args:
+        sentence: the full sentence, which the model reads in one pass.
+        word: the word to pull out of it. It may split into several
+            word-pieces, and it may appear more than once.
+
+    Returns:
+        A plain list of floats, one per hidden dimension. The same word in a
+        different sentence must give a different list: that difference is the
+        entire point of the lab.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The right-hand formula in README section 2.
+    #
+    #   load the tokenizer and model with the given helper
+    #   encode the sentence as pytorch tensors and run the model, asking it to
+    #       return its hidden states
+    #   take the LAST hidden layer, for this one sentence
+    #   work out which token positions the word occupies: _word_token_ids gives
+    #       the word's sub-token ids, _find_positions locates them in the
+    #       sentence's ids. Both are written for you
+    #   average the vectors at those positions and return them as a plain list
+    #
+    #   Run the model under torch.no_grad(): nothing here is training.
+    #
     raise NotImplementedError
 
 
 def static_vector(word: str):
-    """Return a *static* embedding of `word`: the model's input (word-piece)
-    embedding, which does NOT depend on any sentence.
+    """The vector a word gets on its own, with no sentence at all.
 
-    Hint: model.get_input_embeddings() maps token ids -> vectors. Average the
-    sub-token embeddings for `word`. This is the same regardless of context.
+    Args:
+        word: the word to look up. Note there is no sentence parameter, and
+            that absence is the comparison the lab is built around.
+
+    Returns:
+        A plain list of floats, the same list every time for a given word.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   The left-hand formula in README section 2.
+    #
+    #   load the tokenizer and model with the given helper
+    #   ask the model for its input embedding table, which maps a token id
+    #       straight to a vector without running the network at all
+    #   get the word's sub-token ids with _word_token_ids
+    #   look those ids up in the table and average them
+    #
+    #   Nothing here touches a sentence, and nothing here runs a forward pass.
+    #
     raise NotImplementedError
 
 

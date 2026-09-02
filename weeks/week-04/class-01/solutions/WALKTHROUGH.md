@@ -8,7 +8,7 @@ is taken from it, and every printed value was produced by running it.
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 `build_vocab` ships written. Two details in it matter downstream:
 
@@ -25,7 +25,7 @@ from nothing but the `<unk>` embedding.
 
 ---
 
-## Step 1, Average the embeddings
+## Step 1, `embed_document`
 
 ```python
     idx = torch.tensor(ids, dtype=torch.long)
@@ -62,7 +62,7 @@ sequence models (W4C2) and attention (W5).
 
 ---
 
-## Step 2, The forward pass
+## Step 2, `MLP.forward`
 
 ```python
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -92,7 +92,7 @@ The nonlinearity is the only reason "deep" buys anything.
 
 ---
 
-## Step 3, The training loop
+## Given, the training loop
 
 ```python
     for _ in range(epochs):
@@ -135,7 +135,7 @@ silence it.
 
 ---
 
-## Step 4, Run the whole thing
+## Running it
 
 ```
 vocab size: 25

@@ -1,170 +1,54 @@
-# W3C2 Lab: Embedding Explorer (Optional / Take-Home)
+# W3C2 Lab: Word Embeddings, Analogies & Bias
 
-> **In class this session we go to the whiteboard and discuss, not code.** See
-> "In-Class Activity" below. This coding lab is an **optional take-home**: it
-> lets you confirm in code exactly what you computed by hand on the board.
+## 1. Learning objective
 
-## Before you code: the picture and the math
+Do arithmetic on word vectors: solve analogies with a vector offset, then use
+the same offset trick to measure how a word leans along a social axis.
+
+You write two functions in `embeddings.py`. Cosine similarity and the
+nearest-neighbour search are already written for you.
+
+## 2. Understanding the math
 
 ![Analogy as vector arithmetic: the man to woman offset is parallel to the king to queen offset](../lecture/visuals/analogy-vectors.png)
 
-![Occupations projected onto the man to woman direction, after Bolukbasi et al. 2016](../lecture/visuals/embedding-bias.png)
-
-Everything here (whiteboard and take-home) is three uses of one similarity measure:
+Similarity is the angle between two vectors:
 
 $$\cos(u, v) = \frac{u \cdot v}{\lVert u \rVert \, \lVert v \rVert}$$
 
+"$a$ is to $b$ as $c$ is to ?" becomes a step in vector space: take the offset
+from $a$ to $b$, apply it at $c$, and look for the nearest word to where you land:
+
 $$\text{analogy}(a, b, c) = \arg\max_{w \notin \{a, b, c\}} \; \cos\big(\mathrm{vec}(w), \; \mathrm{vec}(b) - \mathrm{vec}(a) + \mathrm{vec}(c)\big)$$
+
+![Occupations projected onto the man to woman direction, after Bolukbasi et al. 2016](../lecture/visuals/embedding-bias.png)
+
+The same offset defines an axis. Projecting a word onto it says which end that
+word leans toward, which is how Bolukbasi et al. (2016) measured occupational
+gender bias in real embeddings:
 
 $$\mathrm{bias}(w) = \cos\big(\mathrm{vec}(w), \; \mathrm{vec}(\mathit{pos}) - \mathrm{vec}(\mathit{neg})\big)$$
 
-Your finished code computes cosine similarity between word vectors, uses it to rank nearest neighbors, solves analogies by building the target vector `vec(b) - vec(a) + vec(c)` (the parallel-offset trick in the first figure) and returning its closest words, and measures bias by projecting a word onto a difference direction like `woman - man` (the axis in the second figure). A positive bias score leans toward `pos`, a negative one toward `neg`. **Check yourself before coding:** in the second figure, "nurse" sits on the woman side of the axis, so what sign should `bias_score("nurse", pos="woman", neg="man")` return? (Positive, because vec(nurse) has positive cosine with the woman minus man direction.)
+## 3. Getting started
 
-## In-Class Activity (no laptop required)
-
-**Part 1: Whiteboard: king - man + woman (small teams, ~12 min).**
-On paper, using the toy 8-D vectors below, compute the analogy by hand and find
-the closest word.
-
-| word  | royal | masc | fem | animal | pet | care | tech | status |
-|-------|-------|------|-----|--------|-----|------|------|--------|
-| king  | 0.9   | 0.7  | 0.0 | 0.0    | 0.0 | 0.0  | 0.0  | 0.8    |
-| man   | 0.0   | 0.8  | 0.0 | 0.0    | 0.0 | 0.0  | 0.0  | 0.1    |
-| woman | 0.0   | 0.0  | 0.8 | 0.0    | 0.0 | 0.0  | 0.0  | 0.1    |
-| queen | 0.9   | 0.0  | 0.7 | 0.0    | 0.0 | 0.0  | 0.0  | 0.8    |
-
-1. Compute `king - man + woman` dimension-by-dimension. (Answer row:
-   `[0.9, -0.1, 0.8, 0, 0, 0, 0, 0.8]`.)
-2. Which listed word is closest to that result? Why does the masculine to
-   feminine direction do the work? (Answer: **queen**.)
-
-**Part 2: Socratic discussion: who owns the bias? (small teams, ~13 min).**
-The algorithm is "just doing math." Discuss, then share out:
-
-1. The text, the engineers, the company, or the user, where did the bias
-   actually *come from*?
-2. If a hiring tool uses these vectors and discriminates, *who is accountable*?
-3. Should we debias the vectors, fix the training text, or change how the tool
-   is used?
-4. "It's just math" is a defense we will hear all semester. When is it valid, and
-   when is it a dodge? (We return to this in Week 15.)
-
----
-
-## Take-Home Coding Lab: Embedding Explorer
-
-Do **vector arithmetic on meaning**: find nearest neighbors, solve analogies
-(*man : king :: woman : ?*), and **probe embeddings for social bias**.
-
-**You will write two functions** in `embeddings.py`. The other two are already
-written for you, to read and run. Every step has its own check. Step 1 is the foundation; Steps 2 to 4 each build on it independently,
-so if one fights you, move on.
-
-## The data
-
-A small **hand-built** 8-dimensional embedding table (`EMB`) ships with the file
-so everything runs **offline, instantly, and deterministically**, with no
-downloads. The vectors are *illustrative*, not trained, but they reproduce the
-real patterns: semantic neighbors are close, a consistent gender offset exists,
-and an occupation-gender association is baked in for the bias probe. The math you
-write is exactly what you would run on real word2vec or GloVe vectors.
-
-## How this lab works
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+From the repository root on your own machine, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-03/class-02/exercise course bash
 ```
 
-Check **one step**:
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 4. Implement `analogy`
+
+Build the target vector, score every word against it, and return the best `k`
+excluding `a`, `b` and `c`. Break ties by the word itself so the output is
+deterministic.
 
 ```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step1 -q
-```
-
-Check **everything**:
-
-```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -q
-```
-
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
----
-
-### Step 0, Orientation (nothing to write)
-
-Run the starter as-is:
-
-```bash
-lab python weeks/week-03/class-02/exercise/embeddings.py
-```
-
-```
-embeddings.py is not finished yet: fill in the next TODO in this file, then re-run.
-```
-
-Look at the space you are about to explore:
-
-```bash
-lab python
-```
-
-```python
->>> import sys; sys.path.insert(0, "weeks/week-03/class-02/exercise")
->>> from embeddings import EMB, vec
->>> len(EMB)
-15
->>> vec("king")
-array([0.9, 0.7, 0. , 0. , 0. , 0. , 0. , 0.8])
->>> vec("queen")
-array([0.9, 0. , 0.7, 0. , 0. , 0. , 0. , 0.8])
-```
-
-**Notice:** `king` and `queen` differ in exactly two dimensions (1 = masculine,
-2 = feminine) and agree on the other six. That is the structure every step below
-exploits. Real embeddings have the same property in spirit, but spread across
-hundreds of dimensions none of which have names.
-
----
-
-### Step 1, Cosine similarity (given)
-
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-**What it does:** `cosine(u, v)` for two numpy arrays. Return 0.0 if either norm is 0.
-
-`np.dot` and `np.linalg.norm` do the work; this is a three-line function.
-
-**Done when:**
-
-```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step1 -q
+pytest -k step1 -q
 ```
 
 ```
@@ -172,43 +56,12 @@ lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step1
 2 passed, 6 deselected
 ```
 
-**Check it by hand:**
+## 5. Implement `bias_score`
 
-```python
->>> round(cosine(vec("king"), vec("king")), 6)
-1.0
->>> round(cosine(vec("king"), vec("queen")), 4)
-0.7474
->>> round(cosine(vec("king"), vec("cat")), 4)
-0.0
-```
-
-**Why it matters:** this is the same formula as last class, but the code is much
-shorter because the vectors are dense arrays instead of sparse dicts. That
-simplification is the whole point of the sparse-to-dense shift.
-
-Note `king` and `cat` come out at exactly 0.0. The toy table puts royalty and
-animals on disjoint dimensions. Real embeddings never give a clean zero, because
-every pair of words co-occurs somewhere.
-
----
-
-### Step 2, Nearest neighbors (given)
-
-**Given, already written for you.** Read it in the starter, run its check,
-and use it as the pattern for the steps you do write.
-
-**What it does:** `nearest(word, table, k)`, the `k` most similar words, **excluding
-`word` itself**, sorted by similarity descending.
-
-Sort with the key `(-similarity, word)` so that words tied on score come back in
-a stable alphabetical order. Several words score exactly 0.0 in this small table,
-so without the tie-break your output depends on dict ordering.
-
-**Done when:**
+Project one word onto the axis running from `neg` to `pos`. Two lines.
 
 ```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step2 -q
+pytest -k step2 -q
 ```
 
 ```
@@ -216,110 +69,10 @@ lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step2
 2 passed, 6 deselected
 ```
 
-**Check it by hand:**
-
-```python
->>> [(w, round(s, 4)) for w, s in nearest("cat", EMB, k=3)]
-[('kitten', 1.0), ('dog', 0.994), ('aunt', 0.0)]
->>> [(w, round(s, 4)) for w, s in nearest("king", EMB, k=3)]
-[('prince', 0.927), ('queen', 0.7474), ('uncle', 0.7001)]
-```
-
-**Two things to stare at.**
-
-- `kitten` scores exactly **1.0** with `cat`. Their vectors point in the same
-  direction and differ only in length, and cosine ignores length entirely.
-- The third neighbor of `cat` is `aunt` at **0.0**, which is not a neighbor at
-  all. There is no third animal in the table, so `nearest` returns whatever is
-  left. A fixed `k` always returns `k` things, relevant or not, exactly like the
-  0.000 search result last class.
-
----
-
-### Step 3, Analogies
-
-**Write:** `analogy(a, b, c, table, k)`. Build the target vector
-`vec(b) - vec(a) + vec(c)`, then return the `k` closest words by cosine,
-**excluding `a`, `b`, and `c`**.
-
-**Done when:**
+## 6. Run it, then question it
 
 ```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step3 -q
-```
-
-```
-..                                                                       [100%]
-2 passed, 6 deselected
-```
-
-**Check it by hand:**
-
-```python
->>> [(w, round(s, 4)) for w, s in analogy("man", "king", "woman", EMB, k=1)]
-[('queen', 0.9958)]
-```
-
-Compare that against the vector you computed on the whiteboard in Part 1. The
-target row was `[0.9, -0.1, 0.8, 0, 0, 0, 0, 0.8]`, and `queen` is its closest
-word.
-
-**Try deleting the exclusion** and re-running. You get `king` back, not `queen`,
-because the target vector stays closest to `king` itself. Every published
-word2vec analogy result excludes the three input words for exactly this reason,
-which is worth knowing before you are impressed by one.
-
----
-
-### Step 4, Bias probing
-
-**Write:** `bias_score(word, pos, neg, table)`, the cosine between `vec(word)` and
-the direction `vec(pos) - vec(neg)`.
-
-Positive means the word leans toward `pos`, negative toward `neg`, and the
-magnitude says how strongly.
-
-**Done when:**
-
-```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -k step4 -q
-```
-
-```
-..                                                                       [100%]
-2 passed, 6 deselected
-```
-
-**Check it by hand:**
-
-```python
->>> for occ in ["nurse", "doctor", "engineer", "teacher"]:
-...     print(occ, round(bias_score(occ, "woman", "man", EMB), 4))
-nurse 0.3434
-doctor -0.0357
-engineer -0.3402
-teacher 0.2265
-```
-
-**Read this carefully, because it is easy to over-claim.** These vectors were
-hand-written, so the association was deliberately put there; this run proves
-nothing about the world on its own. What is real is the **probe**: four lines of
-arithmetic, and running the identical probe on genuine word2vec vectors trained
-on news text produces the same shape of result (Bolukbasi et al. 2016; Caliskan
-et al. 2017).
-
-The point is not the slogan "embeddings are biased." It is that a representation
-learned from text absorbs the statistical regularities of that text including
-social ones, that those regularities are measurable with the code you just wrote,
-and that any downstream system inherits them silently because nobody inspects the
-embedding.
-
----
-
-### Step 5, Run the whole thing
-
-```bash
-lab python weeks/week-03/class-02/exercise/embeddings.py
+python embeddings.py
 ```
 
 ```
@@ -340,51 +93,24 @@ Bias probe along the (woman - man) direction:
    doctor    -0.036  -> man
    engineer  -0.340  -> man
    teacher   +0.226  -> woman
+
+(Illustrative toy vectors; real embeddings show the same patterns.)
 ```
 
-And the full suite:
+These are toy vectors, built to show the pattern. The questions are the point.
 
-```bash
-lab python -m pytest weeks/week-03/class-02/exercise/test_embeddings.py -q
-```
-
-```
-........                                                                 [100%]
-8 passed
-```
-
-**Closing the two-class arc.** Last class ended on a specific failure: under
-TF-IDF, "couch" and "sofa" have cosine 0, exactly as unrelated as "couch" and
-"championship", because every term is its own orthogonal dimension. Step 2 is the
-fix: `kitten` and `cat` come out close without sharing a single character.
-
-What embeddings did **not** fix: every vector here is static. `bank` gets one
-vector whether the sentence is about rivers or money. That is the gap Week 6
-opens with ELMo.
-
-## The Exploration (take-home)
-
-1. **Analogy hunt.** Find 3 analogies the toy space gets right and 1 it gets
-   wrong. Why does it fail? (Hint: the vocabulary is small and the dimensions are
-   coarse.)
-2. **Bias audit.** Run `bias_score` for *nurse, doctor, engineer, teacher* along
-   (woman - man). Which lean which way? Now imagine these vectors feeding a
-   resume-ranking model. What goes wrong?
-3. **Whose fault is the bias?** Revisit the in-class discussion. Where did the
-   bias actually come from, and who is responsible for catching it?
-
-Report your most surprising analogy and your starkest bias result.
-
-## Stretch goals
-
-- Implement **3CosMul** analogy scoring and compare to the additive version.
-- Call `load_pretrained()` to load real sentence embeddings (one-time download;
-  it degrades gracefully offline). Re-run the bias probe on real vectors. Does
-  the pattern hold? Expect the analogies to work *less* cleanly than the toy
-  table, which is the more honest picture.
-- Add a `most_biased(table, pos, neg, k)` helper that ranks the whole vocabulary
-  by bias score.
-
-A full reference solution is in `../solutions/embeddings.py`, and the
-step-by-step explanation is in `../solutions/WALKTHROUGH.md` (don't peek until
-you've tried).
+1. Run the analogy backwards: `analogy("woman", "queen", "man", EMB, k=1)`. It
+   returns `king` with similarity 0.9958, exactly the score the forward
+   direction gave. Look at the target-vector formula and explain why the two
+   must match.
+2. Flip the axis. Compare `bias_score("nurse", "she", "he", ...)` against
+   `bias_score("nurse", "he", "she", ...)` using `woman`/`man`: +0.343 becomes
+   -0.343. Which part of the formula forces an exact sign flip?
+3. Probe a word that is gendered by definition: `bias_score("queen", "woman",
+   "man", EMB)` is +0.355, about the same as `nurse` at +0.343. Both score
+   alike, but only one of them is evidence of a problem. What distinguishes
+   them, and what does that mean for using this number as a bias metric?
+4. Delete the "exclude a, b, c" guard from `analogy`. The top answer is still
+   `queen`, unchanged. Construct a case where dropping the guard would change
+   the answer, and say what that implies about how far apart these toy vectors
+   are.

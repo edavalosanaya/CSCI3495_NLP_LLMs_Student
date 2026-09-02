@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""W3C1 starter, a tiny TF-IDF search engine.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-03/class-01/exercise/test_search.py -k step1 -q
-
-When every step is done, the demo runs:
-    python weeks/week-03/class-01/exercise/search.py
-
-CPU-only, deterministic, no network. Build TF-IDF and cosine yourself.
-"""
+"""W3C1 starter, a tiny TF-IDF search engine. See README.md."""
 from __future__ import annotations
 import math
 import re
@@ -33,18 +24,11 @@ def tokenize(text: str) -> list[str]:
 
 
 def build_index(docs: list[str]) -> dict:
-    """Build a search index over the documents.
+    """GIVEN. Tokenizes the corpus and computes df and idf for every term.
 
-    Return a dict like:
-        {
-          "docs": [tokens_per_doc, ...],  # tokenized documents
-          "n": number_of_docs,
-          "df": {term: doc_frequency},    # # docs containing the term
-          "idf": {term: log(n / df)},     # inverse document frequency
-        }
+    Returns {"docs": tokens per doc, "n": doc count, "df": term -> doc
+    frequency, "idf": term -> log(n / df)}.
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     tokenized = [tokenize(d) for d in docs]
     n = len(docs)
     df: Counter = Counter()
@@ -56,32 +40,58 @@ def build_index(docs: list[str]) -> dict:
 
 
 def tfidf_vector(index: dict, tokens: list[str]) -> dict:
-    """Return {term: tf-idf weight} for a list of tokens.
+    """Weight one document (or query) as a sparse term -> tf-idf vector.
 
-    tf = raw count of the term in `tokens`.
-    weight = tf * idf  (use index["idf"].get(term, 0.0); unseen terms -> 0).
+    Args:
+        index: the dict from build_index. Only its "idf" mapping is needed
+            here, and a term the corpus never contained is absent from it.
+        tokens: the tokenized document or query being weighted. The same term
+            may appear many times; that repetition is the tf.
+
+    Returns:
+        {term: weight} holding only terms that carry signal. A term whose idf
+        is 0.0 is left out entirely rather than stored as zero.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The weight formula is in README section 2.
+    #
+    #   count how many times each token occurs -- that count is the tf
+    #   look each term's idf up in the index, treating a missing term as 0.0
+    #   keep only the terms whose weight is not zero
+    #
+    #   A term with idf 0.0 sits in every document, so it separates nothing.
+    #
     raise NotImplementedError
 
 
 def cosine(u: dict, v: dict) -> float:
-    """Cosine similarity between two sparse {term: weight} vectors.
+    """Cosine of the angle between two sparse term -> weight vectors.
 
-    dot / (||u|| * ||v||). Return 0.0 if either vector has zero norm.
+    Args:
+        u: a sparse vector. Terms absent from it are zero, not missing data.
+        v: the other sparse vector. It need not share any term with u.
+
+    Returns:
+        A float in [0, 1] for non-negative weights. 0.0 when either vector has
+        zero length, since a vector with no length points nowhere and asking
+        for its angle is meaningless.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   The formula is in README section 2.
+    #
+    #   the dot product only needs the terms u actually has: a term missing
+    #       from v contributes nothing
+    #   each vector's length is the square root of the sum of its squared weights
+    #   a zero length means there is no angle to measure, so give back 0.0
+    #   otherwise divide the dot product by the two lengths
+    #
     raise NotImplementedError
 
 
 def search(index: dict, query: str, k: int = 3) -> list[tuple[int, float]]:
-    """Return the top-k (doc_id, score) pairs ranked by cosine similarity.
-
-    Build the query's tf-idf vector, score it against every document's
-    tf-idf vector, and return the k highest. Break ties by doc_id (ascending).
-    """
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Ranks every document against the query, ties broken by doc_id."""
     qvec = tfidf_vector(index, tokenize(query))
     scored = []
     for doc_id, toks in enumerate(index["docs"]):

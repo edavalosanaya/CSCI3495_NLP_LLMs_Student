@@ -77,7 +77,7 @@ def test_step2_workers_call_the_llm_and_return_text():
     assert wf.worker_extract("text", llm) == "ok"
 
 
-def test_step3_fallback_never_crashes_and_does_not_need_llm():
+def test_given_fallback_never_crashes():
     # Fallback must be safe even with an LLM that would explode.
     def boom(_):
         raise AssertionError("fallback should not call the LLM")
@@ -88,7 +88,7 @@ def test_step3_fallback_never_crashes_and_does_not_need_llm():
 
 # ---- run_workflow() (the orchestrator) ----
 
-def test_step4_run_workflow_dispatches_to_correct_worker():
+def test_step3_run_workflow_dispatches_to_correct_worker():
     llm = MockLLM(router_reply="translate", worker_reply="bonjour")
     r = wf.run_workflow("Translate hello", llm)
     assert r.label == "translate"
@@ -96,7 +96,7 @@ def test_step4_run_workflow_dispatches_to_correct_worker():
     assert "translate" in r.handled_by
 
 
-def test_step4_run_workflow_routes_unknown_to_fallback():
+def test_step3_run_workflow_routes_unknown_to_fallback():
     llm = MockLLM(router_reply="nonsense")
     r = wf.run_workflow("???", llm)
     assert r.label == "unknown"
@@ -104,14 +104,14 @@ def test_step4_run_workflow_routes_unknown_to_fallback():
     assert isinstance(r.output, str) and r.output
 
 
-def test_step4_run_workflow_returns_a_trace():
+def test_step3_run_workflow_returns_a_trace():
     llm = MockLLM(router_reply="summarize", worker_reply="a summary")
     r = wf.run_workflow("Summarize this", llm)
     assert isinstance(r.trace, list) and len(r.trace) >= 1
     assert any("route" in step for step in r.trace)
 
 
-def test_step5_end_to_end_all_paths():
+def test_given_end_to_end_all_paths():
     cases = {
         "summarize": "summarize",
         "translate": "translate",

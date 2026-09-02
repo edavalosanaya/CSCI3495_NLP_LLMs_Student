@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""W2C1 starter, build an N-gram Bard.
-
-Work through the lab in `README.md`. Each STEP below has its own check:
-    python -m pytest weeks/week-02/class-01/exercise/test_ngram_lm.py -k step1 -q
-
-When every step is done, the demo runs:
-    python weeks/week-02/class-01/exercise/ngram_lm.py
-
-Everything is CPU-only and deterministic (we seed the RNG). No network needed.
-"""
+"""W2C1 starter, build an N-gram Bard. See README.md."""
 from __future__ import annotations
 import random
 from collections import defaultdict
@@ -50,42 +41,58 @@ def vocab(sentences: list[str]) -> set[str]:
 
 
 def count_ngrams(sentences: list[str], n: int) -> dict:
-    """Count n-grams and contexts.
+    """GIVEN. One counting pass over the padded corpus.
 
-    Return a dict:
-        {
-          "n": n,
-          "vocab": set_of_words,          # words that can be PREDICTED (incl. </s>)
-          "ngram": {(w1..wn): count},     # full n-gram counts
-          "context": {(w1..w_{n-1}): count}  # context counts
-        }
-    Pad each sentence with pad(tokens, n) before counting.
+    Returns {"n", "vocab", "ngram": {(w1..wn): count}, "context": {(w1..w_{n-1}): count}}.
     """
-    # TODO (STEP 1): implement. Check with: pytest -k step1
-    raise NotImplementedError
+    ngram: dict[tuple, int] = defaultdict(int)
+    context: dict[tuple, int] = defaultdict(int)
+    for s in sentences:
+        toks = pad(tokenize(s), n)
+        for i in range(n - 1, len(toks)):
+            gram = tuple(toks[i - n + 1 : i + 1])
+            ngram[gram] += 1
+            context[gram[:-1]] += 1
+    return {"n": n, "vocab": vocab(sentences), "ngram": dict(ngram), "context": dict(context)}
+
+
+def iter_predictions(n: int, sentences: list[str]):
+    """GIVEN. Yields every (context, word) pair the model is asked to predict."""
+    for s in sentences:
+        toks = pad(tokenize(s), n)
+        for i in range(n - 1, len(toks)):
+            yield tuple(toks[i - n + 1 : i]), toks[i]
 
 
 def prob(model: dict, context: tuple, word: str) -> float:
-    """Add-one (Laplace) smoothed P(word | context).
+    """Add-one smoothed P(word | context) under an n-gram model.
 
-        (count(context, word) + 1) / (count(context) + V)
+    Args:
+        model: the dict from count_ngrams, holding
+            "vocab":   every word that can be predicted, including </s>
+            "ngram":   full n-gram tuple -> how often it was seen
+            "context": the same tuple minus its last word -> how often seen
+            Both counts are plain dicts: a tuple never seen is absent, not 0.
+        context: the n-1 words before the one being predicted, as a tuple.
+        word: the single word whose probability you want.
 
-    where V = |vocab|. `context` is a tuple of length n-1.
+    Returns:
+        A float in (0, 1). Never exactly 0, even for a pair never seen
+        together, and never 1: that is what the smoothing buys.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   P(w | context) is in README section 2. One line of arithmetic, no loop.
+    #
+    #   Both counts come out of the model with .get(..., 0), because an unseen
+    #   tuple is missing from the dict rather than stored as zero. The full
+    #   n-gram's key is the context tuple with the word appended.
+    #
     raise NotImplementedError
 
 
 def generate(model: dict, n: int, max_len: int = 20, seed: int = 0) -> list[str]:
-    """Sample a sentence by walking the chain from <s> ... to </s>.
-
-    Start with context = (BOS,) * (n-1). At each step, sample the next word
-    from the smoothed distribution over the vocabulary given the context.
-    Stop at EOS or after max_len words. Return the generated words
-    (WITHOUT the BOS/EOS padding).
-    """
-    # GIVEN (STEP 3): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Walks the chain from <s> to </s>, sampling each word from prob()."""
     rng = random.Random(seed)
     words = sorted(model["vocab"])  # sorted for determinism
     context = (BOS,) * (n - 1)
@@ -102,27 +109,32 @@ def generate(model: dict, n: int, max_len: int = 20, seed: int = 0) -> list[str]
 
 
 def perplexity(model: dict, n: int, sentences: list[str]) -> float:
-    """Perplexity of the held-out sentences under the model.
+    """Perplexity of held-out sentences: how surprised the model is, per word.
 
-        PP = exp( - (1/N) * sum log P(w_t | context) )
+    Args:
+        model: the dict from count_ngrams.
+        n: the model's order, so the padding matches how it was trained.
+        sentences: held-out text, NOT the training corpus.
 
-    Sum log-probs over every predicted token (the EOS counts; BOS padding
-    does not). N is the total number of predicted tokens. Use math.log / math.exp.
+    Returns:
+        A float >= 1. Lower is better. Return float("inf") when there is
+        nothing to predict, since an average over zero tokens is undefined.
     """
-    # GIVEN (STEP 4): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
-    log_sum = 0.0
-    count = 0
-    for s in sentences:
-        toks = pad(tokenize(s), n)
-        for i in range(n - 1, len(toks)):
-            context = tuple(toks[i - n + 1 : i])
-            word = toks[i]
-            log_sum += math.log(prob(model, context, word))
-            count += 1
-    if count == 0:
-        return float("inf")
-    return math.exp(-log_sum / count)
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   The formula is in README section 2.
+    #
+    #   iter_predictions(n, sentences) hands you each (context, word) pair,
+    #   already padded, so there is no windowing to do here.
+    #
+    #   add up the log of prob(...) for every pair, counting the pairs
+    #   if you counted none, the answer is infinity
+    #   otherwise return e to the power of minus the average log
+    #
+    #   Work in logs and exponentiate once at the end. Multiplying the
+    #   probabilities of a long sentence underflows to zero.
+    #
+    raise NotImplementedError
 
 
 def _demo() -> None:
@@ -138,7 +150,7 @@ def _demo() -> None:
         label = {1: "unigram", 2: "bigram", 3: "trigram"}[n]
         print(f"\n[{label}]  perplexity on held-out = {pp:7.2f}")
         print(f"   babble: {sample}")
-    print("\nLower perplexity = better. Notice fluency rise as n grows.")
+    print("\nLower perplexity = better.")
 
 
 if __name__ == "__main__":

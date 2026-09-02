@@ -28,13 +28,13 @@ sys.modules["charrnn_under_test"] = cr
 _spec.loader.exec_module(cr)
 
 
-def test_step0_vocab_contains_end_marker():
+def test_given_vocab_contains_end_marker():
     stoi, itos = cr.build_vocab(["abc"])
     assert cr.END in stoi
     assert itos[stoi["a"]] == "a"
 
 
-def test_step2_training_pairs_shift_and_end():
+def test_given_training_pairs_shift_and_end():
     stoi, itos = cr.build_vocab(["abc"])
     xin, yt = cr.make_training_pairs("abc", stoi)
     assert [itos[i.item()] for i in xin] == ["a", "b", "c"]
@@ -48,7 +48,7 @@ def test_step1_forward_shapes():
     assert logits.shape == (1, 3, len(stoi))
 
 
-def test_step3_sample_returns_string_without_end_marker():
+def test_step2_sample_returns_string_without_end_marker():
     torch.manual_seed(0)
     stoi, itos = cr.build_vocab(cr.NAMES)
     model = cr.CharRNN(len(stoi))
@@ -58,7 +58,7 @@ def test_step3_sample_returns_string_without_end_marker():
     assert name.startswith("t")
 
 
-def test_step4_training_reduces_loss():
+def test_given_training_reduces_loss():
     torch.manual_seed(cr.SEED)
     stoi, _ = cr.build_vocab(cr.NAMES)
     model = cr.CharRNN(len(stoi))

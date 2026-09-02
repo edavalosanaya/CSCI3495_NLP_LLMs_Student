@@ -61,7 +61,7 @@ def test_step2_context_is_weighted_average_of_values():
     assert torch.allclose(context, weights @ values, atol=1e-5)
 
 
-def test_step3_heatmap_renders_grid():
+def test_given_heatmap_renders_grid():
     s = at.heatmap(torch.tensor([[0.0, 1.0], [1.0, 0.0]]),
                    row_labels=["a", "b"], col_labels=["x", "y"])
     assert isinstance(s, str)

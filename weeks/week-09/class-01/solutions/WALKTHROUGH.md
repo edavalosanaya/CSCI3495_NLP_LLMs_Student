@@ -8,7 +8,7 @@ taken from it, and every printed value was produced by running it.
 
 ---
 
-## Steps 1 to 3, The constructor
+## Step 1, `LoRALinear.__init__`
 
 ```python
     def __init__(self, in_features: int, out_features: int, r: int = 4, alpha: int = 8):
@@ -47,7 +47,7 @@ why papers report them as separate knobs.
 
 ---
 
-## Step 4, The forward pass
+## Step 2, `LoRALinear.forward`
 
 ```python
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -84,7 +84,7 @@ until you train. No risk of degrading the base model by attaching adapters.
 
 ---
 
-## Step 5, Quantize
+## Given, `quantize`
 
 ```python
 def quantize(w: torch.Tensor, bits: int) -> torch.Tensor:
@@ -114,7 +114,7 @@ def quantize(w: torch.Tensor, bits: int) -> torch.Tensor:
 
 ---
 
-## Step 6, Run the whole thing
+## Running it
 
 ```
 LoRA loss: 9.744 -> 0.000

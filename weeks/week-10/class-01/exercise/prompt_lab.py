@@ -41,8 +41,6 @@ DEMOS: list[tuple[str, str]] = [
 # ----------------------------- TODO 1 -----------------------------
 def accuracy(preds: list[str], golds: list[str]) -> float:
     """Exact-match accuracy in [0, 1]. Assumes len(preds) == len(golds) > 0."""
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     correct = sum(1 for p, g in zip(preds, golds) if p == g)
     return correct / len(golds)
 
@@ -61,7 +59,19 @@ def build_fewshot_prompt(instruction: str, demos: list[tuple[str, str]], query: 
         Sentiment:
     The trailing 'Sentiment:' is the output cue the model should complete.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   The shape is drawn in README section 2. Build one string.
+    #
+    #   start with the instruction, then a blank line
+    #   for every demonstration, add its review line, its sentiment line, and
+    #       a blank line after it
+    #   finish with the query's review line and a BARE "Sentiment:" line
+    #   join it all with newlines
+    #
+    #   That last line has no label after it. It is the cue the model is meant
+    #   to complete, and leaving it off is the usual bug.
+    #
     raise NotImplementedError
 
 
@@ -72,13 +82,29 @@ def build_zeroshot_prompt(instruction: str, demos, query: str) -> str:
 
 # ----------------------------- TODO 3 -----------------------------
 def run_experiment(model: "Model", prompt_fn: Callable, dataset, demos) -> tuple[list[str], float]:
-    """Run prompt_fn over the dataset, query the model, parse labels.
+    """Run one prompting strategy over the whole dataset and score it.
 
-    Returns (predictions, accuracy). `prompt_fn(instruction, demos, query)`
-    builds the prompt; use INSTRUCTION below. Parse each model reply with
-    `parse_label`.
+    Args:
+        model: anything with .generate(prompt) -> str. The stub model keeps
+            this runnable with no LLM at all.
+        prompt_fn: called as prompt_fn(instruction, demos, query). Swapping
+            this is how the zero-shot and few-shot variants are compared.
+        dataset: (text, gold label) pairs.
+        demos: the demonstrations to embed, ignored by the zero-shot builder.
+
+    Returns:
+        (predictions, accuracy). Predictions are parsed labels, one per item,
+        in dataset order.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   for each item and its gold label:
+    #       build the prompt with prompt_fn, using the INSTRUCTION constant
+    #       ask the model to generate from it
+    #       turn the raw reply into a label with the given parse_label
+    #   score the predictions against the gold labels with the given accuracy
+    #   return both
+    #
     raise NotImplementedError
 
 

@@ -37,10 +37,6 @@ ceiling on answer quality.)
 Building RAG end to end is essential, so this session is a **full-period coding
 lab**, not a short exercise.
 - **Quiz 11** first (~10 min).
-- **Paired whiteboard warm-up (~10 min):** with a partner, **sketch the pipeline**
-  (chunk -> index -> retrieve -> ground -> cite) and **mark where poisoning could
-  enter** it (untrusted text rides in with the documents). Write one defense per
-  marked spot. Keep the sketch up; you build exactly this.
 - **5-min break.**
 - **Extended build (~50 min)** with milestones:
   - **Milestone 1, chunk + index:** `chunk_documents`, build the TF-IDF index,
@@ -48,7 +44,7 @@ lab**, not a short exercise.
   - **Milestone 2, retrieve + ground:** `retrieve` top-k, `build_prompt`, generate
     a grounded answer.
   - **Milestone 3, cite + verify:** `verify_citations`, add an unanswerable
-    question (expect "I don't know"), then the stretch goals.
+    question (expect "I don't know").
 
 ## The idea
 - A small set of **course notes** (provided in `notes.py`).
@@ -60,56 +56,28 @@ lab**, not a short exercise.
 **Offline-safe & testable:** the default retriever is **TF-IDF** (scikit-learn,
 no network), and the default generator is a **stub** that answers from the
 retrieved context and emits real citations. A real local model via Ollama is the
-primary path when available; sentence-embedding retrieval is a stretch goal.
+primary path when available.
 
 ## How this lab works
 
-Each step tells you **what to write**, then exactly **how to check it**. The
-steps are sequential: this is a pipeline, and each stage consumes the last.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One command,
+once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-11/class-02/exercise course bash
 ```
 
-Check **one step**:
+Everything below runs in that shell. Each step says what to write and gives the
+one command that checks it:
 
 ```bash
-lab python -m pytest weeks/week-11/class-02/exercise/test_rag.py -k step1 -q
+pytest -k step1 -q
 ```
 
-Check **everything**:
-
-```bash
-lab python -m pytest weeks/week-11/class-02/exercise/test_rag.py -q
-```
-
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
+Steps marked **(given)** are already written for you: read them, run the check,
+move on. A step you have not written yet reports `skipped`, never a failure.
+Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
+**The labs are not graded**, so reading it is not cheating.
 ---
 
 ### Step 1, Chunk the documents (given)
@@ -176,7 +144,7 @@ demos skip.
 ### Step 5, Run the pipeline
 
 ```bash
-lab python -m pytest weeks/week-11/class-02/exercise/test_rag.py -q
+pytest -q
 ```
 
 ```
@@ -187,7 +155,7 @@ lab python -m pytest weeks/week-11/class-02/exercise/test_rag.py -q
 Then end to end, with Ollama:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course python weeks/week-11/class-02/exercise/rag.py
+python rag.py
 ```
 
 ```
@@ -214,13 +182,3 @@ unhelpful", which is usually the better failure, and it means retrieval quality
 now bounds answer quality. Notice also that the third retrieved chunk is often
 irrelevant: a fixed `k` always returns `k` chunks, exactly as in W3C1.
 
-## Stretch goals
-- Swap in an **embedding** retriever (`sentence-transformers`, tiny model) and
-  compare retrieved chunks vs. TF-IDF.
-- Add a question whose answer is **not** in the notes; confirm the system says
-  "I don't know" instead of hallucinating.
-- Measure **recall@k**: for a labeled (question, gold-chunk) set, how often is the
-  gold chunk in the top-k?
-
-A full reference solution is in `../solutions/rag.py`, and the step-by-step
-explanation is in `../solutions/WALKTHROUGH.md` (don't peek until you've tried).

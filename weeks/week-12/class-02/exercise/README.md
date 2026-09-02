@@ -59,57 +59,24 @@ entire lab offline and only need Ollama for `run_demo.py`.
 
 ## How this lab works
 
-Each step tells you **what to write**, then how to check it.
-
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One command,
+once per session:
 
 ```bash
 docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-02/exercise course bash
 ```
 
-> **Read this before you trust a green test.** Until you fill in the TODOs, the
-> suite falls back to the reference solution so the course sweep stays green on
-> a fresh checkout. That means a passing test is not by itself evidence that
-> *your* code works. The real check for each step is the **hand check** printed
-> under it, which runs your file directly.
-
-Check **one step**:
+Everything below runs in that shell. Each step says what to write and gives the
+one command that checks it:
 
 ```bash
-lab python -m pytest test_agent.py -k step1 -q
+pytest -k step1 -q
 ```
 
-Check **everything**:
-
-```bash
-lab python -m pytest test_agent.py -q
-```
-
-Some steps are **already written for you** and marked `(given)`. Run their
-check, read the code, and use it as the pattern for the steps you do write. A
-step you have not written yet reports `skipped`, never a failure, so the only
-red you will ever see is a real wrong answer.
-
-Stuck for more than a few minutes? Open `../solutions/WALKTHROUGH.md` at the
-matching step. The full reference solution sits in `../solutions/` too. **These
-labs are not graded**, so reading them is not cheating: getting unstuck and
-finishing the idea beats staring at a blank function.
-
+Steps marked **(given)** are already written for you: read them, run the check,
+move on. A step you have not written yet reports `skipped`, never a failure.
+Stuck more than five minutes? Open `../solutions/WALKTHROUGH.md` at that step.
+**The labs are not graded**, so reading it is not cheating.
 ---
 
 ### Step 0, Orientation
@@ -128,12 +95,18 @@ execution bug. The AST walk is how you get arithmetic without getting `eval`.
 Run the starter to see it fail loudly:
 
 ```bash
-lab python -c "import tools; print(tools.calculator('2+2'))"
+python tools.py
 ```
 
 ```
-NotImplementedError
+calculator('2+2') -> not written yet (its TODO is in this file)
+today('') -> 2026-09-01
+weather('San Antonio') -> 101.0
+search('speed of light') -> The speed of light is about 299,792 kilometers per second.
 ```
+
+Three of the four already answer, because they are given. `today` prints the
+real date, so yours will differ. `calculator` is Step 1, and it is yours.
 
 ---
 
@@ -147,24 +120,9 @@ int so `2 + 2` reads `4`, not `4.0`.
 **Done when:**
 
 ```
-lab python -m pytest test_agent.py -k step1 -q
+pytest -k step1 -q
 3 passed, 20 deselected
 ```
-
-**Check it by hand:**
-
-```bash
-lab python -c "import tools; print(tools.calculator('log(3^2 * 16 - 10)'))"
-```
-
-```
-4.897839799950911
-```
-
-**Why the `^` rewrite matters.** In Python `^` is bitwise XOR, not a power. If
-you skip the rewrite, `log(3^2 * 16 - 10)` parses as `log(3 XOR 22)` = `log(21)`
-and returns **3.0445**: a plausible number, silently wrong. A tool that fails
-loudly costs the agent one step; a tool that lies costs you the whole answer.
 
 ---
 
@@ -196,24 +154,6 @@ that **lists the known ones**. Use the provided `_day_offset(day)` for the date
 and reject an offset outside the series.
 
 **Done when:** `-k step3` gives `4 passed, 19 deselected`.
-
-**Check it by hand:**
-
-```bash
-lab python -c "import tools; print(tools.weather('San_Antonio, yesterday'))"
-```
-
-```
-94.0
-```
-
-**Why the sloppiness tolerance matters.** A small model will write
-`San_Antonio`, `"yesterday"`, and `SAN ANTONIO` on three consecutive turns. A
-tool that accepts only one exact spelling turns every one of those into a
-retry, and the agent burns its whole budget on punctuation. Be forgiving about
-the **input** and exact about the **output**. Note also that the temperatures
-are indexed by *offset from today*, not by calendar date, so this lab gives the
-same numbers whatever day you run it.
 
 ---
 
@@ -288,7 +228,7 @@ The loop cannot tell a real lookup from an invented number. This check can.
 ### Step 8, Run the whole thing
 
 ```bash
-lab python -m pytest test_agent.py -q
+pytest -q
 ```
 
 ```
@@ -299,7 +239,7 @@ lab python -m pytest test_agent.py -q
 Now the demo, which needs Ollama:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -e OLLAMA_HOST=http://host.docker.internal:11434 course python weeks/week-12/class-02/solutions/run_demo.py
+OLLAMA_HOST=http://host.docker.internal:11434 python ../solutions/run_demo.py
 ```
 
 Real output, `qwen2.5:1.5b`:
@@ -375,11 +315,3 @@ Full period, individual, then compare in pairs at the end.
 3. **Fix that failure with a guard, not with a bigger model.** Then check your
    guard did not break the passing cases: `pytest -q` must still be green.
 
-## Stretch goals
-
-- Make `is_grounded` report *which* number was invented, and feed that back as
-  an Observation so the model can correct itself instead of just being rejected.
-- Add a per-tool call budget (at most 2 `weather` calls per task) and see
-  whether it fixes the 0.5b's looping.
-- The fallback answers with the last good Observation. Find a task where that is
-  the *wrong* thing to do, and decide what the loop should do instead.

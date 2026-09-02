@@ -8,7 +8,7 @@ taken from it, and every printed value was produced by running it.
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 Eight training sentences, two test sentences. That ratio is the honest framing
 for everything below: this session demonstrates *mechanisms*, and any accuracy
@@ -16,7 +16,7 @@ number it produces is a smoke test rather than a measurement.
 
 ---
 
-## Step 1, Fill the mask
+## Step 1, `top_mask_predictions`
 
 ```python
     from transformers import BertForMaskedLM, BertTokenizerFast, pipeline
@@ -85,7 +85,7 @@ knowledge.
 
 ---
 
-## Step 2, Fine-tune a classifier
+## Step 2, `finetune_and_eval`
 
 ```python
     torch.manual_seed(seed)
@@ -148,7 +148,7 @@ Fine-tuned tiny BERT test accuracy: 1.00
 
 ---
 
-## Step 3, Run the whole thing
+## Running it
 
 ```
 ...                                                                      [100%]

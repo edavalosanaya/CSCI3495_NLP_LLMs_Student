@@ -25,8 +25,6 @@ def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
     characters plus the END marker. Example:
         "low low"  ->  {("l","o","w","</w>"): 2}
     """
-    # GIVEN (STEP 1): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
     vocab: Counter = Counter()
     for line in corpus:
         for word in line.lower().split():
@@ -36,47 +34,92 @@ def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
 
 
 def count_pairs(vocab: dict[tuple[str, ...], int]) -> Counter:
-    """Count adjacent symbol pairs across the vocab, weighted by word frequency.
+    """Count every adjacent pair of symbols, weighted by how common the word is.
 
-    Return a Counter mapping (sym_a, sym_b) -> total count.
+    Args:
+        vocab: symbol tuple -> how many times that word appears in the corpus.
+            A word is a tuple like ("l", "o", "w", "</w>"), and it gets shorter
+            as merges are applied.
+
+    Returns:
+        A Counter of (left symbol, right symbol) -> total count across the
+        whole corpus.
     """
-    # TODO (STEP 2): implement. Check with: pytest -k step2
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   for each word and its frequency:
+    #       walk its symbols in overlapping neighbouring pairs
+    #       add that word's FREQUENCY to each pair's running count
+    #
+    #   Add the frequency, not 1. A word that appears five times contributes
+    #   five to each of its pairs, and getting this wrong changes which pair
+    #   wins the very first merge.
+    #
     raise NotImplementedError
 
 
 def merge_pair(
     pair: tuple[str, str], vocab: dict[tuple[str, ...], int]
 ) -> dict[tuple[str, ...], int]:
-    """Return a new vocab where every adjacent occurrence of `pair` is merged.
+    """Fuse one pair of symbols everywhere it occurs, giving a new vocab.
 
-    Merging ("e","r") in ("l","o","w","e","r","</w>") gives
-    ("l","o","w","er","</w>").
+    Args:
+        pair: the two symbols to glue together, e.g. ("e", "r").
+        vocab: the current symbol tuple -> frequency mapping.
+
+    Returns:
+        A NEW mapping with the pair replaced by the single joined symbol
+        wherever the two were adjacent. Merging ("e", "r") turns
+        ("l", "o", "w", "e", "r", "</w>") into ("l", "o", "w", "er", "</w>").
+        The input is not modified.
     """
-    # TODO (STEP 3): implement. Check with: pytest -k step3
+    # TODO (STEP 2): implement. Check with: pytest -k step2
+    #
+    #   for each word, scan its symbols left to right:
+    #       when the next two symbols are exactly this pair, emit them joined
+    #           as one symbol and skip past BOTH
+    #       otherwise emit the current symbol and move on by one
+    #   put the rewritten word in the new mapping, ADDING its frequency to
+    #       whatever is already there
+    #
+    #   That last point matters: two different words can collapse to the same
+    #   symbols, and overwriting instead of adding silently loses a word.
+    #
     raise NotImplementedError
 
 
 def train_bpe(
     corpus: list[str], num_merges: int
 ) -> list[tuple[str, str]]:
-    """Run BPE training for `num_merges` steps.
+    """Learn a merge list by repeatedly fusing the most frequent pair.
 
-    Repeatedly: count pairs, pick the most frequent (break ties by the pair's
-    sort order for determinism), merge it. Return the ordered list of merges.
-    Stop early if there are no pairs left to merge.
+    Args:
+        corpus: the training sentences.
+        num_merges: the maximum number of merges to learn. Fewer are returned
+            if the corpus runs out of adjacent pairs first.
+
+    Returns:
+        The merges in the order they were learned. Order is the whole point:
+        encoding replays this list from the start, so a later merge can only
+        build on symbols an earlier one created.
     """
-    # TODO (STEP 4): implement. Check with: pytest -k step4
+    # TODO (STEP 3): implement. Check with: pytest -k step3
+    #
+    #   The loop that drives the two functions above. build_vocab is given.
+    #
+    #   build the starting vocab from the corpus
+    #   up to num_merges times:
+    #       count the pairs; if there are none left, stop early
+    #       pick the most frequent pair, breaking ties by the pair itself so
+    #           two runs on the same corpus always agree
+    #       merge it, and record it
+    #   return the merges in order
+    #
     raise NotImplementedError
 
 
 def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
-    """Tokenize a single word by applying the learned merges in order.
-
-    Start from characters + END, then for each learned merge (in order) fuse
-    all adjacent occurrences of that pair. Returns the final list of subwords.
-    """
-    # GIVEN (STEP 5): written for you. Read it, run its check, and use
-    # it as the pattern for the steps you do write.
+    """GIVEN. Tokenizes one word by replaying the learned merges in order."""
     symbols: list[str] = list(word.lower()) + [END]
     for a, b in merges:
         merged = a + b

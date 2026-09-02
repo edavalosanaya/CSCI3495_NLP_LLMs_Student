@@ -74,26 +74,14 @@ Full case briefs, the scoring table and the worksheet are in `premortem-guide.md
 **You will write three functions** in `bias_probe.py`, one per step, each with
 its own check. This is a simplified WEAT (Caliskan et al. 2017).
 
-`lab` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias lab='docker compose -f docker/docker-compose.yml run --rm --no-deps course'
-
-# Windows, PowerShell
-function lab { docker compose -f docker/docker-compose.yml run --rm --no-deps course @args }
-
-# Windows, Command Prompt
-doskey lab=docker compose -f docker/docker-compose.yml run --rm --no-deps course $*
-```
-
-Rather work inside the image? This opens a shell there, and then every
-command below runs without its `lab` prefix:
+Open a shell inside the course image, already in this lab's folder. One
+command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-15/class-01/exercise course bash
 ```
+
+Everything below runs in that shell.
 
 Stuck for more than a few minutes on a step? The reference solution and a
 step-by-step `WALKTHROUGH.md` are in `../solutions/`. **These labs are not
@@ -101,7 +89,7 @@ graded**, so reading them is not cheating: getting unstuck and finishing the
 idea beats staring at a blank function.
 
 ```bash
-lab python -m pytest weeks/week-15/class-01/exercise/test_bias_probe.py -k step1 -q
+pytest -k step1 -q
 ```
 
 ---
@@ -143,7 +131,7 @@ definition is measuring nothing.
 ### Step 4, Run it
 
 ```bash
-lab python -m pytest weeks/week-15/class-01/exercise/test_bias_probe.py -q
+pytest -q
 ```
 
 ```
@@ -152,7 +140,7 @@ lab python -m pytest weeks/week-15/class-01/exercise/test_bias_probe.py -q
 ```
 
 ```bash
-lab python weeks/week-15/class-01/exercise/bias_probe.py
+python bias_probe.py
 ```
 
 ```
@@ -182,10 +170,3 @@ Use your `effect` score the way step 2 asks you to: "this embedding associates t
 roles with men by +X, and my case pipes exactly that representation into a decision about
 a person." A cause with a measured number attached outranks four with adjectives.
 
-## Stretch goals
-- Add your own target/attribute word lists and re-measure.
-- Add a **neutral** sanity check (e.g., `tree`, `river`), the effect should vanish.
-- Read about the original **WEAT** (Caliskan, Bryson, Narayanan, *Science* 2017) and
-  discuss why measuring bias is itself a contested, value-laden choice.
-
-Reference solution: `../solutions/bias_probe.py` (don't peek until you've tried!).

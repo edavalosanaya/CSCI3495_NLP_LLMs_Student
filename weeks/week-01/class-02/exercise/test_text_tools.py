@@ -1,7 +1,7 @@
 """Tests for W1C2 text_tools.
 
 Test names carry their lab step, so you can check one step at a time:
-    python -m pytest weeks/week-01/class-02/exercise/test_text_tools.py -k step2 -q
+    python -m pytest weeks/week-01/class-02/exercise/test_text_tools.py -k step1 -q
 
 Runs against the student's exercise file by default. To check the reference
 solution, set:  TEXT_TOOLS_FROM=solution  (used by the course test sweep).
@@ -26,24 +26,24 @@ sys.modules["text_tools_under_test"] = tt
 _spec.loader.exec_module(tt)
 
 
-def test_step1_normalize():
+def test_given_normalize():
     assert tt.normalize("  Hello   WORLD\n") == "hello world"
 
 
-def test_step2_tokenize_basic():
+def test_step1_tokenize_splits_punctuation():
     assert tt.tokenize("Hello, world!") == ["hello", ",", "world", "!"]
 
 
-def test_step2_tokenize_count():
+def test_step1_tokenize_counts_punctuation_as_a_token():
     assert len(tt.tokenize("NLP is fun.")) == 4  # nlp is fun .
 
 
-def test_step3_extract_emails():
+def test_given_extract_emails():
     out = tt.extract("Reach me at a.b+x@mail.co or bob@x.io")
     assert out["emails"] == ["a.b+x@mail.co", "bob@x.io"]
 
 
-def test_step3_extract_urls_and_mentions():
+def test_given_extract_urls_and_mentions():
     out = tt.extract("See https://x.io/p?q=1 from @alice and @bob_99")
     assert out["urls"] == ["https://x.io/p?q=1"]
     assert out["mentions"] == ["alice", "bob_99"]
@@ -59,5 +59,5 @@ def test_step3_extract_urls_and_mentions():
         ("same", "same", 0),
     ],
 )
-def test_step4_edit_distance(a, b, d):
+def test_step2_edit_distance(a, b, d):
     assert tt.edit_distance(a, b) == d

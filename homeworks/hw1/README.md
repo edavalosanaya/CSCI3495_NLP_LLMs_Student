@@ -47,35 +47,19 @@ This handout is a sequence of steps. Each step is one function, and **each step
 ends with a test you can run**, so you always know whether you are done before
 you move on. Work them in order: later steps import earlier ones.
 
-From the repository root, inside the course image:
+Open a shell inside the course image, already in this homework's folder.
+One command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw1 -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/homeworks/hw1 course bash
 ```
 
-`hw` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw1 -q'
-
-# Windows, PowerShell
-function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw1 -q @args }
-
-# Windows, Command Prompt
-doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw1 -q $*
-```
-
-Then:
+Everything below runs in that shell:
 
 ```bash
-hw -k step3      # check ONLY step 3
-hw               # run every step
+pytest -k step3 -q      # check ONLY step 3
+pytest -q               # run every step
 ```
-
-If you already work inside the container (`... run --rm --no-deps course bash`),
-drop the docker prefix and just use `python -m pytest homeworks/hw1 -q`.
 
 **Before you write anything, every test skips.** That is expected: the suite
 detects the unfinished starter and skips rather than drowning you in failures.
@@ -93,7 +77,7 @@ stores `n` and `k` for you. Then run the suite once so you can see the starting
 state:
 
 ```bash
-hw
+pytest -q
 ```
 
 You should get `22 skipped`. That is the suite telling you it found an unfinished
@@ -103,7 +87,7 @@ starter, not a broken install.
 
 **Write** `tokenize(text)`. Lowercase the text, then split it into tokens, where a token is either a run of word characters or a single punctuation character. One regex does the whole job: `re.findall(r"\w+|[^\w\s]", text.lower())`.
 
-**Done when** `hw -k step1` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step1 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -119,7 +103,7 @@ starter, not a broken install.
 
 **Write** `sentences(text)`. Split on sentence-final punctuation (`.!?`, with a run like `!?` counting as one break), tokenize each piece, and drop pieces that come back empty.
 
-**Done when** `hw -k step2` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step2 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -135,7 +119,7 @@ starter, not a broken install.
 
 **Write** `pad(tokens)`, which wraps a sentence in `n - 1` copies of `<s>` and a single `</s>`, and `ngrams(tokens)`, which slides a window of length `n` over an already-padded list. If there are fewer tokens than the window, return `[]` rather than crashing.
 
-**Done when** `hw -k step3` prints `5 passed, 17 deselected`.
+**Done when** `pytest -k step3 -q` prints `5 passed, 17 deselected`.
 
 **Check it by hand**
 
@@ -154,7 +138,7 @@ starter, not a broken install.
 
 **Write** `fit(corpus)`, which builds `self.vocab` and the n-gram and context counts, and `_map(token)`, which returns the token if it is in the vocabulary and `UNK` otherwise. The vocabulary contains every training word plus `</s>` and `<unk>`, but **not** `<s>`: you never predict a sentence-start.
 
-**Done when** `hw -k step4` prints `3 passed, 19 deselected`.
+**Done when** `pytest -k step4 -q` prints `3 passed, 19 deselected`.
 
 **Check it by hand**
 
@@ -179,7 +163,7 @@ starter, not a broken install.
 
 Map both the token and every element of the context through `_map` first, so an unseen word is scored as `<unk>` instead of crashing.
 
-**Done when** `hw -k step5` prints `4 passed, 18 deselected`.
+**Done when** `pytest -k step5 -q` prints `4 passed, 18 deselected`.
 
 **Check it by hand**
 
@@ -202,7 +186,7 @@ Map both the token and every element of the context through `_map` first, so an 
 
 **Write** `sentence_logprob(tokens)`: pad the sentence, walk its n-grams, and sum `log(prob(...))`. Work in log space, not by multiplying probabilities.
 
-**Done when** `hw -k step6` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step6 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -221,7 +205,7 @@ Map both the token and every element of the context through `_map` first, so an 
 
 **Write** `perplexity(corpus)`: accumulate the total log-probability and the total number of **predicted** tokens across every sentence, then return `exp(-total_logprob / total_tokens)`. Each sentence contributes its own `</s>` to the token count.
 
-**Done when** `hw -k step7` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step7 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -240,7 +224,7 @@ Map both the token and every element of the context through `_map` first, so an 
 
 **Write** `generate(max_len, seed)`. Start from the padded context, sample the next token from `prob` over the whole vocabulary using `random.Random(seed)`, append it, slide the context, and stop at `</s>` or `max_len`. Do not emit `<s>` or `</s>` in the returned list.
 
-**Done when** `hw -k step8` prints `2 passed, 20 deselected`.
+**Done when** `pytest -k step8 -q` prints `2 passed, 20 deselected`.
 
 **Check it by hand**
 
@@ -260,7 +244,7 @@ True
 ### Step 9, Run the whole thing (0 pts)
 
 ```bash
-hw
+pytest -q
 ```
 
 Every step green means `22 passed`. If a step you finished earlier has gone red,
@@ -280,7 +264,7 @@ paragraph each:
 
 ## What to submit
 
-- `ngram_lm.py` with every TODO filled in and `hw` fully green.
+- `ngram_lm.py` with every TODO filled in and `pytest -q` fully green.
 - Your reflection (in the module docstring or `REFLECTION.md`).
 - The `AI-USE:` note described below.
 

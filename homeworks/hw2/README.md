@@ -55,35 +55,19 @@ This handout is a sequence of steps. Each step is one function, and **each step
 ends with a test you can run**, so you always know whether you are done before
 you move on. Work them in order: later steps import earlier ones.
 
-From the repository root, inside the course image:
+Open a shell inside the course image, already in this homework's folder.
+One command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/homeworks/hw2 course bash
 ```
 
-`hw` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q'
-
-# Windows, PowerShell
-function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q @args }
-
-# Windows, Command Prompt
-doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw2 -q $*
-```
-
-Then:
+Everything below runs in that shell:
 
 ```bash
-hw -k step3      # check ONLY step 3
-hw               # run every step
+pytest -k step3 -q      # check ONLY step 3
+pytest -q               # run every step
 ```
-
-If you already work inside the container (`... run --rm --no-deps course bash`),
-drop the docker prefix and just use `python -m pytest homeworks/hw2 -q`.
 
 **Before you write anything, every test skips.** That is expected: the suite
 detects the unfinished starter and skips rather than drowning you in failures.
@@ -100,7 +84,7 @@ attributes `NaiveBayesClassifier` promises in its docstring (`vocab_`, `classes_
 `log_prior_`, `log_likelihood_`), because the tests check those names exactly. Then:
 
 ```bash
-hw
+pytest -q
 ```
 
 You should get `16 skipped`.
@@ -109,7 +93,7 @@ You should get `16 skipped`.
 
 **Write** `tokenize(text)`: lowercase, then apply `_TOKEN_RE`. Punctuation is dropped here, unlike HW1.
 
-**Done when** `hw -k step1` prints `1 passed, 15 deselected`.
+**Done when** `pytest -k step1 -q` prints `1 passed, 15 deselected`.
 
 **Check it by hand**
 
@@ -125,7 +109,7 @@ You should get `16 skipped`.
 
 **Write** `fit(docs, labels)`. Build the sorted vocabulary `vocab_`, the class list `classes_`, the log priors `log_prior_`, and `log_likelihood_[c]`, a NumPy array of `log P(w|c)` aligned with `vocab_`, using add-1 smoothing. For each class, `P(w|c)` over the vocabulary must sum to 1.
 
-**Done when** `hw -k step2` prints `2 passed, 14 deselected`.
+**Done when** `pytest -k step2 -q` prints `2 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -147,7 +131,7 @@ You should get `16 skipped`.
 
 **Write** the three prediction methods. `_features` turns a document into a counts vector over `vocab_`; `predict_log_scores` returns `{class: log P(c) + counts . log P(w|c)}`; `predict` takes the argmax for each document. Words outside `vocab_` are simply ignored, not treated as errors.
 
-**Done when** `hw -k step3` prints `3 passed, 13 deselected`.
+**Done when** `pytest -k step3 -q` prints `3 passed, 13 deselected`.
 
 **Check it by hand**
 
@@ -167,7 +151,7 @@ You should get `16 skipped`.
 
 **Write** `precision_recall_f1(y_true, y_pred, positive)`. Return the three numbers for the given positive class. When the denominator is zero, return `0.0` rather than dividing.
 
-**Done when** `hw -k step4` prints `2 passed, 14 deselected`.
+**Done when** `pytest -k step4 -q` prints `2 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -185,7 +169,7 @@ You should get `16 skipped`.
 
 **Write** `cosine_similarity(a, b)` as `dot(a, b) / (||a|| * ||b||)`, returning `0.0` if either vector is all zeros rather than dividing by zero.
 
-**Done when** `hw -k step5` prints `2 passed, 14 deselected`.
+**Done when** `pytest -k step5 -q` prints `2 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -204,7 +188,7 @@ You should get `16 skipped`.
 
 **Write** `nearest_neighbors(word, embeddings, k)`: the `k` most cosine-similar words, **excluding the query itself**, sorted by similarity descending with ties broken alphabetically.
 
-**Done when** `hw -k step6` prints `2 passed, 14 deselected`.
+**Done when** `pytest -k step6 -q` prints `2 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -222,7 +206,7 @@ You should get `16 skipped`.
 
 **Write** `analogy(a, b, c, embeddings, k)`, solving *a is to b as c is to ?*. Build `v = emb[b] - emb[a] + emb[c]`, then return the `k` nearest words by cosine, **excluding a, b and c**.
 
-**Done when** `hw -k step7` prints `2 passed, 14 deselected`.
+**Done when** `pytest -k step7 -q` prints `2 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -240,7 +224,7 @@ You should get `16 skipped`.
 
 **Write** `bias_score(word, group_a, group_b, embeddings)`: the mean cosine similarity of `word` to group A minus its mean similarity to group B. Positive means more associated with A.
 
-**Done when** `hw -k step8` prints `2 passed, 14 deselected`.
+**Done when** `pytest -k step8 -q` prints `2 passed, 14 deselected`.
 
 **Check it by hand**
 
@@ -257,7 +241,7 @@ You should get `16 skipped`.
 ### Step 9, Run the whole thing (0 pts)
 
 ```bash
-hw
+pytest -q
 ```
 
 Every step green means `16 passed`. If a step you finished earlier has gone red,
@@ -276,7 +260,7 @@ Answer in the module docstring or a short `REFLECTION.md`, a paragraph each:
 
 ## What to submit
 
-- `text_clf_embed.py` with every TODO filled in and `hw` fully green.
+- `text_clf_embed.py` with every TODO filled in and `pytest -q` fully green.
 - Your reflection (in the module docstring or `REFLECTION.md`).
 - The `AI-USE:` note described below.
 

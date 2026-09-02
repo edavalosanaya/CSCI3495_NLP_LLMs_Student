@@ -49,35 +49,19 @@ This handout is a sequence of steps. Each step is one function, and **each step
 ends with a test you can run**, so you always know whether you are done before
 you move on. Work them in order: later steps import earlier ones.
 
-From the repository root, inside the course image:
+Open a shell inside the course image, already in this homework's folder.
+One command, once per session:
 
 ```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw5/tests -q
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/homeworks/hw5 course bash
 ```
 
-`hw` is a shortcut for the long docker command. Set it up once per
-terminal session, using the line for **your** shell:
-
-```
-# macOS / Linux (bash, zsh)
-alias hw='docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw5/tests -q'
-
-# Windows, PowerShell
-function hw { docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw5/tests -q @args }
-
-# Windows, Command Prompt
-doskey hw=docker compose -f docker/docker-compose.yml run --rm --no-deps course python -m pytest homeworks/hw5/tests -q $*
-```
-
-Then:
+Everything below runs in that shell:
 
 ```bash
-hw -k step3      # check ONLY step 3
-hw               # run every step
+pytest -k step3 -q      # check ONLY step 3
+pytest -q               # run every step
 ```
-
-If you already work inside the container (`... run --rm --no-deps course bash`),
-drop the docker prefix and just use `python -m pytest homeworks/hw5/tests -q`.
 
 **Before you write anything, every test skips.** That is expected: the suite
 detects the unfinished starter and skips rather than drowning you in failures.
@@ -95,7 +79,7 @@ no vector database, just TF-IDF over dictionaries, so you can see every number.
 is testable without a model running. Then:
 
 ```bash
-hw
+pytest -q
 ```
 
 You should get `13 skipped`. One test stays skipped even when you are finished: it
@@ -107,7 +91,7 @@ qwen2.5:0.5b`, and set `HW5_LIVE_OLLAMA=1`.
 
 **Write** `tokenize(text)`, lowercasing and keeping word characters, and `cosine(a, b)` over two `{term: weight}` dictionaries. Return `0.0` when either vector is empty rather than dividing by zero.
 
-**Done when** `hw -k step1` prints `2 passed, 11 deselected`.
+**Done when** `pytest -k step1 -q` prints `2 passed, 11 deselected`.
 
 **Check it by hand**
 
@@ -125,7 +109,7 @@ qwen2.5:0.5b`, and set `HW5_LIVE_OLLAMA=1`.
 
 **Write** `build(docs)`: store the documents, compute an IDF per term, and build one TF-IDF vector per document. Use a smoothed IDF so a term appearing in every document does not blow up.
 
-**Done when** `hw -k step2` prints `1 passed, 12 deselected`.
+**Done when** `pytest -k step2 -q` prints `1 passed, 12 deselected`.
 
 **Check it by hand**
 
@@ -146,7 +130,7 @@ qwen2.5:0.5b`, and set `HW5_LIVE_OLLAMA=1`.
 
 **Write** the query vectorizer and `search(query, k)`: score every document by cosine against the query vector and return the top `k` as `(index, score)` pairs, highest first. Drop zero-scoring documents rather than padding the list.
 
-**Done when** `hw -k step3` prints `3 passed, 10 deselected`.
+**Done when** `pytest -k step3 -q` prints `3 passed, 10 deselected`.
 
 **Check it by hand**
 
@@ -165,7 +149,7 @@ qwen2.5:0.5b`, and set `HW5_LIVE_OLLAMA=1`.
 
 **Write** `chunk_text(text, max_words, overlap)`: split into chunks of at most `max_words` words where consecutive chunks share `overlap` words. Validate that `overlap < max_words` and handle empty input.
 
-**Done when** `hw -k step4` prints `2 passed, 11 deselected`.
+**Done when** `pytest -k step4 -q` prints `2 passed, 11 deselected`.
 
 **Check it by hand**
 
@@ -181,7 +165,7 @@ qwen2.5:0.5b`, and set `HW5_LIVE_OLLAMA=1`.
 
 **Write** `build_prompt(query, passages, cot)`. The prompt must instruct the model to answer **only** from the context and to say `I don't know` otherwise, number the passages `[1]`, `[2]`, ... so they can be cited, include the question, and add a step-by-step reasoning cue when `cot=True`. It must not crash when `passages` is empty.
 
-**Done when** `hw -k step5` prints `3 passed, 10 deselected`.
+**Done when** `pytest -k step5 -q` prints `3 passed, 10 deselected`.
 
 **Check it by hand**
 
@@ -201,7 +185,7 @@ True
 
 **Write** the pipeline: retrieve the top `k` passages for the query, build the prompt from them, call `generate_fn(prompt, model=model)`, and return the answer. Take `generate_fn` as a parameter so the test can pass a fake.
 
-**Done when** `hw -k step6` prints `1 passed, 1 skipped, 11 deselected`.
+**Done when** `pytest -k step6 -q` prints `1 passed, 1 skipped, 11 deselected`.
 
 **Check it by hand**
 
@@ -221,7 +205,7 @@ True
 ### Step 7, Run the whole thing (0 pts)
 
 ```bash
-hw
+pytest -q
 ```
 
 Every step green means `12 passed, 1 skipped`. If a step you finished earlier has gone red,
@@ -242,7 +226,7 @@ Answer in `ANSWERS.md`, 2-4 sentences each:
 
 ## What to submit
 
-- `rag.py` with every TODO filled in and `hw` green (`12 passed, 1 skipped`).
+- `rag.py` with every TODO filled in and `pytest -q` green (`12 passed, 1 skipped`).
 - `ANSWERS.md` with Q1-Q3 answered.
 - The `AI-USE:` note described below.
 

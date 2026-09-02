@@ -9,7 +9,7 @@ from it, and every printed value was produced by running it on the demo corpus
 
 ---
 
-## Step 1, Build the vocabulary
+## Given, `build_vocab`
 
 ```python
 def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
@@ -43,7 +43,7 @@ appears twice, and that only works if the frequency rides along.
 
 ---
 
-## Step 2, Count adjacent pairs
+## Step 1, `count_pairs`
 
 ```python
 def count_pairs(vocab: dict[tuple[str, ...], int]) -> Counter:
@@ -65,7 +65,7 @@ exactly this.
 
 ---
 
-## Step 3, Merge a pair
+## Step 2, `merge_pair`
 
 ```python
     a, b = pair
@@ -112,7 +112,7 @@ about each round independently.
 
 ---
 
-## Step 4, Train
+## Step 3, `train_bpe`
 
 ```python
 def train_bpe(corpus: list[str], num_merges: int) -> list[tuple[str, str]]:
@@ -156,7 +156,7 @@ the algorithm.
 
 ---
 
-## Step 5, Encode
+## Given, `encode_word`
 
 ```python
 def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
@@ -188,7 +188,7 @@ notice.
 
 ---
 
-## Step 6, Run the whole thing
+## Running it
 
 ```
 Learned merges (in order):

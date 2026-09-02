@@ -8,7 +8,7 @@ produced by running it against `qwen2.5:0.5b` through Docker.
 
 ---
 
-## Step 0, Orientation
+## Orientation
 
 `parse_label` and `StubModel` ship written. One detail in `parse_label` matters
 all lab:
@@ -25,7 +25,7 @@ looks impossible, the parser is a suspect alongside the prompt.
 
 ---
 
-## Steps 1 to 3
+## Steps 1 and 2, `build_fewshot_prompt` and `run_experiment`
 
 These are short and mechanical: exact-match accuracy, a template assembler, and a
 loop that ties them together. Two things are worth insisting on.
@@ -43,7 +43,7 @@ to avoid.
 
 ---
 
-## Step 4, The result that matters
+## Running it
 
 The baselines, measured (not estimated), on `qwen2.5:0.5b` at temperature 0:
 

@@ -13,7 +13,7 @@ they expose regarding measurement.
 
 ---
 
-## Step 1, Normalize
+## Given, `normalize`
 
 ```python
 def normalize(text: str) -> str:
@@ -36,7 +36,7 @@ in a different way.
 
 ---
 
-## Step 2, Lenient matching
+## Given, `is_correct`
 
 ```python
 def is_correct(model_output: str, target: str) -> bool:
@@ -64,7 +64,7 @@ asks students to measure.
 
 ---
 
-## Step 3, Accuracy
+## Step 1, `accuracy`
 
 ```python
 def accuracy(outputs: list[str], targets: list[str]) -> float:
@@ -95,7 +95,7 @@ pre-baked exercise.
 
 ---
 
-## Step 4, The scaling trend
+## Step 2, `scaling_trend`
 
 ```python
 def scaling_trend(results: dict[str, float]) -> bool:
@@ -123,7 +123,7 @@ False
 
 ---
 
-## Step 5, Run the whole thing
+## Running it
 
 ```
 small-model accuracy: 0.60
