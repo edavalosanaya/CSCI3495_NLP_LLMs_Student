@@ -69,7 +69,7 @@ pytest -k step2 -q
 2 passed, 6 deselected
 ```
 
-## 6. Run it, then question it
+## 6. Run it, then discuss it
 
 ```bash
 python embeddings.py
@@ -97,20 +97,41 @@ Bias probe along the (woman - man) direction:
 (Illustrative toy vectors; real embeddings show the same patterns.)
 ```
 
-These are toy vectors, built to show the pattern. The questions are the point.
+These are toy vectors, built to show the pattern. Everything below is a
+discussion, run in pairs or small groups: make the edit, look at the number,
+then argue about what it means. Undo each edit before starting the next.
 
-1. Run the analogy backwards: `analogy("woman", "queen", "man", EMB, k=1)`. It
-   returns `king` with similarity 0.9958, exactly the score the forward
-   direction gave. Look at the target-vector formula and explain why the two
-   must match.
-2. Flip the axis. Compare `bias_score("nurse", "she", "he", ...)` against
-   `bias_score("nurse", "he", "she", ...)` using `woman`/`man`: +0.343 becomes
-   -0.343. Which part of the formula forces an exact sign flip?
-3. Probe a word that is gendered by definition: `bias_score("queen", "woman",
-   "man", EMB)` is +0.355, about the same as `nurse` at +0.343. Both score
-   alike, but only one of them is evidence of a problem. What distinguishes
-   them, and what does that mean for using this number as a bias metric?
-4. Delete the "exclude a, b, c" guard from `analogy`. The top answer is still
-   `queen`, unchanged. Construct a case where dropping the guard would change
-   the answer, and say what that implies about how far apart these toy vectors
-   are.
+1. Nobody trained these vectors, someone typed them. Find the line in `EMB`
+   that makes `nurse` lean toward `woman`, and the line that makes `engineer`
+   lean toward `man`. In a real embedding, no one types those numbers. Where
+   would the same lean come from instead, and would anyone have noticed it?
+
+2. Try the obvious fix. In `EMB`, set the third number of `nurse` (its feminine
+   coordinate) to `0.0` and re-run. `bias_score` now reports `+0.000`. Then look
+   at where `nurse` actually sits:
+
+   ```
+   nurse: doctor 0.908, teacher 0.801, engineer 0.096
+   ```
+
+   The metric says the bias is gone. Would a resume ranker built on these
+   vectors behave any differently? Decide as a group whether you fixed the
+   problem or just blinded the measurement.
+
+3. Now patch all four: zero the feminine coordinate of `nurse` and `teacher`,
+   and the masculine coordinate of `doctor` and `engineer`. `nurse` and
+   `engineer` go to `+0.000`, but `doctor` climbs to `+0.187` and `teacher`
+   moves to `-0.129`. You edited every one of the four and two of them still
+   lean, because one coordinate is not the whole axis. Propose a rule that
+   would not need patching word by word.
+
+4. Count the cost. Restore `EMB`, then zero the feminine coordinate of `queen`
+   and re-run the analogy: the top answer becomes `princess` at 0.935 and
+   `queen` falls to second at 0.831. The gender information you removed is the
+   same information Step 1 depends on. Where is the line between a stereotype
+   and a fact about a word, and who on your team gets to draw it?
+
+5. Pick your point of intervention: change the training data, edit the vectors
+   afterward, or leave the vectors alone and restrict what they may be used
+   for. Choose one as a group, defend it, and name what it costs. Be ready to
+   say which of the four experiments above changed your mind.
