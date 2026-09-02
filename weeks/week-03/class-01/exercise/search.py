@@ -3,7 +3,6 @@
 from __future__ import annotations
 import math
 import re
-from collections import Counter
 
 # Tiny one-line "documents". Topics overlap on purpose.
 DOCS = [
@@ -29,14 +28,45 @@ def build_index(docs: list[str]) -> dict:
     Returns {"docs": tokens per doc, "n": doc count, "df": term -> doc
     frequency, "idf": term -> log(n / df)}.
     """
-    tokenized = [tokenize(d) for d in docs]
+    tokenized = []
+    for d in docs:
+        tokenized.append(tokenize(d))
+
     n = len(docs)
-    df: Counter = Counter()
+
+    # df[term] = how many documents contain the term at least once.
+    df = {}
     for toks in tokenized:
-        for term in set(toks):
-            df[term] += 1
-    idf = {term: math.log(n / df[term]) for term in df}
-    return {"docs": tokenized, "n": n, "df": dict(df), "idf": idf}
+        seen_in_this_doc = set(toks)
+        for term in seen_in_this_doc:
+            if term in df:
+                df[term] = df[term] + 1
+            else:
+                df[term] = 1
+
+    idf = {}
+    for term in df:
+        idf[term] = math.log(n / df[term])
+
+    return {"docs": tokenized, "n": n, "df": df, "idf": idf}
+
+
+def count_terms(tokens: list[str]) -> dict:
+    """How many times each term appears in this one document. That count is tf."""
+    counts = {}
+    for term in tokens:
+        if term in counts:
+            counts[term] = counts[term] + 1
+        else:
+            counts[term] = 1
+    return counts
+
+def magnitude(vec: dict) -> float:
+    """The length of a sparse vector: the square root of its squared weights."""
+    total = 0.0
+    for weight in vec.values():
+        total = total + weight * weight
+    return math.sqrt(total)
 
 
 def tfidf_vector(index: dict, tokens: list[str]) -> dict:
@@ -56,14 +86,14 @@ def tfidf_vector(index: dict, tokens: list[str]) -> dict:
     #
     #   The weight formula is in README section 2.
     #
-    #   count how many times each token occurs -- that count is the tf
+    #   count how many times each token occurs with the given count_terms --
+    #       that count is the tf
     #   look each term's idf up in the index, treating a missing term as 0.0
     #   keep only the terms whose weight is not zero
     #
     #   A term with idf 0.0 sits in every document, so it separates nothing.
     #
     raise NotImplementedError
-
 
 def cosine(u: dict, v: dict) -> float:
     """Cosine of the angle between two sparse term -> weight vectors.
@@ -83,7 +113,7 @@ def cosine(u: dict, v: dict) -> float:
     #
     #   the dot product only needs the terms u actually has: a term missing
     #       from v contributes nothing
-    #   each vector's length is the square root of the sum of its squared weights
+    #   the given magnitude() gives you each vector's length
     #   a zero length means there is no angle to measure, so give back 0.0
     #   otherwise divide the dot product by the two lengths
     #

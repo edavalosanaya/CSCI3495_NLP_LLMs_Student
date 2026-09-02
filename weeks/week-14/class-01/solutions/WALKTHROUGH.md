@@ -5,7 +5,7 @@ stuck on.** The complete file is `workflow.py` in this folder.
 
 ---
 
-## Step 1, The router
+## Step 1, `route`
 
 The prompt is the easy half. **The defensive normalization is the step**, and it
 gets five tests because models do not follow "reply with one word":
@@ -24,7 +24,7 @@ happens when it is malformed.
 
 ---
 
-## Step 2, The workers
+## Step 2, `worker_summarize`
 
 Three focused prompts, one job each.
 
@@ -36,7 +36,7 @@ applies to prompts for the same reasons it applies to functions.
 
 ---
 
-## Step 3, The fallback
+## Given, `worker_fallback`
 
 Provided, and worth reading rather than skipping: it returns a helpful message
 and **never calls the LLM**.
@@ -48,7 +48,7 @@ a fallback that calls the LLM fails too. The test name says it:
 
 ---
 
-## Step 4, Orchestrate
+## Step 3, `run_workflow`
 
 Route, dispatch through a **dict**, call, return a `Result` with a trace.
 
@@ -62,7 +62,7 @@ without re-running, and by then the model may route differently.
 
 ---
 
-## Step 5, Running it
+## Running it
 
 ```
 Q: Summarize the French Revolution.

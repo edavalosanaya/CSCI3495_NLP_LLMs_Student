@@ -3,7 +3,6 @@
 from __future__ import annotations
 import math
 import re
-from collections import Counter
 
 DOCS = [
     "the cat chased the mouse around the house",
@@ -22,44 +21,92 @@ def tokenize(text: str) -> list[str]:
 
 
 def build_index(docs: list[str]) -> dict:
-    tokenized = [tokenize(d) for d in docs]
+    tokenized = []
+    for d in docs:
+        tokenized.append(tokenize(d))
+
     n = len(docs)
-    df: Counter = Counter()
+
+    # df[term] = how many documents contain the term at least once.
+    df = {}
     for toks in tokenized:
-        for term in set(toks):
-            df[term] += 1
-    idf = {term: math.log(n / df[term]) for term in df}
-    return {"docs": tokenized, "n": n, "df": dict(df), "idf": idf}
+        seen_in_this_doc = set(toks)
+        for term in seen_in_this_doc:
+            if term in df:
+                df[term] = df[term] + 1
+            else:
+                df[term] = 1
+
+    idf = {}
+    for term in df:
+        idf[term] = math.log(n / df[term])
+
+    return {"docs": tokenized, "n": n, "df": df, "idf": idf}
+
+
+def count_terms(tokens: list[str]) -> dict:
+    """How many times each term appears in this one document. That count is tf."""
+    counts = {}
+    for term in tokens:
+        if term in counts:
+            counts[term] = counts[term] + 1
+        else:
+            counts[term] = 1
+    return counts
 
 
 def tfidf_vector(index: dict, tokens: list[str]) -> dict:
-    counts = Counter(tokens)
-    return {
-        term: tf * index["idf"].get(term, 0.0)
-        for term, tf in counts.items()
-        if index["idf"].get(term, 0.0) != 0.0
-    }
+    counts = count_terms(tokens)
+
+    weights = {}
+    for term in counts:
+        tf = counts[term]
+        idf = index["idf"].get(term, 0.0)
+        weight = tf * idf
+        if weight == 0.0:
+            # Either the corpus never had this term, or it is in every
+            # document. Both mean it separates nothing, so leave it out.
+            continue
+        weights[term] = weight
+
+    return weights
+
+
+def magnitude(vec: dict) -> float:
+    """The length of a sparse vector: the square root of its squared weights."""
+    total = 0.0
+    for weight in vec.values():
+        total = total + weight * weight
+    return math.sqrt(total)
 
 
 def cosine(u: dict, v: dict) -> float:
-    # Iterate over the smaller dict for the dot product.
-    small, large = (u, v) if len(u) <= len(v) else (v, u)
-    dot = sum(w * large.get(term, 0.0) for term, w in small.items())
-    nu = math.sqrt(sum(w * w for w in u.values()))
-    nv = math.sqrt(sum(w * w for w in v.values()))
-    if nu == 0.0 or nv == 0.0:
+    # A term missing from v contributes nothing, so only u's terms matter.
+    dot = 0.0
+    for term in u:
+        if term in v:
+            dot = dot + u[term] * v[term]
+
+    u_length = magnitude(u)
+    v_length = magnitude(v)
+
+    if u_length == 0.0 or v_length == 0.0:
         return 0.0
-    return dot / (nu * nv)
+
+    return dot / (u_length * v_length)
 
 
 def search(index: dict, query: str, k: int = 3) -> list[tuple[int, float]]:
-    qvec = tfidf_vector(index, tokenize(query))
+    query_vec = tfidf_vector(index, tokenize(query))
+
     scored = []
     for doc_id, toks in enumerate(index["docs"]):
-        dvec = tfidf_vector(index, toks)
-        scored.append((doc_id, cosine(qvec, dvec)))
-    # Sort by score descending, then doc_id ascending.
-    scored.sort(key=lambda x: (-x[1], x[0]))
+        doc_vec = tfidf_vector(index, toks)
+        score = cosine(query_vec, doc_vec)
+        scored.append((doc_id, score))
+
+    # Highest score first; when two tie, the lower doc_id comes first.
+    scored.sort(key=lambda pair: (-pair[1], pair[0]))
     return scored[:k]
 
 

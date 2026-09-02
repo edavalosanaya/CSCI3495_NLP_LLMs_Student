@@ -42,6 +42,7 @@ what argument* and never computed anything itself.
 `calc[__import__('os').system('echo pwned')]` and watch it produce an error
 Observation. Then show them the two-line version they would have written:
 
+<!-- not-solution -->
 ```python
 def calculator(expr):
     return str(eval(expr))     # passes every arithmetic test

@@ -28,9 +28,20 @@ from nothing but the `<unk>` embedding.
 ## Step 1, `embed_document`
 
 ```python
+def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch.Tensor:
+    ids = []
+    for tok in tokenize(text):
+        # Row 0 is the unknown-word row, used for any token not in the vocab.
+        ids.append(vocab.get(tok, 0))
+
+    if len(ids) == 0:
+        # No tokens at all, but the caller still needs a vector of the right
+        # width, so hand back zeros rather than averaging an empty list.
+        return torch.zeros(emb.embedding_dim)
+
     idx = torch.tensor(ids, dtype=torch.long)
-    vectors = emb(idx)  # (num_tokens, embedding_dim)
-    return vectors.mean(dim=0)
+    vectors = emb(idx)              # (num_tokens, embedding_dim)
+    return vectors.mean(dim=0)      # average down to (embedding_dim,)
 ```
 
 **`dim=0` is the entire step.** `vectors` is `(num_tokens, 16)`. Averaging over

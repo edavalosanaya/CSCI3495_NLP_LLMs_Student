@@ -15,10 +15,6 @@ The two prompt builders differ by one clause:
 ```python
 def direct_prompt(question: str) -> str:
     return f"Answer with only the final number.\n\nQ: {question}\nA:"
-
-def cot_prompt(question: str) -> str:
-    return (f"Solve the problem. Reason step by step, then end with "
-            f"'The answer is N.'\n\nQ: {question}\nA:")
 ```
 
 That is the entire intervention. No weights change, no extra data, no examples.

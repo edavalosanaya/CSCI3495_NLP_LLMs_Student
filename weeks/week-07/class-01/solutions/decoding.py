@@ -21,23 +21,55 @@ def greedy(dist: dict[str, float]) -> str:
     return max(dist, key=dist.get)
 
 
+def by_probability(item: tuple) -> float:
+    """Sort key for (token, probability) pairs: most likely first."""
+    token, probability = item
+    return -probability
+
+
+def renormalize(kept: dict[str, float]) -> dict[str, float]:
+    """Scale the kept probabilities so they add up to 1 again.
+
+    Dropping the tail of a distribution leaves the rest summing to less than 1,
+    which is no longer a distribution. Dividing each by the new total fixes it.
+    """
+    total = 0.0
+    for probability in kept.values():
+        total = total + probability
+
+    if total == 0.0:
+        return kept
+
+    scaled = {}
+    for token in kept:
+        scaled[token] = kept[token] / total
+    return scaled
+
+
 def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
-    kept = dict(sorted(dist.items(), key=lambda kv: kv[1], reverse=True)[:k])
-    z = sum(kept.values())
-    return {t: v / z for t, v in kept.items()} if z > 0 else kept
+    ordered = sorted(dist.items(), key=by_probability)
+
+    kept = {}
+    for token, probability in ordered[:k]:
+        kept[token] = probability
+
+    return renormalize(kept)
 
 
 def top_p_filter(dist: dict[str, float], p: float) -> dict[str, float]:
-    ordered = sorted(dist.items(), key=lambda kv: kv[1], reverse=True)
-    kept: dict[str, float] = {}
-    cum = 0.0
-    for tok, prob in ordered:
-        kept[tok] = prob
-        cum += prob
-        if cum >= p:
+    ordered = sorted(dist.items(), key=by_probability)
+
+    kept = {}
+    running_total = 0.0
+    for token, probability in ordered:
+        # Keep this token FIRST, then check. Stopping before the token that
+        # crosses p would leave the kept mass below p.
+        kept[token] = probability
+        running_total = running_total + probability
+        if running_total >= p:
             break
-    z = sum(kept.values())
-    return {t: v / z for t, v in kept.items()} if z > 0 else kept
+
+    return renormalize(kept)
 
 
 def sample(dist: dict[str, float], seed: int | None = None) -> str:

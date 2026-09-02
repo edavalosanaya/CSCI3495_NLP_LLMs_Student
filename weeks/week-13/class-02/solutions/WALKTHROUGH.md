@@ -25,7 +25,8 @@ lab debugging an agent that was right all along.
 
 ```python
 def evaluate_one(problem: Problem, name: str, fn: Callable, llm, **kw) -> Result:
-    if name == "Reflexion":
+    """Run one strategy on one problem. Reflexion gets the evaluator to react to."""
+    if name.startswith("Reflexion"):
         def feedback(ans):
             if is_correct(ans, problem.answer):
                 return True, "Correct."

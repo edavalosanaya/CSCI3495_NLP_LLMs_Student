@@ -57,9 +57,17 @@ def is_hallucination(pred: str, item: dict) -> bool:
         "no information", "unable", "fictional", "does not exist", "doesn't exist",
     )
     if item["answerable"]:
+        # A question that HAS an answer is never a hallucination here, however
+        # wrong the prediction is. This measures fabrication, not accuracy.
         return False
+
     low = pred.lower()
-    return not any(cue in low for cue in abstain_cues)
+    for cue in abstain_cues:
+        if cue in low:
+            # The model refused, which is the right move on this item.
+            return False
+
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -92,12 +100,15 @@ def judge_pairwise(judge, question: str, ans1: str, ans2: str) -> dict:
 
 
 def position_bias_rate(judge, pairs: list[tuple[str, str, str]]) -> float:
-    if not pairs:
+    if len(pairs) == 0:
         return 0.0
-    inconsistent = sum(
-        0 if judge_pairwise(judge, q, a1, a2)["consistent"] else 1
-        for q, a1, a2 in pairs
-    )
+
+    inconsistent = 0
+    for question, ans1, ans2 in pairs:
+        verdict = judge_pairwise(judge, question, ans1, ans2)
+        if not verdict["consistent"]:
+            inconsistent = inconsistent + 1
+
     return inconsistent / len(pairs)
 
 

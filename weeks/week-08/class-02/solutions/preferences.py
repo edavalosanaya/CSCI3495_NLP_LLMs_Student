@@ -36,10 +36,20 @@ def neg_log_likelihood(
 def fit_reward_model(
     prefs: list[tuple[str, str]], lr: float = 0.5, steps: int = 500
 ) -> dict[str, float]:
-    items = sorted({x for pair in prefs for x in pair})
-    scores = {x: 0.0 for x in items}
+    # Every response mentioned anywhere in the preferences, in a fixed order.
+    seen = set()
+    for winner, loser in prefs:
+        seen.add(winner)
+        seen.add(loser)
+    items = sorted(seen)
+
+    scores = {}
+    for x in items:
+        scores[x] = 0.0
     for _ in range(steps):
-        grad = {x: 0.0 for x in items}
+        grad = {}
+        for x in items:
+            grad[x] = 0.0
         for w, l in prefs:
             # d/ds of -log sigmoid(s_w - s_l):  s_w gets +(1-p), s_l gets -(1-p)
             p = sigmoid(scores[w] - scores[l])
@@ -48,8 +58,12 @@ def fit_reward_model(
             grad[l] -= push
         for x in items:
             scores[x] += lr * grad[x] / len(prefs)
-        # Re-center: scores are only identifiable up to an additive constant.
-        mean = sum(scores.values()) / len(scores)
+        # Re-center: scores are only identifiable up to an additive constant,
+        # so without this they drift together forever and never settle.
+        total = 0.0
+        for value in scores.values():
+            total = total + value
+        mean = total / len(scores)
         for x in items:
             scores[x] -= mean
     return scores

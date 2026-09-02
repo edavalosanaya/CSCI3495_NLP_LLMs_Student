@@ -36,12 +36,24 @@ def edit_distance(a: str, b: str) -> int:
         d[0][j] = j
     for i in range(1, m + 1):
         for j in range(1, n + 1):
-            cost = 0 if a[i - 1] == b[j - 1] else 1
-            d[i][j] = min(
-                d[i - 1][j] + 1,       # deletion
-                d[i][j - 1] + 1,       # insertion
-                d[i - 1][j - 1] + cost, # substitution
-            )
+            # Row i is about the character a[i - 1], not a[i].
+            if a[i - 1] == b[j - 1]:
+                substitution_cost = 0
+            else:
+                substitution_cost = 1
+
+            delete = d[i - 1][j] + 1
+            insert = d[i][j - 1] + 1
+            substitute = d[i - 1][j - 1] + substitution_cost
+
+            best = delete
+            if insert < best:
+                best = insert
+            if substitute < best:
+                best = substitute
+
+            d[i][j] = best
+
     return d[m][n]
 
 

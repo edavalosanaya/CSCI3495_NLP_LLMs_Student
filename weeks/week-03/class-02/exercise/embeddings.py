@@ -72,6 +72,16 @@ def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
     return scored[:k]
 
 
+def sort_best_first(pair: tuple) -> tuple:
+    """Sort key for (word, score) pairs: highest score first, then A to Z.
+
+    Python sorts tuples left to right and always ascending, so negating the
+    score turns "highest first" into "smallest first" without a second pass.
+    """
+    word, score = pair
+    return (-score, word)
+
+
 def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, float]]:
     """Solve "a is to b as c is to ?" by arithmetic on the word vectors.
 
@@ -95,7 +105,7 @@ def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, 
     #   build the target by stepping from a to b, then applying that step at c
     #   score every word in the table against the target with cosine
     #   leave out the three input words
-    #   best score first, and when two tie put the earlier word first
+    #   sort with the given sort_best_first: best score first, ties A to Z
     #   hand back the first k pairs
     #
     raise NotImplementedError

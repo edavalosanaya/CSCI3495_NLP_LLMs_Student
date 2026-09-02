@@ -29,10 +29,17 @@ def route(query: str, llm: LLM) -> str:
         f"Request: {query}\nLabel:"
     )
     raw = llm(prompt)
-    # Defend against messy output: lowercase, strip punctuation, take first token.
-    token = raw.strip().lower().split()[0] if raw.strip() else ""
-    token = token.strip(".,:;!?\"'`")
-    return token if token in LABELS else "unknown"
+
+    # Defend against messy output. Models pad, capitalize and add punctuation.
+    words = raw.strip().lower().split()
+    if len(words) == 0:
+        return "unknown"
+
+    token = words[0].strip(".,:;!?\"'`")
+
+    if token in LABELS:
+        return token
+    return "unknown"
 
 
 def worker_summarize(query: str, llm: LLM) -> str:

@@ -30,13 +30,35 @@ def extract_answer(text: str) -> int | None:
 
 
 def majority_vote(answers: list[int]) -> int | None:
-    vals = [a for a in answers if a is not None]
-    if not vals:
+    # A chain that produced no parsable number does not get a vote.
+    votes = []
+    for a in answers:
+        if a is not None:
+            votes.append(a)
+
+    if len(votes) == 0:
         return None
-    counts = Counter(vals)
-    top = max(counts.values())
-    # tie-break: smallest value among the most common
-    return min(v for v, c in counts.items() if c == top)
+
+    counts = {}
+    for value in votes:
+        if value in counts:
+            counts[value] = counts[value] + 1
+        else:
+            counts[value] = 1
+
+    most_votes = 0
+    for count in counts.values():
+        if count > most_votes:
+            most_votes = count
+
+    # Among everything tied at the top, take the smallest value, so two
+    # identical runs always agree on the answer.
+    winners = []
+    for value in counts:
+        if counts[value] == most_votes:
+            winners.append(value)
+
+    return min(winners)
 
 
 def evaluate(model: "Model", prompt_fn, dataset) -> float:

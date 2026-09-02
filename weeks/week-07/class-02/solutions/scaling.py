@@ -21,15 +21,28 @@ def is_correct(model_output: str, target: str) -> bool:
 
 
 def accuracy(outputs: list[str], targets: list[str]) -> float:
-    if not outputs:
+    if len(outputs) == 0:
+        # No questions asked is not the same as every question right.
         return 0.0
-    correct = sum(is_correct(o, t) for o, t in zip(outputs, targets))
+
+    correct = 0
+    for i in range(len(outputs)):
+        if is_correct(outputs[i], targets[i]):
+            correct = correct + 1
+
     return correct / len(outputs)
 
 
 def scaling_trend(results: dict[str, float]) -> bool:
+    # The caller promises these are already ordered smallest model first.
     vals = list(results.values())
-    return all(vals[i] <= vals[i + 1] for i in range(len(vals) - 1))
+
+    for i in range(len(vals) - 1):
+        if vals[i] > vals[i + 1]:
+            # A bigger model did worse than the one before it.
+            return False
+
+    return True
 
 
 def _demo() -> None:

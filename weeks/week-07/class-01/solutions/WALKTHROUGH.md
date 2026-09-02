@@ -77,9 +77,13 @@ output) greedy is usually correct. W11's structured-output work leans on that.
 
 ```python
 def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
-    kept = dict(sorted(dist.items(), key=lambda kv: kv[1], reverse=True)[:k])
-    z = sum(kept.values())
-    return {t: v / z for t, v in kept.items()} if z > 0 else kept
+    ordered = sorted(dist.items(), key=by_probability)
+
+    kept = {}
+    for token, probability in ordered[:k]:
+        kept[token] = probability
+
+    return renormalize(kept)
 ```
 
 **Renormalization is what makes it a distribution again.** After dropping tokens
@@ -114,16 +118,19 @@ the model's confidence, which is Step 4.
 
 ```python
 def top_p_filter(dist: dict[str, float], p: float) -> dict[str, float]:
-    ordered = sorted(dist.items(), key=lambda kv: kv[1], reverse=True)
-    kept: dict[str, float] = {}
-    cum = 0.0
-    for tok, prob in ordered:
-        kept[tok] = prob
-        cum += prob
-        if cum >= p:
+    ordered = sorted(dist.items(), key=by_probability)
+
+    kept = {}
+    running_total = 0.0
+    for token, probability in ordered:
+        # Keep this token FIRST, then check. Stopping before the token that
+        # crosses p would leave the kept mass below p.
+        kept[token] = probability
+        running_total = running_total + probability
+        if running_total >= p:
             break
-    z = sum(kept.values())
-    return {t: v / z for t, v in kept.items()} if z > 0 else kept
+
+    return renormalize(kept)
 ```
 
 **Add first, then check.** The token is inserted into `kept` *before* the

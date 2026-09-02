@@ -169,8 +169,18 @@ def is_grounded(answer: str, observations: list[str]) -> bool:
     plausible number from memory instead. The loop cannot tell a real lookup
     from an invented one, but this check can.
     """
-    seen = {n for obs in observations for n in _NUM_RE.findall(obs)}
-    return all(n in seen for n in _NUM_RE.findall(answer))
+    # Every number any tool actually produced.
+    seen = set()
+    for obs in observations:
+        for n in _NUM_RE.findall(obs):
+            seen.add(n)
+
+    for n in _NUM_RE.findall(answer):
+        if n not in seen:
+            # This number came from the model, not from a tool.
+            return False
+
+    return True
 
 
 def _fall_back_to_last_observation(trace: Trace) -> None:

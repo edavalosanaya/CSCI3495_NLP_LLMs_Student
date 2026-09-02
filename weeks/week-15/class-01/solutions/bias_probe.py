@@ -27,15 +27,34 @@ def cosine(a: np.ndarray, b: np.ndarray) -> float:
 
 def association(word: str, set_a: list[str], set_b: list[str]) -> float:
     v = get_vector(word)
-    mean_a = np.mean([cosine(v, get_vector(w)) for w in set_a])
-    mean_b = np.mean([cosine(v, get_vector(w)) for w in set_b])
+
+    total_a = 0.0
+    for w in set_a:
+        total_a = total_a + cosine(v, get_vector(w))
+    mean_a = total_a / len(set_a)
+
+    total_b = 0.0
+    for w in set_b:
+        total_b = total_b + cosine(v, get_vector(w))
+    mean_b = total_b / len(set_b)
+
+    # Averaging each side is what lets the two sets be different sizes.
     return float(mean_a - mean_b)
 
 
 def effect(targets_x: list[str], targets_y: list[str],
            attr_a: list[str], attr_b: list[str]) -> float:
-    mean_x = np.mean([association(w, attr_a, attr_b) for w in targets_x])
-    mean_y = np.mean([association(w, attr_a, attr_b) for w in targets_y])
+    # The same subtraction as association(), one level up.
+    total_x = 0.0
+    for w in targets_x:
+        total_x = total_x + association(w, attr_a, attr_b)
+    mean_x = total_x / len(targets_x)
+
+    total_y = 0.0
+    for w in targets_y:
+        total_y = total_y + association(w, attr_a, attr_b)
+    mean_y = total_y / len(targets_y)
+
     return float(mean_x - mean_y)
 
 

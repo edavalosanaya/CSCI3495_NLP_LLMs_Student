@@ -163,7 +163,17 @@ def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
     symbols: list[str] = list(word.lower()) + [END]
     for a, b in merges:
         merged = a + b
-        ...same walk as merge_pair...
+        out: list[str] = []
+        i = 0
+        n = len(symbols)
+        while i < n:
+            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
+                out.append(merged)
+                i += 2
+            else:
+                out.append(symbols[i])
+                i += 1
+        symbols = out
     return symbols
 ```
 

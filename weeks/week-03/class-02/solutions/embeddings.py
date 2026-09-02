@@ -48,19 +48,34 @@ def nearest(word: str, table: dict, k: int = 3) -> list[tuple[str, float]]:
     return scored[:k]
 
 
+def sort_best_first(pair: tuple) -> tuple:
+    """Sort key for (word, score) pairs: highest score first, then A to Z.
+
+    Python sorts tuples left to right and always ascending, so negating the
+    score turns "highest first" into "smallest first" without a second pass.
+    """
+    word, score = pair
+    return (-score, word)
+
+
 def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, float]]:
-    target = (
-        np.asarray(table[b], dtype=float)
-        - np.asarray(table[a], dtype=float)
-        + np.asarray(table[c], dtype=float)
-    )
-    exclude = {a, b, c}
-    scored = [
-        (w, cosine(target, np.asarray(v, dtype=float)))
-        for w, v in table.items()
-        if w not in exclude
-    ]
-    scored.sort(key=lambda x: (-x[1], x[0]))
+    vec_a = np.asarray(table[a], dtype=float)
+    vec_b = np.asarray(table[b], dtype=float)
+    vec_c = np.asarray(table[c], dtype=float)
+
+    # The step from a to b, applied starting at c.
+    target = vec_b - vec_a + vec_c
+
+    scored = []
+    for word in table:
+        if word == a or word == b or word == c:
+            continue
+        vec = np.asarray(table[word], dtype=float)
+        score = cosine(target, vec)
+        scored.append((word, score))
+
+    # Best score first; when two tie, the alphabetically earlier word wins.
+    scored.sort(key=sort_best_first)
     return scored[:k]
 
 

@@ -10,6 +10,13 @@ first; the point of the lab is the failures you meet on the way.
 
 ```python
 def calculator(expr: str) -> str:
+    """Evaluate an arithmetic expression safely. Returns an Observation string.
+
+    `^` is rewritten to `**` first. This matters more than it looks: in Python
+    `^` is bitwise XOR, so `log(3^2 * 16 - 10)` would silently evaluate as
+    log(3 XOR 22) = log(21) and return a plausible, wrong number. A tool that
+    is quietly wrong is worse than one that errors.
+    """
     expr = expr.strip().replace("^", "**")
     if not expr:
         return "Error: empty expression"
@@ -21,7 +28,13 @@ def calculator(expr: str) -> str:
         return f"Error: could not evaluate '{expr}'"
     if isinstance(result, float) and result.is_integer():
         result = int(result)
-    return str(result)
+    try:
+        return str(result)
+    except ValueError:
+        # A huge integer (calc[9999**9999]) evaluates fine and then blows up on
+        # str(), past CPython's 4300-digit conversion limit. Every failure in
+        # this tool has to leave as a string, including this one.
+        return "Error: result too large to display"
 ```
 
 **The idea.** All the real work is in `_eval_node`, which was given to you: it
@@ -210,8 +223,25 @@ True
 
 ```python
 def is_grounded(answer: str, observations: list[str]) -> bool:
-    seen = {n for obs in observations for n in _NUM_RE.findall(obs)}
-    return all(n in seen for n in _NUM_RE.findall(answer))
+    """True if every number in the answer also appears in some Observation.
+
+    Why this exists: with tools available, the most common failure of a small
+    model is not a broken tool call, it is SKIPPING one and writing a
+    plausible number from memory instead. The loop cannot tell a real lookup
+    from an invented one, but this check can.
+    """
+    # Every number any tool actually produced.
+    seen = set()
+    for obs in observations:
+        for n in _NUM_RE.findall(obs):
+            seen.add(n)
+
+    for n in _NUM_RE.findall(answer):
+        if n not in seen:
+            # This number came from the model, not from a tool.
+            return False
+
+    return True
 ```
 
 **The idea.** Every number in the final answer must have appeared in some

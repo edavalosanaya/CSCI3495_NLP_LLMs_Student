@@ -59,7 +59,10 @@ def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, 
 def sample(model: CharRNN, stoi, itos, seed: str = "t", max_len: int = 20) -> str:
     model.eval()
     result = list(seed)
-    ids = torch.tensor([[stoi[c] for c in seed]], dtype=torch.long)
+    seed_ids = []
+    for c in seed:
+        seed_ids.append(stoi[c])
+    ids = torch.tensor([seed_ids], dtype=torch.long)
     logits, h = model(ids)
     for _ in range(max_len):
         last_logits = logits[0, -1]
