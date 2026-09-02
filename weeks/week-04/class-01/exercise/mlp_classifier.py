@@ -64,7 +64,21 @@ def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch
     #   Averaging over the wrong axis silently gives you a vector of the wrong
     #   length: you want one number per embedding dimension.
     #
-    raise NotImplementedError
+    # raise NotImplementedError
+    tokens = tokenize(text)
+    ids = []
+    for t in tokens:
+        i = 0
+        if t in vocab:
+            i = vocab[t]
+        ids.append(i)
+    ids = torch.LongTensor(ids)
+    embs = emb(ids)
+    import pdb; pdb.set_trace()
+    summed_embs = embs.sum(axis=1)
+    summed_embs = summed_embs / emb.shape[0]
+    return embs
+
 
 
 class MLP(nn.Module):
