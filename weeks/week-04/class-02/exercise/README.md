@@ -5,35 +5,10 @@
 Train a recurrent network one character at a time, then sample from it to
 invent new dinosaur names, and see where the invention actually comes from.
 
-You write two short functions in `char_rnn.py`, one for each formula in the
-next section. The model, the training loop and the generation loop are given.
+You write two short functions in `char_rnn.py`, one formula each. The model,
+the training loop and the generation loop are given.
 
-## 2. Understanding the math
-
-![RNN unrolled over four time steps with shared weights](../lecture/visuals/rnn-unrolled.png)
-
-An RNN carries a hidden state $h_t$ forward through the sequence, updating it
-from the previous state and the current character. The same weights are reused
-at every step, which is why the network handles names of any length:
-
-$$h_t = \tanh(W_h\, h_{t-1} + W_x\, x_t + b)$$
-
-$h_{t-1}$ is the hidden state carried in, $x_t$ is the current character after
-the embedding layer, and $W_h$, $W_x$ and $b$ are the weights. Every product is
-a matrix times a vector, which is `@` in PyTorch, and $\tanh$ is `torch.tanh`.
-
-![RNN language model: softmax over the vocabulary, sampled token fed back in](../lecture/visuals/rnn-lm.png)
-
-The model turns each hidden state into one raw score per vocabulary character.
-Softmax makes those scores a probability distribution over what comes next:
-
-$$P(x_{t+1} = c \mid x_1 \ldots x_t) = \mathrm{softmax}(z_t)_c$$
-
-Generating means running that loop forward: score the next character, draw one
-from that distribution, feed it back in as the next input. Drawing is
-`torch.multinomial`, which picks an index with probability equal to its weight.
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -45,11 +20,23 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `rnn_step`
+## 3. Implement `rnn_step`
 
-One line: the first formula above, for a single character. `nn.RNN` is this
-formula run in a loop, so the demo checks your version against it and the two
-should agree to about `1e-07`.
+![RNN unrolled over four time steps with shared weights](../lecture/visuals/rnn-unrolled.png)
+
+An RNN carries a hidden state forward through the sequence, updating it from
+the previous state and the current character. The same weights are reused at
+every step, which is why the network handles names of any length:
+
+$$h_t = \tanh(W_h\, h_{t-1} + W_x\, x_t + b)$$
+
+$h_{t-1}$ is the hidden state carried in, $x_t$ is the current character after
+the embedding layer, and $W_h$, $W_x$ and $b$ are the weights. Both products
+are a matrix times a vector, which is `@` in PyTorch, and $\tanh$ is
+`torch.tanh`. Write that as one line.
+
+`nn.RNN` is this formula run in a loop, so the demo checks your version against
+it with the layer's own weights. The two should agree to about `1e-07`.
 
 ```bash
 pytest -k step1 -q
@@ -60,10 +47,19 @@ pytest -k step1 -q
 2 passed, 5 deselected
 ```
 
-## 5. Implement `sample_next`
+## 4. Implement `sample_next`
 
-Three lines: take the model's scores at the last position, softmax them into
-probabilities, and draw one index. The loop that calls it is given.
+![RNN language model: softmax over the vocabulary, sampled token fed back in](../lecture/visuals/rnn-lm.png)
+
+The model turns each hidden state into one raw score per vocabulary character.
+Softmax makes those scores a probability distribution over what comes next:
+
+$$P(x_{t+1} = c \mid x_1 \ldots x_t) = \mathrm{softmax}(z_t)_c$$
+
+$z_t$ is the model's scores at the last position, `logits[0, -1]`. Softmax them
+with `torch.softmax`, then draw one index with `torch.multinomial`, which picks
+an index with probability equal to its weight. Three lines. The loop that calls
+you, and feeds the drawn character back in as the next input, is given.
 
 ```bash
 pytest -k step2 -q
@@ -74,7 +70,7 @@ pytest -k step2 -q
 2 passed, 5 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
 
 ```bash
 python char_rnn.py

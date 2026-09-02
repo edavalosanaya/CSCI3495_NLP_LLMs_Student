@@ -9,8 +9,8 @@ These run fully offline (the model is a rule-based stand-in). They check:
     while a human-approved privileged action still succeeds.
 
 Run:  python -m pytest weeks/week-11/class-01/exercise/test_ctf.py -q
-Tests prefer the reference solution if the starter TODOs are unimplemented, so the
-suite is green out of the box and turns red only on a real regression.
+The tests load YOUR ctf.py, never the reference, so an untouched starter reports
+skips rather than passes. A green suite means you wrote the code.
 """
 import importlib.util
 import os

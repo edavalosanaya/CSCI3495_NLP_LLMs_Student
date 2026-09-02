@@ -36,7 +36,7 @@ without which nothing else in the exercise would reproduce.
     return torch.tanh(combined)
 ```
 
-This is the formula in README section 2 typed out, and that is the whole point
+This is the formula in README section 3 typed out, and that is the whole point
 of the step: the recurrence is two matrix-vector products, an add, and a
 squash. Students who have been told an RNN is complicated are usually surprised
 it fits on two lines.

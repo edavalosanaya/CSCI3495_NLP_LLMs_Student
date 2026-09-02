@@ -68,8 +68,8 @@ def rnn_step(h_prev: torch.Tensor, x_t: torch.Tensor,
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   This is the left-hand formula in README section 2, one line.
-    #   Use torch.tanh for g, and @ for a matrix times a vector.
+    #   This is the formula in README section 3, one line.
+    #   Use torch.tanh, and @ for a matrix times a vector.
     #
     raise NotImplementedError
 
@@ -128,7 +128,7 @@ def sample_next(logits: torch.Tensor) -> int:
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   This is the right-hand formula in README section 2, then a draw.
+    #   This is the formula in README section 4, then a draw.
     #
     #   take the scores at the last position, logits[0, -1]
     #   turn them into probabilities with torch.softmax
