@@ -36,10 +36,45 @@ class CharRNN(nn.Module):
         self.out = nn.Linear(hidden, vocab_size)
 
     def forward(self, ids: torch.Tensor, h0: torch.Tensor | None = None):
+        """GIVEN. (logits, h_n) for a batch of character ids."""
         x = self.emb(ids)
         out, h_n = self.rnn(x, h0)
         logits = self.out(out)
         return logits, h_n
+
+
+
+def rnn_step(h_prev: torch.Tensor, x_t: torch.Tensor,
+             w_h: torch.Tensor, w_x: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    combined = w_h @ h_prev + w_x @ x_t + b
+    return torch.tanh(combined)
+
+
+def rnn_weights(model: CharRNN) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """GIVEN. The three weights of the recurrence, pulled out of nn.RNN.
+
+    nn.RNN carries two bias vectors where the formula has one, so they are
+    added together here.
+    """
+    rnn = model.rnn
+    b = rnn.bias_ih_l0 + rnn.bias_hh_l0
+    return rnn.weight_hh_l0, rnn.weight_ih_l0, b
+
+
+@torch.no_grad()
+def compare_one_step(model: CharRNN, stoi: dict[str, int], char: str = "t"):
+    """GIVEN. Run one character through nn.RNN and through rnn_step.
+
+    Returns both hidden states, which should agree to floating-point noise.
+    """
+    ids = torch.tensor([[stoi[char]]], dtype=torch.long)
+    x = model.emb(ids)
+    _, h_torch = model.rnn(x)
+
+    w_h, w_x, b = rnn_weights(model)
+    h_zero = torch.zeros(model.rnn.hidden_size)
+    h_mine = rnn_step(h_zero, x[0, 0], w_h, w_x, b)
+    return h_torch[0, 0], h_mine
 
 
 def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -50,25 +85,34 @@ def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, 
     return xin, yt
 
 
+def sample_next(logits: torch.Tensor) -> int:
+    last_scores = logits[0, -1]
+    probs = torch.softmax(last_scores, dim=-1)
+    drawn = torch.multinomial(probs, num_samples=1)
+    return int(drawn)
+
+
 @torch.no_grad()
 def sample(model: CharRNN, stoi, itos, seed: str = "t", max_len: int = 20) -> str:
+    """GIVEN. Generate one name, asking sample_next for each character."""
     model.eval()
     result = list(seed)
+
     seed_ids = []
     for c in seed:
         seed_ids.append(stoi[c])
     ids = torch.tensor([seed_ids], dtype=torch.long)
     logits, h = model(ids)
+
     for _ in range(max_len):
-        last_logits = logits[0, -1]
-        probs = torch.softmax(last_logits, dim=-1)
-        nxt = int(torch.multinomial(probs, num_samples=1))
+        nxt = sample_next(logits)
         ch = itos[nxt]
         if ch == END:
             break
         result.append(ch)
         ids = torch.tensor([[nxt]], dtype=torch.long)
         logits, h = model(ids, h)
+
     return "".join(result)
 
 
@@ -86,7 +130,7 @@ def train(model, names, stoi, epochs: int = 400, lr: float = 0.01) -> list[float
         loss = loss / len(pairs)
         loss.backward()
         opt.step()
-        history.append(float(loss))
+        history.append(float(loss.detach()))
     return history
 
 
@@ -100,7 +144,13 @@ def main() -> int:
     stoi, itos = build_vocab(NAMES)
     model = CharRNN(len(stoi))
     history = train(model, NAMES, stoi)
-    print(f"vocab size: {len(stoi)}")
+    h_torch, h_mine = compare_one_step(model, stoi)
+    print(f"one step of the recurrence, nn.RNN vs your rnn_step:")
+    print(f"  nn.RNN   {h_torch[:4].tolist()}")
+    print(f"  rnn_step {h_mine[:4].tolist()}")
+    print(f"  max difference: {float((h_torch - h_mine).abs().max()):.2e}")
+
+    print(f"\nvocab size: {len(stoi)}")
     print(f"epoch   1 loss: {history[0]:.4f}")
     print(f"epoch {len(history):>3} loss: {history[-1]:.4f}")
     print("\nGenerated dinosaur names:")

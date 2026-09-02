@@ -29,42 +29,68 @@ without which nothing else in the exercise would reproduce.
 
 ---
 
-## Step 1, `CharRNN.forward`
+## Step 1, `rnn_step`
 
 ```python
-    def forward(self, ids: torch.Tensor, h0: torch.Tensor | None = None):
+    combined = w_h @ h_prev + w_x @ x_t + b
+    return torch.tanh(combined)
+```
+
+This is the formula in README section 2 typed out, and that is the whole point
+of the step: the recurrence is two matrix-vector products, an add, and a
+squash. Students who have been told an RNN is complicated are usually surprised
+it fits on two lines.
+
+**The shapes decide the order of the products.** `w_h` is `(hidden, hidden)`
+and `h_prev` is `(hidden,)`, so `w_h @ h_prev` is `(hidden,)`. `w_x` is
+`(hidden, emb_dim)` and `x_t` is `(emb_dim,)`, so that product is `(hidden,)`
+too. Writing either product backwards raises a shape error immediately, which
+is the good kind of bug.
+
+**Why `tanh` and not ReLU.** The state is fed back into itself at every step,
+so an unbounded activation lets it grow without limit over a long sequence.
+`tanh` pins every entry to `(-1, 1)`, which is the cheapest way to keep a
+recurrence stable. Every entry of the returned state being inside that range is
+a quick check that the line is right.
+
+**Common mistake:** adding `b` inside one of the products, or once per product.
+The formula has a single bias, added after both.
+
+---
+
+## Given, `CharRNN.forward`
+
+```python
         x = self.emb(ids)
         out, h_n = self.rnn(x, h0)
         logits = self.out(out)
         return logits, h_n
 ```
 
-**Shapes, which is where students get lost.** `ids` is `(batch, seq)`. After
-`emb` it is `(batch, seq, emb_dim)`. `nn.RNN` with `batch_first=True` returns
-`out` of shape `(batch, seq, hidden)`, the hidden state at **every** timestep,
-plus `h_n`, just the final one. The `out` linear layer maps `hidden` to
-`vocab_size` at every position, giving `(batch, seq, vocab_size)`.
+Given, but worth reading, because it is `rnn_step` at scale. `ids` is
+`(batch, seq)`; after `emb` it is `(batch, seq, emb_dim)`. `nn.RNN` with
+`batch_first=True` returns `out` of shape `(batch, seq, hidden)`, the hidden
+state at **every** timestep, plus `h_n`, just the final one. The `out` linear
+layer maps `hidden` to `vocab_size` at every position.
 
-**Returning `h_n` is not optional.** `sample` feeds one character at a time and
-must pass the previous hidden state back in; a `forward` that returns only logits
-makes Step 3 unimplementable. Students who return a bare tensor hit a confusing
-unpacking error in `train` before they ever reach sampling.
-
-**`h0=None` is meaningful.** PyTorch treats it as a zero initial hidden state, so
-the first call in `sample` (which passes no `h0`) starts from a blank memory,
-while subsequent calls thread the real state through.
-
-**What you should see:**
+**`nn.RNN` is a loop over your `rnn_step`.** That is not a metaphor, and the
+demo proves it: `compare_one_step` pulls the layer's own weights out and runs
+one character both ways.
 
 ```python
->>> ids = torch.tensor([[stoi[c] for c in "abc"]])
->>> logits, h = model(ids)
->>> tuple(logits.shape)
-(1, 3, 23)
+    w_h, w_x, b = rnn_weights(model)
+    h_zero = torch.zeros(model.rnn.hidden_size)
+    h_mine = rnn_step(h_zero, x[0, 0], w_h, w_x, b)
 ```
 
-Three input characters produce three full distributions, not one. Every position
-is a training example, which is what makes such a tiny corpus trainable at all.
+The two hidden states agree to about `1e-07`, which is float32 rounding, not a
+difference in the math. The one wrinkle is the bias: `nn.RNN` keeps `bias_ih_l0`
+and `bias_hh_l0` where the formula has one `b`, so `rnn_weights` adds them. They
+are redundant parameters, kept for symmetry with the two weight matrices.
+
+**`h0=None` is meaningful.** PyTorch treats it as a zero initial hidden state,
+so the first call in `sample` starts from a blank memory while later calls
+thread the real state through.
 
 ---
 
@@ -109,50 +135,68 @@ pretraining objective for every model in the rest of the course.
 
 ---
 
-## Step 2, `sample`
+## Step 2, `sample_next`
+
+```python
+    last_scores = logits[0, -1]
+    probs = torch.softmax(last_scores, dim=-1)
+    drawn = torch.multinomial(probs, num_samples=1)
+    return int(drawn)
+```
+
+**`logits[0, -1]` takes the last position.** On the first call the seed may be
+several characters long, and only the final position's scores predict the
+character that comes next. Taking `logits[0, 0]` is the mistake to watch for:
+it predicts the second character of the name, over and over.
+
+**`torch.multinomial` draws, it does not maximize.** It picks an index with
+probability equal to its weight, so a character with 0.6 of the mass comes up
+about 60% of the time and the other 40% goes somewhere else. `torch.argmax`
+would return the same index every call, and every seed would produce exactly
+one name forever. This is the greedy-versus-sampling distinction that Week 7
+develops properly, and experiment 1 in the README is worth doing.
+
+**`int(...)` matters.** `multinomial` returns a tensor; the caller uses the
+result as a dictionary key in `itos`, and a tensor is not the key `itos` has.
+
+**Softmax before the draw, not after.** `multinomial` needs non-negative
+weights, and raw logits are free to be negative.
+
+---
+
+## Given, `sample`
 
 ```python
     for _ in range(max_len):
-        last_logits = logits[0, -1]
-        probs = torch.softmax(last_logits, dim=-1)
-        nxt = int(torch.multinomial(probs, num_samples=1))
+        nxt = sample_next(logits)
         ch = itos[nxt]
         if ch == END:
             break
         result.append(ch)
         ids = torch.tensor([[nxt]], dtype=torch.long)
         logits, h = model(ids, h)
-    return "".join(result)
 ```
 
-**Four things happen per iteration**, and three of them are common failure
-points.
+The loop is given because its bugs are not about language models. Two lines are
+worth pointing at anyway:
 
-1. `logits[0, -1]` takes the **last** position's prediction. On the first pass
-   the seed may be several characters long, and only the final position's
-   distribution predicts the next character.
-2. `torch.multinomial` **samples** rather than taking the argmax. Argmax would
-   make every seed produce exactly one name forever; sampling is what makes the
-   activity interesting. This is the greedy-vs-sampling distinction Week 7
-   develops properly.
-3. `break` on `END` before appending, so the marker never lands in the output
-   string. The test asserts `END not in name`.
-4. `logits, h = model(ids, h)` **passes `h` back in**. Omitting it is the classic
-   bug: generation still runs and still produces letters, but each character is
-   drawn with no memory of what came before, so the output degenerates into
-   plausible-looking noise. Because it does not crash, students can lose real
-   time here. If a name looks like random letters even after training, check
-   this line first.
-
-**`@torch.no_grad()` and `model.eval()`** on the function keep autograd off and
-put any dropout or batchnorm into inference mode. Neither matters for this tiny
-model, but the habit is worth building.
+- `break` on `END` happens **before** the append, so the marker never lands in
+  the returned string.
+- `logits, h = model(ids, h)` **passes `h` back in**. Dropping it is the classic
+  RNN bug: generation still runs and still produces letters, but each character
+  is drawn with no memory of what came before, so the output degenerates into
+  plausible-looking noise. It does not crash, so it costs real time.
 
 ---
 
 ## Running it
 
 ```
+one step of the recurrence, nn.RNN vs your rnn_step:
+  nn.RNN   [0.9934345483779907, 0.9953884482383728, -0.880752444267273, 0.9822033643722534]
+  rnn_step [0.9934345483779907, 0.9953884482383728, -0.8807525038719177, 0.9822033643722534]
+  max difference: 1.19e-07
+
 vocab size: 23
 epoch   1 loss: 3.1450
 epoch 400 loss: 0.0916
@@ -193,7 +237,8 @@ deterministic and everyone's first run matches, which also means nobody has
 "their own" names until they pass `--seed`. Say this explicitly before the vote,
 or half the room will submit `tyrannosaurus`.
 
-Useful diagnostic to run live: cut `epochs` to 100 and re-run. The loss is
-higher, the names are worse letter-by-letter, but a larger fraction of them are
-genuinely new. That trade-off between fitting the data and inventing something is
-worth ten minutes of discussion.
+Useful diagnostic to run live: cut `epochs` to 20 and re-run. The loss stops at
+1.0677, the names are worse letter-by-letter (`tarnodachalosaurus`, `aprus`,
+`saurus`), but every one of them is new. That trade-off between fitting the data
+and inventing something is worth ten minutes of discussion, and it is
+experiment 2 in the README.

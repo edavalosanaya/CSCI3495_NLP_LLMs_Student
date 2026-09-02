@@ -38,30 +38,68 @@ class CharRNN(nn.Module):
         self.out = nn.Linear(hidden, vocab_size)
 
     def forward(self, ids: torch.Tensor, h0: torch.Tensor | None = None):
-        """Score every next-character option at every position in the sequence.
+        """GIVEN. (logits, h_n) for a batch of character ids.
 
-        Args:
-            ids: shape (batch, seq_len), character indices.
-            h0: the hidden state to start from, or None to start from zeros.
-                Sampling passes the previous call's state back in here, which
-                is what lets the model carry context across calls.
-
-        Returns:
-            (logits, h_n). logits is (batch, seq_len, vocab_size): one score
-            per vocabulary character at every position, raw, no softmax. h_n
-            is the final hidden state, to be fed back in on the next call.
+        logits is (batch, seq_len, vocab_size), one raw score per vocabulary
+        character at every position. h_n is the final hidden state, which
+        sample feeds back in on the next call.
         """
-        # TODO (STEP 1): implement. Check with: pytest -k step1
-        #
-        #   The recurrence is in README section 2. Three of the layers built
-        #   in __init__ do all the work, in the order they were defined.
-        #
-        #   turn the ids into vectors with the embedding layer
-        #   run those through the RNN, handing it the incoming hidden state
-        #   project the RNN's output to one score per vocabulary character
-        #   return the scores AND the final hidden state, in that order
-        #
-        raise NotImplementedError
+        x = self.emb(ids)
+        out, h_n = self.rnn(x, h0)
+        logits = self.out(out)
+        return logits, h_n
+
+
+def rnn_step(h_prev: torch.Tensor, x_t: torch.Tensor,
+             w_h: torch.Tensor, w_x: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    """One step of the recurrence: the new hidden state.
+
+    Args:
+        h_prev: shape (hidden,). The hidden state carried in from the previous
+            character, or zeros at the start of a name.
+        x_t: shape (emb_dim,). The current character, already embedded.
+        w_h: shape (hidden, hidden). Applied to h_prev.
+        w_x: shape (hidden, emb_dim). Applied to x_t.
+        b: shape (hidden,). Added once, after both products.
+
+    Returns:
+        Shape (hidden,), the new hidden state. Every entry is between -1 and
+        1, because the activation g in the formula is tanh.
+    """
+    # TODO (STEP 1): implement. Check with: pytest -k step1
+    #
+    #   This is the left-hand formula in README section 2, one line.
+    #   Use torch.tanh for g, and @ for a matrix times a vector.
+    #
+    raise NotImplementedError
+
+
+def rnn_weights(model: CharRNN) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """GIVEN. The three weights of the recurrence, pulled out of nn.RNN.
+
+    nn.RNN carries two bias vectors where the formula has one, so they are
+    added together here.
+    """
+    rnn = model.rnn
+    b = rnn.bias_ih_l0 + rnn.bias_hh_l0
+    return rnn.weight_hh_l0, rnn.weight_ih_l0, b
+
+
+@torch.no_grad()
+def compare_one_step(model: CharRNN, stoi: dict[str, int], char: str = "t"):
+    """GIVEN. Run one character through nn.RNN and through your rnn_step.
+
+    Returns both hidden states. If your rnn_step is right they agree to
+    floating-point noise, which is the point: nn.RNN is the formula.
+    """
+    ids = torch.tensor([[stoi[char]]], dtype=torch.long)
+    x = model.emb(ids)
+    _, h_torch = model.rnn(x)
+
+    w_h, w_x, b = rnn_weights(model)
+    h_zero = torch.zeros(model.rnn.hidden_size)
+    h_mine = rnn_step(h_zero, x[0, 0], w_h, w_x, b)
+    return h_torch[0, 0], h_mine
 
 
 def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -75,40 +113,56 @@ def make_training_pairs(name: str, stoi: dict[str, int]) -> tuple[torch.Tensor, 
     return xin, yt
 
 
-@torch.no_grad()
-def sample(model: CharRNN, stoi, itos, seed: str = "t", max_len: int = 20) -> str:
-    """Generate one name character by character, starting from a seed.
+def sample_next(logits: torch.Tensor) -> int:
+    """Draw one character index from the scores at the last position.
 
     Args:
-        model: the trained CharRNN.
-        stoi: character -> index, for encoding the seed.
-        itos: index -> character, for decoding what the model draws.
-        seed: the starting character(s). They appear in the output.
-        max_len: how many characters to add before giving up. A model that
-            never draws END must still terminate.
+        logits: shape (1, seq_len, vocab_size), straight from the model. Only
+            the last position matters: it holds the scores for the character
+            that comes next. The scores are raw, so they are free to be
+            negative and do not sum to 1.
 
     Returns:
-        The generated name INCLUDING the seed and EXCLUDING the END marker.
+        One vocabulary index, as a plain int. Two calls on the same logits are
+        free to return different characters, and normally will.
     """
-    model.eval()
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   start the result off as the seed's characters
-    #   encode the seed as a (1, seq_len) tensor and run it through the model
-    #       once, keeping both the scores and the hidden state
-    #   then, up to max_len times:
-    #       take the scores at the LAST position only
-    #       turn them into probabilities and draw ONE character from that
-    #           distribution
-    #       stop as soon as you draw the END marker
-    #       otherwise add the character to the result, and run just that one
-    #           character back through the model, passing the hidden state in
-    #   join the result into a string
+    #   This is the right-hand formula in README section 2, then a draw.
     #
-    #   Draw from the distribution, do not take the most likely character, or
-    #   every name this model generates will be the same name.
+    #   take the scores at the last position, logits[0, -1]
+    #   turn them into probabilities with torch.softmax
+    #   draw ONE index from that distribution with torch.multinomial
+    #   return it as an int
+    #
+    #   Draw, do not take the highest-scoring character, or every name this
+    #   model generates will be the same name.
     #
     raise NotImplementedError
+
+
+@torch.no_grad()
+def sample(model: CharRNN, stoi, itos, seed: str = "t", max_len: int = 20) -> str:
+    """GIVEN. Generate one name, asking sample_next for each character."""
+    model.eval()
+    result = list(seed)
+
+    seed_ids = []
+    for c in seed:
+        seed_ids.append(stoi[c])
+    ids = torch.tensor([seed_ids], dtype=torch.long)
+    logits, h = model(ids)
+
+    for _ in range(max_len):
+        nxt = sample_next(logits)
+        ch = itos[nxt]
+        if ch == END:
+            break
+        result.append(ch)
+        ids = torch.tensor([[nxt]], dtype=torch.long)
+        logits, h = model(ids, h)
+
+    return "".join(result)
 
 
 def train(model, names, stoi, epochs: int = 400, lr: float = 0.01) -> list[float]:
@@ -126,7 +180,7 @@ def train(model, names, stoi, epochs: int = 400, lr: float = 0.01) -> list[float
         loss = loss / len(pairs)
         loss.backward()
         opt.step()
-        total = float(loss)
+        total = float(loss.detach())
         history.append(total)
     return history
 
@@ -143,7 +197,13 @@ def main() -> int:
     stoi, itos = build_vocab(NAMES)
     model = CharRNN(len(stoi))
     history = train(model, NAMES, stoi)
-    print(f"vocab size: {len(stoi)}")
+    h_torch, h_mine = compare_one_step(model, stoi)
+    print("one step of the recurrence, nn.RNN vs your rnn_step:")
+    print(f"  nn.RNN   {h_torch[:4].tolist()}")
+    print(f"  rnn_step {h_mine[:4].tolist()}")
+    print(f"  max difference: {float((h_torch - h_mine).abs().max()):.2e}")
+
+    print(f"\nvocab size: {len(stoi)}")
     print(f"epoch   1 loss: {history[0]:.4f}")
     print(f"epoch {len(history):>3} loss: {history[-1]:.4f}")
     print("\nGenerated dinosaur names:")
