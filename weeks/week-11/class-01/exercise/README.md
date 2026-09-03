@@ -9,23 +9,7 @@ You write four functions, two per file: `extract_json` and `validate` in
 `json_lab.py`, then `guard_input` and `guard_output` in `ctf.py`. The attacks,
 the tool allow-list and the assistants are given.
 
-## 2. Understanding the math
-
-![Direct vs indirect prompt injection](../lecture/visuals/injection-types.png)
-
-User text is DATA, never instructions. The defended path wraps the model on
-both sides, so a tricked model still cannot emit the secret:
-
-$$\text{answer} = g_{\text{out}}\big(\,M(g_{\text{in}}(u))\,\big)$$
-
-![Defense in depth: input filter, model, tool allow-list, human approval](../lecture/visuals/defenses.png)
-
-Tools get their own gate, independent of anything the model said. A privileged
-tool runs only with explicit human approval, and an unknown tool never runs:
-
-$$\text{allowed}(t, a) \;=\; (t \in \text{SAFE}) \;\lor\; \big(t \in \text{PRIVILEGED} \land a\big)$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -37,7 +21,7 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `extract_json`
+## 3. Implement `extract_json`
 
 First `{` to last `}`, parse it, and reject anything that is not a dict.
 
@@ -50,7 +34,7 @@ pytest -k step1 -q
 3 passed, 15 deselected
 ```
 
-## 5. Implement `validate`
+## 4. Implement `validate`
 
 Collect every error rather than stopping at the first. Watch the bool-is-an-int
 trap.
@@ -64,7 +48,16 @@ pytest -k step2 -q
 4 passed, 14 deselected
 ```
 
-## 6. Implement `guard_input`
+## 5. Implement `guard_input`
+
+![Direct vs indirect prompt injection](../lecture/visuals/injection-types.png)
+
+User text is DATA, never instructions. The defended path wraps the model on
+both sides, so a tricked model still cannot emit the secret:
+
+$$\text{answer} = g_{\text{out}}\big(\,M(g_{\text{in}}(u))\,\big)$$
+
+This step is $g_{\text{in}}$, the filter on the way in.
 
 Strip override attempts, flag exfiltration and privilege attempts, and neuter
 the message rather than passing it through.
@@ -78,7 +71,10 @@ pytest -k step3 -q
 2 passed, 16 deselected
 ```
 
-## 7. Implement `guard_output`
+## 6. Implement `guard_output`
+
+This step is $g_{\text{out}}$, the filter on the way out. It is the half that
+still works when $g_{\text{in}}$ has already been fooled.
 
 Redact the secret on the way out, whatever the model was talked into saying.
 
@@ -91,7 +87,15 @@ pytest -k step4 -q
 1 passed, 17 deselected
 ```
 
-## 8. Run it, then attack it
+## 7. Run it, then attack it
+
+![Defense in depth: input filter, model, tool allow-list, human approval](../lecture/visuals/defenses.png)
+
+Tools get their own gate, independent of anything the model said. The given
+`tool_allowed` runs a privileged tool only with explicit human approval, and
+never runs an unknown one:
+
+$$\text{allowed}(t, a) \;=\; (t \in \text{SAFE}) \;\lor\; \big(t \in \text{PRIVILEGED} \land a\big)$$
 
 ```bash
 python ctf.py

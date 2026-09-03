@@ -9,22 +9,7 @@ network and the embeddings together.
 You write two things in `mlp_classifier.py`: the averaging, and the forward
 pass. The vocabulary, the training loop and the accuracy check are given.
 
-## 2. Understanding the math
-
-![tokenize, look up embeddings, average into one vector, classify](../lecture/visuals/deep-averaging.png)
-
-A document of $n$ tokens becomes one vector by averaging its embedding rows,
-and that vector goes through a linear layer, a nonlinearity, and a second
-linear layer. $E$ is the embedding table, $W$ and $U$ the two weight matrices:
-
-$$x = \frac{1}{n}\sum_{i=1}^{n} E[w_i] \qquad h = \sigma(Wx + b) \qquad z = Uh$$
-
-$z$ is a pair of raw scores, not probabilities. The loss applies the softmax
-itself, so applying one in `forward` too would flatten the gradients.
-
-![the five-line PyTorch training loop: zero_grad, forward, loss, backward, step](../lecture/visuals/training-loop.png)
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -36,7 +21,14 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `embed_document`
+## 3. Implement `embed_document`
+
+![tokenize, look up embeddings, average into one vector, classify](../lecture/visuals/deep-averaging.png)
+
+A document of $n$ tokens becomes one vector by averaging its embedding rows,
+where $E$ is the embedding table:
+
+$$x = \frac{1}{n}\sum_{i=1}^{n} E[w_i]$$
 
 Turn a document into one vector of length `embedding_dim`. Looking up a
 document's tokens gives you a 2-D tensor: one row per token, and the columns
@@ -52,7 +44,15 @@ pytest -k step1 -q
 1 passed, 3 deselected
 ```
 
-## 5. Implement `MLP.forward`
+## 4. Implement `MLP.forward`
+
+That vector goes through a linear layer, a nonlinearity, and a second linear
+layer, with $W$ and $U$ the two weight matrices:
+
+$$h = \sigma(Wx + b) \qquad z = Uh$$
+
+$z$ is a pair of raw scores, not probabilities. The loss applies the softmax
+itself, so applying one here too would flatten the gradients.
 
 One line: first linear layer, activation, second linear layer. Stop there.
 A layer is called like a function, so `self.fc1(x)` runs `x` through `fc1` and
@@ -67,7 +67,9 @@ pytest -k step2 -q
 1 passed, 3 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
+
+![the five-line PyTorch training loop: zero_grad, forward, loss, backward, step](../lecture/visuals/training-loop.png)
 
 ```bash
 python mlp_classifier.py

@@ -55,7 +55,7 @@ def embed_document(text: str, vocab: dict[str, int], emb: nn.Embedding) -> torch
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The averaging step is the left-hand formula in README section 2.
+    #   The averaging step is the formula in README section 3.
     #
     #   turn every token into its vocab index, falling back to the unknown row
     #   if the document produced no tokens at all, hand back a vector of zeros
@@ -85,7 +85,7 @@ class MLP(nn.Module):
         """
         # TODO (STEP 2): implement. Check with: pytest -k step2
         #
-        #   The right-hand pair of formulas in README section 2. One line.
+        #   The pair of formulas in README section 4. One line.
         #
         #   send x through the first linear layer, then the activation,
         #   then the second linear layer, and return that

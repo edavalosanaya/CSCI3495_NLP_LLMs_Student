@@ -9,21 +9,7 @@ covers probability p.
 You write two functions in `decoding.py`. Temperature, greedy and the sampler
 are given.
 
-## 2. Understanding the math
-
-![Decoding strategies compared: greedy, top-k, top-p](../lecture/visuals/decoding-strategies.png)
-
-Temperature rescales the logits before the softmax. Below 1 sharpens the
-distribution, above 1 flattens it:
-
-$$P(w) = \frac{\exp(z_w / T)}{\sum_v \exp(z_v / T)}$$
-
-Top-k keeps a fixed number of tokens. Top-p keeps however many are needed to
-reach probability $p$, so it adapts: a confident distribution keeps one token,
-an uncertain one keeps many. Both must renormalize what survives, because a
-truncated distribution no longer sums to 1.
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -35,7 +21,17 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `top_k_filter`
+## 3. Implement `top_k_filter`
+
+![Decoding strategies compared: greedy, top-k, top-p](../lecture/visuals/decoding-strategies.png)
+
+Temperature rescales the logits before the softmax. Below 1 sharpens the
+distribution, above 1 flattens it:
+
+$$P(w) = \frac{\exp(z_w / T)}{\sum_v \exp(z_v / T)}$$
+
+Top-k keeps a fixed number of tokens and drops the rest, then renormalizes,
+because a truncated distribution no longer sums to 1.
 
 Keep the k most likely tokens, then divide by what is left so the result sums
 to 1 again.
@@ -49,7 +45,11 @@ pytest -k step1 -q
 1 passed, 8 deselected
 ```
 
-## 5. Implement `top_p_filter`
+## 4. Implement `top_p_filter`
+
+Top-p keeps however many tokens are needed to reach cumulative probability $p$,
+so it adapts: a confident distribution keeps one token, an uncertain one keeps
+many. It renormalizes for the same reason top-k does.
 
 Keep tokens in order until the running total reaches p, including the one that
 crosses it, then renormalize. Never return an empty distribution.
@@ -63,7 +63,7 @@ pytest -k step2 -q
 2 passed, 7 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
 
 ```bash
 python decoding.py

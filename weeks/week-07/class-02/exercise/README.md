@@ -9,24 +9,7 @@ You write two functions in `scaling.py`. Answer normalization and the lenient
 match are given, and `measure.py` runs the same suite against real Ollama
 models.
 
-## 2. Understanding the math
-
-![Kaplan et al. 2020, Fig. 1: loss falls as a power law in compute, data, and parameters](../lecture/visuals/assets/kaplan-2020-fig-1.png)
-
-Training compute is roughly six FLOPs per parameter per token, and Chinchilla's
-rule of thumb says a compute budget is best spent at about twenty tokens per
-parameter, not on parameters alone:
-
-$$C \approx 6\,N D \qquad \text{(training compute budget)} \qquad D_{\text{opt}} \approx 20\,N \qquad \text{(Chinchilla rule of thumb)}$$
-
-![Hoffmann et al. 2022 (Chinchilla), Fig. 3: for a fixed FLOP budget, too big is as wasteful as too small](../lecture/visuals/assets/chinchilla-2022-fig-3.png)
-
-What you measure here is the right-hand side: accuracy over $n$ items, and
-whether it is non-decreasing across models ordered smallest to largest:
-
-$$\text{accuracy} = \frac{1}{n} \sum_{i=1}^{n} \mathbf{1}\big[\text{is\_correct}(o_i, t_i)\big] \qquad \text{scaling\_trend} = \text{True} \iff a_1 \le a_2 \le \dots \le a_m$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -38,7 +21,13 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `accuracy`
+## 3. Implement `accuracy`
+
+![Kaplan et al. 2020, Fig. 1: loss falls as a power law in compute, data, and parameters](../lecture/visuals/assets/kaplan-2020-fig-1.png)
+
+Accuracy is the fraction of the $n$ items the model got right:
+
+$$\text{accuracy} = \frac{1}{n} \sum_{i=1}^{n} \mathbf{1}\big[\text{is\_correct}(o_i, t_i)\big]$$
 
 Count the items `is_correct` accepts and divide. Handle the empty run.
 
@@ -51,7 +40,20 @@ pytest -k step1 -q
 2 passed, 6 deselected
 ```
 
-## 5. Implement `scaling_trend`
+## 4. Implement `scaling_trend`
+
+![Hoffmann et al. 2022 (Chinchilla), Fig. 3: for a fixed FLOP budget, too big is as wasteful as too small](../lecture/visuals/assets/chinchilla-2022-fig-3.png)
+
+Training compute is roughly six FLOPs per parameter per token, and Chinchilla's
+rule of thumb says a budget is best spent at about twenty tokens per parameter,
+not on parameters alone:
+
+$$C \approx 6\,N D \qquad D_{\text{opt}} \approx 20\,N$$
+
+What you measure is whether accuracy is non-decreasing across the models,
+ordered smallest to largest:
+
+$$\text{scaling\_trend} = \text{True} \iff a_1 \le a_2 \le \dots \le a_m$$
 
 One line: is the accuracy list non-decreasing in the order given?
 
@@ -64,7 +66,7 @@ pytest -k step2 -q
 3 passed, 5 deselected
 ```
 
-## 6. Run it, then question it
+## 5. Run it, then question it
 
 ```bash
 python scaling.py

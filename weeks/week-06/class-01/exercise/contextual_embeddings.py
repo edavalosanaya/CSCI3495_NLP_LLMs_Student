@@ -49,7 +49,7 @@ def contextual_vector(sentence: str, word: str):
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The right-hand formula in README section 2.
+    #   The formula is in README section 3.
     #
     #   load the tokenizer and model with the given helper
     #   encode the sentence as pytorch tensors and run the model, asking it to
@@ -77,7 +77,7 @@ def static_vector(word: str):
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   The left-hand formula in README section 2.
+    #   The first formula in README section 4.
     #
     #   load the tokenizer and model with the given helper
     #   ask the model for its input embedding table, which maps a token id

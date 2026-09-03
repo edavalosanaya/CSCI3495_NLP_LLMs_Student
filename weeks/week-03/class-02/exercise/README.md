@@ -8,28 +8,7 @@ the same offset trick to measure how a word leans along a social axis.
 You write two functions in `embeddings.py`. Cosine similarity and the
 nearest-neighbour search are already written for you.
 
-## 2. Understanding the math
-
-![Analogy as vector arithmetic: the man to woman offset is parallel to the king to queen offset](../lecture/visuals/analogy-vectors.png)
-
-Similarity is the angle between two vectors:
-
-$$\cos(u, v) = \frac{u \cdot v}{\lVert u \rVert \, \lVert v \rVert}$$
-
-"$a$ is to $b$ as $c$ is to ?" becomes a step in vector space: take the offset
-from $a$ to $b$, apply it at $c$, and look for the nearest word to where you land:
-
-$$\text{analogy}(a, b, c) = \arg\max_{w \notin \{a, b, c\}} \; \cos\big(\mathrm{vec}(w), \; \mathrm{vec}(b) - \mathrm{vec}(a) + \mathrm{vec}(c)\big)$$
-
-![Occupations projected onto the man to woman direction, after Bolukbasi et al. 2016](../lecture/visuals/embedding-bias.png)
-
-The same offset defines an axis. Projecting a word onto it says which end that
-word leans toward, which is how Bolukbasi et al. (2016) measured occupational
-gender bias in real embeddings:
-
-$$\mathrm{bias}(w) = \cos\big(\mathrm{vec}(w), \; \mathrm{vec}(\mathit{pos}) - \mathrm{vec}(\mathit{neg})\big)$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -41,7 +20,18 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `analogy`
+## 3. Implement `analogy`
+
+![Analogy as vector arithmetic: the man to woman offset is parallel to the king to queen offset](../lecture/visuals/analogy-vectors.png)
+
+Similarity is the angle between two vectors, which the given `cosine` measures:
+
+$$\cos(u, v) = \frac{u \cdot v}{\lVert u \rVert \, \lVert v \rVert}$$
+
+"$a$ is to $b$ as $c$ is to ?" becomes a step in vector space: take the offset
+from $a$ to $b$, apply it at $c$, and look for the nearest word to where you land:
+
+$$\text{analogy}(a, b, c) = \arg\max_{w \notin \{a, b, c\}} \; \cos\big(\mathrm{vec}(w), \; \mathrm{vec}(b) - \mathrm{vec}(a) + \mathrm{vec}(c)\big)$$
 
 Build the target vector, score every word against it, and return the best `k`
 excluding `a`, `b` and `c`. Break ties by the word itself so the output is
@@ -56,7 +46,15 @@ pytest -k step1 -q
 2 passed, 6 deselected
 ```
 
-## 5. Implement `bias_score`
+## 4. Implement `bias_score`
+
+![Occupations projected onto the man to woman direction, after Bolukbasi et al. 2016](../lecture/visuals/embedding-bias.png)
+
+The same offset defines an axis. Projecting a word onto it says which end that
+word leans toward, which is how Bolukbasi et al. (2016) measured occupational
+gender bias in real embeddings:
+
+$$\mathrm{bias}(w) = \cos\big(\mathrm{vec}(w), \; \mathrm{vec}(\mathit{pos}) - \mathrm{vec}(\mathit{neg})\big)$$
 
 Project one word onto the axis running from `neg` to `pos`. Two lines.
 
@@ -69,7 +67,7 @@ pytest -k step2 -q
 2 passed, 6 deselected
 ```
 
-## 6. Run it, then discuss it
+## 5. Run it, then discuss it
 
 ```bash
 python embeddings.py

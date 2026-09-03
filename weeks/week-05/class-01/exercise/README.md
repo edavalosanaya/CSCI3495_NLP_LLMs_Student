@@ -8,21 +8,7 @@ alignment, and see what the attention weights let you inspect.
 You write two things in `attention.py`: the score, and the score-softmax-blend
 pass. The parameters and the ASCII heatmap are given.
 
-## 2. Understanding the math
-
-![Additive attention math: score, weights, context](../lecture/visuals/additive-math.png)
-
-Each encoder state $h_i$ is scored against the decoder state $s_{t-1}$, the
-scores become a distribution, and the distribution blends the values:
-
-$$e_{t,i} = v^\top \tanh(W_s s_{t-1} + W_h h_i) \qquad \alpha_{t,i} = \mathrm{softmax}_i(e_{t,i}) \qquad c_t = \sum_i \alpha_{t,i} h_i$$
-
-The softmax runs over $i$, the key axis, so the weights say how the query
-divided its attention across the source positions and sum to 1.
-
-![Attention alignment heatmap for "la maison bleue est grande"](../lecture/visuals/attention-alignment.png)
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -34,7 +20,13 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `additive_scores`
+## 3. Implement `additive_scores`
+
+![Additive attention math: score, weights, context](../lecture/visuals/additive-math.png)
+
+Each encoder state $h_i$ is scored against the decoder state $s_{t-1}$:
+
+$$e_{t,i} = v^\top \tanh(W_s s_{t-1} + W_h h_i)$$
 
 One number per key. The projected query broadcasts across every key's row, so
 there is no loop.
@@ -48,7 +40,14 @@ pytest -k step1 -q
 1 passed, 3 deselected
 ```
 
-## 5. Implement `AdditiveAttention.forward`
+## 4. Implement `AdditiveAttention.forward`
+
+The scores become a distribution, and the distribution blends the values:
+
+$$\alpha_{t,i} = \mathrm{softmax}_i(e_{t,i}) \qquad c_t = \sum_i \alpha_{t,i} h_i$$
+
+The softmax runs over $i$, the key axis, so the weights say how the query
+divided its attention across the source positions and sum to 1.
 
 Score, softmax over the key axis, blend the values. Return the context and the
 weights.
@@ -62,7 +61,9 @@ pytest -k step2 -q
 2 passed, 2 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
+
+![Attention alignment heatmap for "la maison bleue est grande"](../lecture/visuals/attention-alignment.png)
 
 ```bash
 python attention.py

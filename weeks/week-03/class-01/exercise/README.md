@@ -8,26 +8,7 @@ see what each of those two ideas contributes on its own.
 You write two functions in `search.py`: the weighting and the similarity. The
 index and the ranking loop are already written for you.
 
-## 2. Understanding the math
-
-![TF-IDF worked example: tf, df, idf, and the tf-idf product for four terms](../lecture/visuals/tfidf.png)
-
-With $N$ documents and $\mathrm{df}_t$ the number of them containing term $t$,
-a term is weighted by how often it occurs here against how rare it is overall:
-
-$$\mathrm{idf}_t = \log\frac{N}{\mathrm{df}_t} \qquad\qquad w_{t,d} = \mathrm{tf}_{t,d} \times \mathrm{idf}_t$$
-
-A term in every document has $\mathrm{df}_t = N$, so its idf is $\log 1 = 0$ and
-its weight vanishes no matter how often it appears.
-
-![Cosine similarity: documents as vectors, ranked by angle, not length](../lecture/visuals/cosine-similarity.png)
-
-Documents are compared by the angle between their weight vectors, not their
-length, so a long document does not beat a short one just for being long:
-
-$$\cos(u, v) = \frac{u \cdot v}{\lVert u \rVert \, \lVert v \rVert}$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -39,7 +20,17 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `tfidf_vector`
+## 3. Implement `tfidf_vector`
+
+![TF-IDF worked example: tf, df, idf, and the tf-idf product for four terms](../lecture/visuals/tfidf.png)
+
+With $N$ documents and $\mathrm{df}_t$ the number of them containing term $t$,
+a term is weighted by how often it occurs here against how rare it is overall:
+
+$$\mathrm{idf}_t = \log\frac{N}{\mathrm{df}_t} \qquad\qquad w_{t,d} = \mathrm{tf}_{t,d} \times \mathrm{idf}_t$$
+
+A term in every document has $\mathrm{df}_t = N$, so its idf is $\log 1 = 0$ and
+its weight vanishes no matter how often it appears.
 
 Turn a token list into a sparse `{term: weight}` dict. Terms whose weight comes
 out as zero are left out of the dict entirely.
@@ -53,7 +44,14 @@ pytest -k step1 -q
 1 passed, 6 deselected
 ```
 
-## 5. Implement `cosine`
+## 4. Implement `cosine`
+
+![Cosine similarity: documents as vectors, ranked by angle, not length](../lecture/visuals/cosine-similarity.png)
+
+Documents are compared by the angle between their weight vectors, not their
+length, so a long document does not beat a short one just for being long:
+
+$$\cos(u, v) = \frac{u \cdot v}{\lVert u \rVert \, \lVert v \rVert}$$
 
 Divide the dot product by the two vector lengths, and return `0.0` rather than
 dividing by zero when a vector has no length.
@@ -67,7 +65,7 @@ pytest -k step2 -q
 2 passed, 5 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
 
 ```bash
 python search.py

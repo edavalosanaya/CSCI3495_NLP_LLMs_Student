@@ -8,7 +8,19 @@ picks one specialist worker, and returns a structured result you can log.
 You write three functions in `workflow.py`: the router, one worker, and the
 dispatcher. The other workers, the fallback and the dispatch table are given.
 
-## 2. Understanding the math
+## 2. Getting started
+
+From the repository root on your own machine, once per session:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-01/exercise course bash
+```
+
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 3. Implement `route`
 
 ![Routing pattern: a cheap classifier dispatches each query to a specialized path](../lecture/visuals/routing.png)
 
@@ -26,31 +38,6 @@ $$
 \end{cases}
 $$
 
-![Router anatomy: query, raw LLM reply, normalize and validate, worker, structured Result](../lecture/visuals/router-anatomy.png)
-
-Dispatch then picks the worker from a table, with the fallback wired to the
-`unknown` key so an unroutable query is handled rather than crashing:
-
-$$
-\mathrm{run\_workflow}(q) = W_{\text{label}}(q),
-\qquad
-W_{\text{unknown}} = \mathrm{worker\_fallback}
-$$
-
-## 3. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-01/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 4. Implement `route`
-
 Ask for one word, then distrust the answer: trim it, lowercase it, take the
 first token, and map anything unrecognized to `unknown`.
 
@@ -63,7 +50,7 @@ pytest -k step1 -q
 5 passed, 6 deselected
 ```
 
-## 5. Implement `worker_summarize`
+## 4. Implement `worker_summarize`
 
 One line, in the same shape as the two workers above it.
 
@@ -76,7 +63,18 @@ pytest -k step2 -q
 1 passed, 10 deselected
 ```
 
-## 6. Implement `run_workflow`
+## 5. Implement `run_workflow`
+
+![Router anatomy: query, raw LLM reply, normalize and validate, worker, structured Result](../lecture/visuals/router-anatomy.png)
+
+Dispatch picks the worker from a table, with the fallback wired to the
+`unknown` key so an unroutable query is handled rather than crashing:
+
+$$
+\mathrm{run\_workflow}(q) = W_{\text{label}}(q),
+\qquad
+W_{\text{unknown}} = \mathrm{worker\_fallback}
+$$
 
 Route, look the label up in `_WORKERS`, run it, and package a `Result`.
 
@@ -89,7 +87,7 @@ pytest -k step3 -q
 3 passed, 8 deselected
 ```
 
-## 7. Run it, then break it
+## 6. Run it, then break it
 
 ```bash
 python ../solutions/workflow.py

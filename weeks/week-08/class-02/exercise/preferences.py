@@ -43,7 +43,7 @@ def neg_log_likelihood(
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The loss is in README section 2.
+    #   The loss is in README section 3.
     #
     #   for each winner/loser pair:
     #       the model's probability the winner wins is the sigmoid of the

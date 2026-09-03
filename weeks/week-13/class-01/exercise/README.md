@@ -9,22 +9,7 @@ carrying those notes ACROSS problems helps too.
 You write three functions in `agent.py`: the planner, the self-critique, and
 the retry loop. Memory, the ReAct attempt and the tools are given.
 
-## 2. Understanding the math
-
-![The Reflexion loop: plan, attempt, check success, reflect and retry](../lecture/visuals/reflexion-loop.png)
-
-Each attempt is an ordinary ReAct run, but conditioned on a plan and on
-everything memory has accumulated. A failed attempt is turned into a note and
-appended, so attempt $i+1$ sees what attempt $i$ learned:
-
-$$\tau_i = \mathrm{ReAct}(\text{task} \mid \text{plan},\ m_{i-1}), \qquad m_i = m_{i-1} \cup \{\ \mathrm{reflect}(\text{task}, \tau_i)\ \}$$
-
-![Reflexion architecture from the paper: Actor, Evaluator, Self-reflection, memory](../lecture/visuals/assets/shinn-2023-fig-2a.png)
-
-The success check is the EVALUATOR's, not the agent's. The agent never sees it,
-which is what stops it from simply declaring victory.
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -36,7 +21,12 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `make_plan`
+## 3. Implement `make_plan`
+
+![The Reflexion loop: plan, attempt, check success, reflect and retry](../lecture/visuals/reflexion-loop.png)
+
+Each attempt is an ordinary ReAct run, but conditioned on a plan and on
+everything memory has accumulated so far. The plan is what this step writes.
 
 Ask for a few numbered steps. No planner means an empty plan, not an error.
 
@@ -49,7 +39,12 @@ pytest -k step1 -q
 1 passed, 9 deselected
 ```
 
-## 5. Implement `reflect`
+## 4. Implement `reflect`
+
+A failed attempt is turned into a note and appended to memory, so attempt
+$i+1$ sees what attempt $i$ learned:
+
+$$m_i = m_{i-1} \cup \{\ \mathrm{reflect}(\text{task}, \tau_i)\ \}$$
 
 Turn a failed trace into one or two sentences of advice. The no-model fallback
 is already written; you add the branch that uses a reflector.
@@ -63,7 +58,16 @@ pytest -k step2 -q
 1 passed, 9 deselected
 ```
 
-## 6. Implement `run_reflexion_agent`
+## 5. Implement `run_reflexion_agent`
+
+![Reflexion architecture from the paper: Actor, Evaluator, Self-reflection, memory](../lecture/visuals/assets/shinn-2023-fig-2a.png)
+
+Each attempt runs against the plan and the memory built so far:
+
+$$\tau_i = \mathrm{ReAct}(\text{task} \mid \text{plan},\ m_{i-1})$$
+
+The success check is the EVALUATOR's, not the agent's. The agent never sees it,
+which is what stops it from simply declaring victory.
 
 Attempt, check with the evaluator's oracle, and on failure write a reflection
 into memory BEFORE trying again.
@@ -77,7 +81,7 @@ pytest -k step3 -q
 3 passed, 7 deselected
 ```
 
-## 7. Run it, then question it
+## 6. Run it, then question it
 
 ```bash
 python ../solutions/run_suite.py

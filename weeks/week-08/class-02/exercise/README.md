@@ -8,7 +8,19 @@ of RLHF. No ratings, no labels, just "this one was better".
 You write two functions in `preferences.py`. The numerically stable sigmoid is
 given.
 
-## 2. Understanding the math
+## 2. Getting started
+
+From the repository root on your own machine, once per session:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-08/class-02/exercise course bash
+```
+
+A step you have not written yet reports `skipped`, not a failure. If you get
+stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
+not graded.
+
+## 3. Implement `neg_log_likelihood`
 
 ![RLHF pipeline: SFT, then reward model, then RL optimization with PPO](../lecture/visuals/rlhf-pipeline.png)
 
@@ -22,25 +34,6 @@ choice the humans actually made:
 
 $$\mathcal{L} \;=\; -\frac{1}{N} \sum_{(w,\,l)} \log \sigma(s_w - s_l).$$
 
-![Reward model: humans rank responses, a model learns a scalar score with a pairwise ranking loss](../lecture/visuals/stage2-rm.png)
-
-Because only differences appear, the scores are pinned down only up to an
-additive constant, which is why they get re-centred after every pass.
-
-## 3. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-08/class-02/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 4. Implement `neg_log_likelihood`
-
 Average $-\log \sigma(s_w - s_l)$ over the pairs, clamping the probability away
 from 0 first.
 
@@ -53,7 +46,12 @@ pytest -k step1 -q
 1 passed, 5 deselected
 ```
 
-## 5. Implement `fit_reward_model`
+## 4. Implement `fit_reward_model`
+
+![Reward model: humans rank responses, a model learns a scalar score with a pairwise ranking loss](../lecture/visuals/stage2-rm.png)
+
+Because only differences appear in that loss, the scores are pinned down only
+up to an additive constant, which is why they get re-centred after every pass.
 
 Hand-written gradient descent: push winners up, losers down, then re-centre.
 
@@ -66,7 +64,7 @@ pytest -k step2 -q
 3 passed, 3 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
 
 ```bash
 python preferences.py

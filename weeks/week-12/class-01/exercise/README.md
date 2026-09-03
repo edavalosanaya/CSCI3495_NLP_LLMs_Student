@@ -8,7 +8,15 @@ the loop the worst input you can invent, and find out which guard stops what.
 There is nothing to implement today. You write adversarial `Action` lines and
 read the code that survives them; Class 2 is where you build it.
 
-## 2. Understanding the math
+## 2. Getting started
+
+From the repository root on your own machine, once per session:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-01/exercise course bash
+```
+
+## 3. Take the model's seat
 
 ![The ReAct loop: Thought, Action, Observation, repeated](../lecture/visuals/react-loop.png)
 
@@ -21,21 +29,6 @@ $$(T_t, A_t) = \mathrm{LLM}(c_{t-1}), \qquad O_t = \mathrm{tool}(A_t), \qquad c_
 It stops when $A_t = \texttt{finish}[\hat{y}]$ or $t = \texttt{max\_steps}$.
 Nothing in there is intelligent: every bit of robustness is in how the loop
 handles a bad $A_t$.
-
-![A full ReAct trace ending in finish](../lecture/visuals/react-trace.png)
-
-In that trace, the model wrote only the Thought and Action lines. The code you
-are attacking wrote every Observation.
-
-## 3. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-12/class-01/exercise course bash
-```
-
-## 4. Take the model's seat
 
 ```bash
 python break_the_agent.py
@@ -53,7 +46,12 @@ Task: Try to break me. What is 12 * 47?
 answer='give up'  stopped=finished  steps=1
 ```
 
-## 5. Attack the tools
+## 4. Attack the tools
+
+![A full ReAct trace ending in finish](../lecture/visuals/react-trace.png)
+
+In that trace, the model wrote only the Thought and Action lines. The code you
+are attacking wrote every Observation.
 
 Every one of these should come back as an Observation, never a traceback.
 
@@ -67,7 +65,7 @@ Error: could not evaluate '__import__("os").system("ls")'
 Error: result too large to display
 ```
 
-## 6. Attack the parser
+## 5. Attack the parser
 
 ```bash
 python -c "import sys; sys.path.insert(0, '../../class-02/solutions'); import agent; print(agent.parse_action('Action: calc[log(3**2 * 16 - 10)]')); print(agent.parse_action('Thought: no action here'))"
@@ -81,7 +79,7 @@ None
 The nested brackets survived, and a missing Action returned `None` rather than
 half a string.
 
-## 7. Report what you found
+## 6. Report what you found
 
 Try each attack below, then say which guard defended it and where that guard
 lives in `../../class-02/solutions/`.

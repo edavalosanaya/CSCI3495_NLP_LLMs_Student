@@ -8,23 +8,7 @@ reason step by step, then take a majority vote over several attempts.
 You write two functions in `cot_lab.py`: the majority vote and the evaluation
 loop. Answer extraction and the two prompt builders are given.
 
-## 2. Understanding the math
-
-![Chain-of-thought vs direct prompting: the worked solution in the prompt flips the answer from 27 to 9](../lecture/visuals/assets/wei-2022-fig-1.png)
-
-Both prompts get the same question and the same model. Only the instruction
-differs, and it is scored by exact match on the final integer:
-
-$$\text{accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}[\hat{a}_i = a_i]$$
-
-![Self-consistency: sample several chains at temperature > 0 and take the majority answer](../lecture/visuals/assets/wang-2022-fig-1.png)
-
-Self-consistency samples $n$ chains and keeps whichever final answer the most
-of them reached, so one bad chain no longer decides the outcome:
-
-$$\hat{a} = \arg\max_{a} \sum_{j=1}^{n} \mathbf{1}[\hat{a}^{(j)} = a]$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -36,7 +20,14 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `majority_vote`
+## 3. Implement `majority_vote`
+
+![Self-consistency: sample several chains at temperature > 0 and take the majority answer](../lecture/visuals/assets/wang-2022-fig-1.png)
+
+Self-consistency samples $n$ chains and keeps whichever final answer the most
+of them reached, so one bad chain no longer decides the outcome:
+
+$$\hat{a} = \arg\max_{a} \sum_{j=1}^{n} \mathbf{1}[\hat{a}^{(j)} = a]$$
 
 Drop the chains that produced nothing, count the rest, and break ties by the
 smallest value so the result is reproducible.
@@ -50,7 +41,14 @@ pytest -k step1 -q
 1 passed, 3 deselected
 ```
 
-## 5. Implement `evaluate`
+## 4. Implement `evaluate`
+
+![Chain-of-thought vs direct prompting: the worked solution in the prompt flips the answer from 27 to 9](../lecture/visuals/assets/wei-2022-fig-1.png)
+
+Both prompts get the same question and the same model. Only the instruction
+differs, and it is scored by exact match on the final integer:
+
+$$\text{accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}[\hat{a}_i = a_i]$$
 
 Prompt, generate, extract, compare, divide.
 
@@ -63,7 +61,7 @@ pytest -k step2 -q
 1 passed, 3 deselected
 ```
 
-## 6. Run it, then question it
+## 5. Run it, then question it
 
 ```bash
 python cot_lab.py

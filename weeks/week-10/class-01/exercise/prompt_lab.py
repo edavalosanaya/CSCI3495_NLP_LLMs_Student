@@ -49,7 +49,7 @@ def build_fewshot_prompt(instruction: str, demos: list[tuple[str, str]], query: 
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The shape is drawn in README section 2. Build one string.
+    #   The shape is drawn in README section 3. Build one string.
     #
     #   start with the instruction, then a blank line
     #   for every demonstration, add its review line, its sentiment line, and

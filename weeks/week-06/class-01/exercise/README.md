@@ -9,24 +9,7 @@ lookup that cannot tell those sentences apart.
 You write two functions in `contextual_embeddings.py`. Cosine similarity, the
 model loader and the token-locating helpers are given.
 
-## 2. Understanding the math
-
-![Static vs. contextual embeddings: both senses of "bank" collapse to one static vector, but contextual vectors differ](../lecture/visuals/static-vs-contextual.png)
-
-Similarity is the usual cosine:
-
-$$\mathrm{cosine}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\lVert\mathbf{u}\rVert \, \lVert\mathbf{v}\rVert}$$
-
-Both vectors average over the $m$ word-pieces of the word. The difference is
-what they average: the static one averages rows of the input embedding table,
-the contextual one averages the model's LAST hidden layer $\mathbf{h}^{(L)}$
-after the sentence has been read:
-
-$$\text{static\_vector}(w) = \frac{1}{m}\sum_{i=1}^{m} E[t_i] \qquad \text{contextual\_vector}(s, w) = \frac{1}{m}\sum_{i=1}^{m} \mathbf{h}^{(L)}_i$$
-
-![Contextual idea: run a deep LM over the sentence; its hidden states ARE the representations](../lecture/visuals/contextual-idea.png)
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -38,7 +21,15 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `contextual_vector`
+## 3. Implement `contextual_vector`
+
+![Contextual idea: run a deep LM over the sentence; its hidden states ARE the representations](../lecture/visuals/contextual-idea.png)
+
+A word's vector averages over the $m$ word-pieces it was split into. The
+contextual one averages the model's LAST hidden layer $\mathbf{h}^{(L)}$, after
+the whole sentence has been read:
+
+$$\text{contextual\_vector}(s, w) = \frac{1}{m}\sum_{i=1}^{m} \mathbf{h}^{(L)}_i$$
 
 Run the sentence through the model, take the last hidden layer, and average
 the positions the word occupies.
@@ -52,7 +43,18 @@ pytest -k step1 -q
 1 passed, 5 deselected
 ```
 
-## 5. Implement `static_vector`
+## 4. Implement `static_vector`
+
+![Static vs. contextual embeddings: both senses of "bank" collapse to one static vector, but contextual vectors differ](../lecture/visuals/static-vs-contextual.png)
+
+The static one averages the same $m$ pieces, but from the input embedding table
+$E$, which no sentence has touched:
+
+$$\text{static\_vector}(w) = \frac{1}{m}\sum_{i=1}^{m} E[t_i]$$
+
+Both are compared with the usual cosine, which is given:
+
+$$\mathrm{cosine}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\lVert\mathbf{u}\rVert \, \lVert\mathbf{v}\rVert}$$
 
 Look the word's sub-tokens up in the input embedding table and average them.
 No sentence, no forward pass.
@@ -66,7 +68,7 @@ pytest -k step2 -q
 1 passed, 5 deselected
 ```
 
-## 6. Run it, then question it
+## 5. Run it, then question it
 
 ```bash
 python contextual_embeddings.py

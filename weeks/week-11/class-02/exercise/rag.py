@@ -67,7 +67,7 @@ class TfidfRetriever:
         """
         # TODO (STEP 1): implement. Check with: pytest -k step1
         #
-        #   The score is in README section 2.
+        #   The score is in README section 3.
         #
         #   put the query into the same vector space as the index, using the
         #       vectorizer that was already FITTED on the corpus. Transform it;

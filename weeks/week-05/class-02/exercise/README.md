@@ -8,24 +8,7 @@ dot-product, the causal mask that hides the future, and the multi-head wrapper.
 You write three functions in `attention_lab.py`. The softmax and the
 head split/combine helpers are given.
 
-## 2. Understanding the math
-
-![The Transformer's attention in one formula](../lecture/visuals/scaled-dot-formula.png)
-
-Queries meet keys, the scores are scaled by $\sqrt{d_k}$ and normalized, and
-the result blends the values:
-
-$$\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
-
-The $\sqrt{d_k}$ is not decoration. Dot products grow with dimension, and a
-softmax over large numbers collapses onto one position and stops passing
-gradients back.
-
-$$\mathrm{head}_i = \mathrm{Attention}(QW_i^Q,\, KW_i^K,\, VW_i^V) \qquad \mathrm{MultiHead}(Q,K,V) = \mathrm{Concat}(\mathrm{head}_1, \ldots, \mathrm{head}_h)\, W^O$$
-
-![Vaswani et al. 2017, Figure 2: scaled dot-product attention (left) and multi-head attention (right)](../lecture/visuals/assets/vaswani-2017-fig-2.png)
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -37,7 +20,18 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `scaled_dot_product_attention`
+## 3. Implement `scaled_dot_product_attention`
+
+![The Transformer's attention in one formula](../lecture/visuals/scaled-dot-formula.png)
+
+Queries meet keys, the scores are scaled by $\sqrt{d_k}$ and normalized, and
+the result blends the values:
+
+$$\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
+
+The $\sqrt{d_k}$ is not decoration. Dot products grow with dimension, and a
+softmax over large numbers collapses onto one position and stops passing
+gradients back.
 
 Transpose only the last two axes, scale before the softmax, and send masked
 positions to a large negative number rather than deleting them.
@@ -51,7 +45,7 @@ pytest -k step1 -q
 1 passed, 4 deselected
 ```
 
-## 5. Implement `causal_mask`
+## 4. Implement `causal_mask`
 
 One line: a `(T, T)` boolean whose lower triangle, diagonal included, is True.
 
@@ -64,7 +58,14 @@ pytest -k step2 -q
 1 passed, 4 deselected
 ```
 
-## 6. Implement `multi_head_attention`
+## 5. Implement `multi_head_attention`
+
+![Vaswani et al. 2017, Figure 2: scaled dot-product attention (left) and multi-head attention (right)](../lecture/visuals/assets/vaswani-2017-fig-2.png)
+
+Each head runs that same attention on its own projection of $Q$, $K$ and $V$,
+and the heads are concatenated and mixed by one more matrix:
+
+$$\mathrm{head}_i = \mathrm{Attention}(QW_i^Q,\, KW_i^K,\, VW_i^V) \qquad \mathrm{MultiHead}(Q,K,V) = \mathrm{Concat}(\mathrm{head}_1, \ldots, \mathrm{head}_h)\, W^O$$
 
 Project, split, attend, combine, mix. Every piece already exists.
 
@@ -77,7 +78,7 @@ pytest -k step3 -q
 1 passed, 4 deselected
 ```
 
-## 7. Run it, then break it
+## 6. Run it, then break it
 
 ```bash
 python attention_lab.py

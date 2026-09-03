@@ -10,22 +10,7 @@ You write four things: `calculator` and the `TOOLS` registry in `tools.py`,
 then `parse_action` and `is_grounded` in `agent.py`. The loop, the other three
 tools and the guards are given.
 
-## 2. Understanding the math
-
-![The ReAct loop: Thought, Action, Observation, repeated](../../class-01/lecture/visuals/react-loop.png)
-
-The loop is unchanged from W12C1: the model writes a Thought and an Action, the
-environment runs the tool and writes the Observation, and the transcript grows
-until the model calls `finish`.
-
-![Which guard stops which failure mode](../lecture/visuals/robust-table.png)
-
-Everything that makes this robust lives outside the model: a tool that returns
-an error string instead of raising, a parser that survives nested brackets, a
-repeat detector, a step budget, and a grounding check that rejects numbers no
-tool ever produced.
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -37,7 +22,13 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `calculator`
+## 3. Implement `calculator`
+
+![The ReAct loop: Thought, Action, Observation, repeated](../../class-01/lecture/visuals/react-loop.png)
+
+The loop is unchanged from W12C1: the model writes a Thought and an Action, the
+environment runs the tool and writes the Observation, and the transcript grows
+until the model calls `finish`. This step is the tool the environment runs.
 
 Evaluate arithmetic with the given `_eval_node`, never `eval`. Every failure
 returns an error STRING; raising would kill the loop.
@@ -51,7 +42,7 @@ pytest -k step1 -q
 3 passed, 20 deselected
 ```
 
-## 5. Implement the `TOOLS` registry
+## 4. Implement the `TOOLS` registry
 
 Map each of the four tool names to its function. The prompt is built from this
 dict, so an unregistered tool is one the model is never told about.
@@ -65,7 +56,7 @@ pytest -k step2 -q
 3 passed, 20 deselected
 ```
 
-## 6. Implement `parse_action`
+## 5. Implement `parse_action`
 
 Count bracket depth so nested expressions survive intact.
 
@@ -78,7 +69,7 @@ pytest -k step3 -q
 3 passed, 20 deselected
 ```
 
-## 7. Implement `is_grounded`
+## 6. Implement `is_grounded`
 
 Accept only numbers that appeared in some observation.
 
@@ -91,7 +82,14 @@ pytest -k step4 -q
 2 passed, 21 deselected
 ```
 
-## 8. Run it, then break it
+## 7. Run it, then break it
+
+![Which guard stops which failure mode](../lecture/visuals/robust-table.png)
+
+Everything that makes this robust lives outside the model: a tool that returns
+an error string instead of raising, a parser that survives nested brackets, a
+repeat detector, a step budget, and a grounding check that rejects numbers no
+tool ever produced.
 
 ```bash
 python ../solutions/run_demo.py

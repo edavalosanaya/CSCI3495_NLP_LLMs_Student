@@ -9,23 +9,7 @@ than by content.
 You write three functions in `eval_harness.py`. Normalization, exact match,
 containment and accuracy are given.
 
-## 2. Understanding the math
-
-![Metrics compared on one worked confusion matrix](../lecture/visuals/metrics.png)
-
-The two string metrics differ in how much they forgive. Exact match demands the
-normalized strings be equal; containment only asks that the gold answer appear
-somewhere in the prediction:
-
-$$\text{EM}(p, g) = \mathbf{1}\big[\mathrm{norm}(p) = \mathrm{norm}(g)\big] \qquad \text{Contains}(p, g) = \mathbf{1}\big[\mathrm{norm}(g) \subseteq \mathrm{norm}(p)\big]$$
-
-![Judge biases: the same pair, judged in both orders, flips the verdict](../lecture/visuals/judge-biases.png)
-
-A judge's verdict is only evidence if it survives swapping the two answers:
-
-$$\text{consistent} \iff \mathrm{judge}(q, a_1, a_2) \text{ and } \mathrm{judge}(q, a_2, a_1) \text{ name the same winner}$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -37,7 +21,15 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `is_hallucination`
+## 3. Implement `is_hallucination`
+
+![Metrics compared on one worked confusion matrix](../lecture/visuals/metrics.png)
+
+The two string metrics differ in how much they forgive. Exact match demands the
+normalized strings be equal; containment only asks that the gold answer appear
+somewhere in the prediction:
+
+$$\text{EM}(p, g) = \mathbf{1}\big[\mathrm{norm}(p) = \mathrm{norm}(g)\big] \qquad \text{Contains}(p, g) = \mathbf{1}\big[\mathrm{norm}(g) \subseteq \mathrm{norm}(p)\big]$$
 
 Flag only unanswerable items where the model failed to abstain. An answerable
 item is never flagged, however wrong the answer is.
@@ -51,7 +43,7 @@ pytest -k step1 -q
 2 passed, 11 deselected
 ```
 
-## 5. Implement `judge_pairwise`
+## 4. Implement `judge_pairwise`
 
 Ask the judge twice with the answers swapped, translate each verdict from slot
 to answer, and report whether the two agree.
@@ -65,7 +57,13 @@ pytest -k step2 -q
 2 passed, 11 deselected
 ```
 
-## 6. Implement `position_bias_rate`
+## 5. Implement `position_bias_rate`
+
+![Judge biases: the same pair, judged in both orders, flips the verdict](../lecture/visuals/judge-biases.png)
+
+A judge's verdict is only evidence if it survives swapping the two answers:
+
+$$\text{consistent} \iff \mathrm{judge}(q, a_1, a_2) \text{ and } \mathrm{judge}(q, a_2, a_1) \text{ name the same winner}$$
 
 The fraction of pairs that came back inconsistent.
 
@@ -78,7 +76,7 @@ pytest -k step3 -q
 2 passed, 11 deselected
 ```
 
-## 7. Run it, then question it
+## 6. Run it, then question it
 
 ```bash
 python eval_harness.py

@@ -84,7 +84,7 @@ def tfidf_vector(index: dict, tokens: list[str]) -> dict:
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The weight formula is in README section 2.
+    #   The weight formula is in README section 3.
     #
     #   count how many times each token occurs with the given count_terms --
     #       that count is the tf
@@ -109,7 +109,7 @@ def cosine(u: dict, v: dict) -> float:
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   The formula is in README section 2.
+    #   The formula is in README section 4.
     #
     #   the dot product only needs the terms u actually has: a term missing
     #       from v contributes nothing

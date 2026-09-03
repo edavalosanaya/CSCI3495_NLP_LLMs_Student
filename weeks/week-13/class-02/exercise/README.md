@@ -10,27 +10,7 @@ You write three functions in `eval_suite.py`: the run matrix, the paired
 comparison, and the leaderboard. Scoring, the strategies and the problem set
 are given.
 
-## 2. Understanding the math
-
-![Anatomy of an agent eval: task suite, run the agent, score each, leaderboard](../lecture/visuals/agent-eval.png)
-
-Success rate is the obvious number, over $n$ problems:
-
-$$\text{success} = \frac{1}{n}\sum_{i=1}^{n} \mathbf{1}[\text{solved}_i]$$
-
-but it is not enough on its own. Two strategies can tie on success while one
-spends five times the model calls, so the leaderboard ranks by success first
-and then by cost:
-
-$$\text{rank} = \big(-\text{success},\; \text{calls per task}\big) \quad \text{ascending}$$
-
-Comparing two strategies means pairing them BY PROBLEM, not comparing two
-aggregates. Only pairing tells you whether a wrapper recovered problems its
-baseline missed or broke ones it had already solved:
-
-$$\text{recovered} = |\{i : \text{wrapper}_i \land \lnot\text{base}_i\}|, \qquad \text{broke} = |\{i : \lnot\text{wrapper}_i \land \text{base}_i\}|$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -42,7 +22,13 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `run_matrix`
+## 3. Implement `run_matrix`
+
+![Anatomy of an agent eval: task suite, run the agent, score each, leaderboard](../lecture/visuals/agent-eval.png)
+
+Success rate is the obvious number, over $n$ problems:
+
+$$\text{success} = \frac{1}{n}\sum_{i=1}^{n} \mathbf{1}[\text{solved}_i]$$
 
 Run every strategy over every problem and collect the results, so each cell is
 comparable with every other.
@@ -56,7 +42,13 @@ pytest -k step1 -q
 1 passed, 16 deselected
 ```
 
-## 5. Implement `paired_wins`
+## 4. Implement `paired_wins`
+
+Comparing two strategies means pairing them BY PROBLEM, not comparing two
+aggregates. Only pairing tells you whether a wrapper recovered problems its
+baseline missed or broke ones it had already solved:
+
+$$\text{recovered} = |\{i : \text{wrapper}_i \land \lnot\text{base}_i\}|, \qquad \text{broke} = |\{i : \lnot\text{wrapper}_i \land \text{base}_i\}|$$
 
 Match runs BY PROBLEM ID and count recovered, broke and unchanged.
 
@@ -69,7 +61,13 @@ pytest -k step2 -q
 1 passed, 16 deselected
 ```
 
-## 6. Implement `leaderboard`
+## 5. Implement `leaderboard`
+
+Success rate is not enough on its own. Two strategies can tie on success while
+one spends five times the model calls, so the ranking is success first and cost
+second:
+
+$$\text{rank} = \big(-\text{success},\; \text{calls per task}\big) \quad \text{ascending}$$
 
 Rank by success rate, then by calls per task as the tie-break.
 
@@ -82,7 +80,7 @@ pytest -k step3 -q
 2 passed, 15 deselected
 ```
 
-## 7. Run it, then question it
+## 6. Run it, then question it
 
 The full suite is 20 problems and takes over an hour on CPU. Use a slice in
 class and run the whole thing once at the end:

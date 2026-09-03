@@ -25,7 +25,7 @@ def cosine(a: np.ndarray, b: np.ndarray) -> float:
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The formula is in README section 2.
+    #   The formula is in README section 3.
     #
     #   measure each vector's length, and if either is zero there is no angle
     #   otherwise divide their dot product by the two lengths
@@ -49,7 +49,7 @@ def association(word: str, set_a: list[str], set_b: list[str]) -> float:
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   The formula is in README section 2.
+    #   The formula is in README section 4.
     #
     #   look up the word's own vector
     #   average its cosine against every word in the first set
@@ -76,7 +76,7 @@ def effect(targets_x: list[str], targets_y: list[str],
     """
     # TODO (STEP 3): implement. Check with: pytest -k step3
     #
-    #   The formula is in README section 2, and it is step 2 applied twice.
+    #   The formula is in README section 5, and it is step 2 applied twice.
     #
     #   average the association of every word in the first target group
     #   do the same for the second group

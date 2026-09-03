@@ -87,7 +87,7 @@ def analogy(a: str, b: str, c: str, table: dict, k: int = 1) -> list[tuple[str, 
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The target vector is in README section 2.
+    #   The target vector is in README section 3.
     #
     #   build the target by stepping from a to b, then applying that step at c
     #   score every word in the table against the target with cosine
@@ -114,7 +114,7 @@ def bias_score(word: str, pos: str, neg: str, table: dict) -> float:
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   The formula is in README section 2.
+    #   The formula is in README section 4.
     #
     #   the axis is the vector that points from neg to pos
     #   the answer is how closely the word's own vector aligns with that axis

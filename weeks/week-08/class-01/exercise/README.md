@@ -9,20 +9,7 @@ symbols and rare ones survive as pieces.
 You write three functions in `bpe.py`. The initial vocabulary and the encoder
 are given.
 
-## 2. Understanding the math
-
-![BPE merges: start from characters, repeatedly fuse the most frequent adjacent pair](../lecture/visuals/bpe-merges.png)
-
-Each round picks the most frequent adjacent pair across the whole corpus and
-replaces it everywhere with one new symbol:
-
-$$(a, b)^* = \arg\max_{(a,b)} \; \mathrm{count}(a, b) \qquad \text{then replace every adjacent } (a,b) \text{ with the single symbol } ab$$
-
-Counts are weighted by word frequency, so a word appearing five times pushes
-its pairs five times as hard. The merges are an ordered list, and encoding
-replays them from the start.
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -34,7 +21,10 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `count_pairs`
+## 3. Implement `count_pairs`
+
+Counts are weighted by word frequency, so a word appearing five times pushes
+its pairs five times as hard.
 
 Walk each word's adjacent pairs and add that word's frequency, not 1.
 
@@ -47,7 +37,12 @@ pytest -k step1 -q
 1 passed, 7 deselected
 ```
 
-## 5. Implement `merge_pair`
+## 4. Implement `merge_pair`
+
+A merge replaces every adjacent occurrence of the chosen pair with one new
+symbol:
+
+$$\text{replace every adjacent } (a,b) \text{ with the single symbol } ab$$
 
 Scan left to right, emitting the joined symbol and skipping both halves.
 Add frequencies when two words collapse to the same symbols.
@@ -61,7 +56,16 @@ pytest -k step2 -q
 1 passed, 7 deselected
 ```
 
-## 6. Implement `train_bpe`
+## 5. Implement `train_bpe`
+
+![BPE merges: start from characters, repeatedly fuse the most frequent adjacent pair](../lecture/visuals/bpe-merges.png)
+
+Each round picks the most frequent adjacent pair across the whole corpus and
+merges it everywhere:
+
+$$(a, b)^* = \arg\max_{(a,b)} \; \mathrm{count}(a, b)$$
+
+The merges are an ordered list, and encoding replays them from the start.
 
 Count, pick the winner with a deterministic tie-break, merge, record. Stop
 early when no pairs remain.
@@ -75,7 +79,7 @@ pytest -k step3 -q
 3 passed, 5 deselected
 ```
 
-## 7. Run it, then break it
+## 6. Run it, then break it
 
 ```bash
 python bpe.py

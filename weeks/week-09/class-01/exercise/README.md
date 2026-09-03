@@ -8,23 +8,7 @@ see what quantizing the weights costs in accuracy.
 You write two things in `lora_lab.py`: the adapter's constructor and its
 forward pass. The training loop and the quantizer are given.
 
-## 2. Understanding the math
-
-![LoRA: freeze W, train a low-rank B @ A update, merge at inference (Hu et al. 2021, Fig. 1)](../lecture/visuals/assets/lora-2021-fig-1.png)
-
-$W_0$ never moves. The update is forced through $r$ dimensions, so it costs
-$r(d_{in} + d_{out})$ parameters instead of $d_{in} d_{out}$:
-
-$$h = W_0 x + \frac{\alpha}{r}\, B A x, \qquad A \in \mathbb{R}^{r \times d_{in}}, \; B \in \mathbb{R}^{d_{out} \times r}, \; r \ll \min(d_{in}, d_{out})$$
-
-$B$ starts at zero, so at step 0 the adapter contributes nothing and training
-begins from the pretrained model rather than a randomly damaged one.
-
-Quantization is a separate saving: store each weight on a coarse grid.
-
-$$s = \frac{\max |w|}{2^{k-1} - 1}, \qquad \hat{w} = s \cdot \mathrm{clamp}\!\left(\mathrm{round}\!\left(\frac{w}{s}\right), -(2^{k-1}-1), \, 2^{k-1}-1\right)$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -36,7 +20,17 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `LoRALinear.__init__`
+## 3. Implement `LoRALinear.__init__`
+
+![LoRA: freeze W, train a low-rank B @ A update, merge at inference (Hu et al. 2021, Fig. 1)](../lecture/visuals/assets/lora-2021-fig-1.png)
+
+$W_0$ never moves. The update is forced through $r$ dimensions, so it costs
+$r(d_{in} + d_{out})$ parameters instead of $d_{in} d_{out}$:
+
+$$A \in \mathbb{R}^{r \times d_{in}}, \qquad B \in \mathbb{R}^{d_{out} \times r}, \qquad r \ll \min(d_{in}, d_{out})$$
+
+$B$ starts at zero, so at step 0 the adapter contributes nothing and training
+begins from the pretrained model rather than a randomly damaged one.
 
 Freeze the base weight, add a down-projection and an up-projection, and store
 the scaling. The up-projection starts at zero.
@@ -50,7 +44,12 @@ pytest -k step1 -q
 3 passed, 6 deselected
 ```
 
-## 5. Implement `LoRALinear.forward`
+## 4. Implement `LoRALinear.forward`
+
+The frozen layer and the adapter are added, with the adapter scaled by
+$\alpha / r$:
+
+$$h = W_0 x + \frac{\alpha}{r}\, B A x$$
 
 Base output, plus the scaled down-then-up update.
 
@@ -63,7 +62,12 @@ pytest -k step2 -q
 2 passed, 7 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
+
+Quantization is a separate saving, and the given `quantize` stores each weight
+on a coarse grid:
+
+$$s = \frac{\max |w|}{2^{k-1} - 1}, \qquad \hat{w} = s \cdot \mathrm{clamp}\!\left(\mathrm{round}\!\left(\frac{w}{s}\right), -(2^{k-1}-1), \, 2^{k-1}-1\right)$$
 
 ```bash
 python lora_lab.py

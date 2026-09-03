@@ -28,7 +28,7 @@ def scaled_dot_product_attention(Q, K, V, mask=None):
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The formula is in README section 2.
+    #   The formula is in README section 3.
     #
     #   multiply the queries by the keys transposed on their LAST TWO axes,
     #       so any batch or head axes in front are left alone

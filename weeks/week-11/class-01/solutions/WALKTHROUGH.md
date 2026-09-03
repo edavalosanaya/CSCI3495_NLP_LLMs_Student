@@ -7,11 +7,12 @@ The complete files are `ctf.py` and `json_lab.py` in this folder. Every printed
 value was produced by running them.
 
 **A note on the tests before anything else.** `test_ctf.py` loads the student's
-file and **falls back to the reference solution** if the TODOs still raise. That
-keeps the course sweep green out of the box, and it means a passing test does not
-prove the student wrote anything. The demo (`python .../ctf.py`) runs their file
-directly and is the real check. Say this to the class; otherwise a student can
-"finish" the lab without writing a line.
+file and **never falls back to the reference solution**; the fallback was removed
+on 2026-09-01. An untouched starter reports skips, not passes, so a green suite
+does mean they wrote the code. The course sweep stays green because
+`scripts/test_all.sh` exports `CTF_FROM=solution`. The demo
+(`python .../ctf.py`) runs their file directly and is still worth showing,
+because it exercises the attacks end to end rather than one step at a time.
 
 ---
 

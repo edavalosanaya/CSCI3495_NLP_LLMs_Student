@@ -54,7 +54,7 @@ def majority_vote(answers: list[int]) -> int | None:
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The vote is the formula in README section 2.
+    #   The vote is the formula in README section 3.
     #
     #   throw away the chains that produced nothing; if none are left, there
     #       is no answer to give

@@ -8,24 +8,7 @@ eight sentences be enough.
 
 You write two functions in `bert_mlm.py`. The data and the demo are given.
 
-## 2. Understanding the math
-
-![Masked LM training signal: loss flows only through the selected tokens (SLP3 Fig. 9.3)](../lecture/visuals/assets/slp3-fig-9-3.png)
-
-Masked language modelling scores every vocabulary word at the masked position
-from that position's final hidden state, and the top-$k$ are its best guesses:
-
-$$P(w \mid \text{context}) = \mathrm{softmax}\big(\mathbf{W}\,\mathbf{h}^{(L)}_i\big), \qquad \text{top-}k = \operatorname{arg\,top}_k \; P(w \mid \text{context})$$
-
-![BERT pretrain then fine-tune: everything transfers except the tiny output layer (Devlin et al. 2019, Fig. 1)](../lecture/visuals/assets/bert-2019-fig-1.png)
-
-Fine-tuning throws away the masked-LM head, puts a fresh classifier on the
-`[CLS]` position, and trains the whole thing on labels. Everything under that
-new head is already pretrained, which is why so little data is needed:
-
-$$\hat{\mathbf{y}} = \mathrm{softmax}\big(\mathbf{W}_c\,\mathbf{h}_{\text{[CLS]}} + \mathbf{b}\big), \qquad \mathcal{L} = -\log \hat{y}_{\text{true}}$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -37,7 +20,14 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `top_mask_predictions`
+## 3. Implement `top_mask_predictions`
+
+![Masked LM training signal: loss flows only through the selected tokens (SLP3 Fig. 9.3)](../lecture/visuals/assets/slp3-fig-9-3.png)
+
+Masked language modelling scores every vocabulary word at the masked position
+from that position's final hidden state, and the top-$k$ are its best guesses:
+
+$$P(w \mid \text{context}) = \mathrm{softmax}\big(\mathbf{W}\,\mathbf{h}^{(L)}_i\big), \qquad \text{top-}k = \operatorname{arg\,top}_k \; P(w \mid \text{context})$$
 
 Build the tokenizer and masked-LM model explicitly, hand them to a `fill-mask`
 pipeline, and return the `token_str` of each result, stripped.
@@ -51,7 +41,15 @@ pytest -k step1 -q
 2 passed, 1 deselected
 ```
 
-## 5. Implement `finetune_and_eval`
+## 4. Implement `finetune_and_eval`
+
+![BERT pretrain then fine-tune: everything transfers except the tiny output layer (Devlin et al. 2019, Fig. 1)](../lecture/visuals/assets/bert-2019-fig-1.png)
+
+Fine-tuning throws away the masked-LM head, puts a fresh classifier on the
+`[CLS]` position, and trains the whole thing on labels. Everything under that
+new head is already pretrained, which is why so little data is needed:
+
+$$\hat{\mathbf{y}} = \mathrm{softmax}\big(\mathbf{W}_c\,\mathbf{h}_{\text{[CLS]}} + \mathbf{b}\big), \qquad \mathcal{L} = -\log \hat{y}_{\text{true}}$$
 
 Load a sequence-classification model, train it for a few epochs with
 `labels=`, and return test accuracy.
@@ -65,7 +63,7 @@ pytest -k step2 -q
 1 passed, 2 deselected
 ```
 
-## 6. Run it, then question it
+## 5. Run it, then question it
 
 ```bash
 python bert_mlm.py

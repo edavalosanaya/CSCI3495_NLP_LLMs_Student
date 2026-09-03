@@ -8,27 +8,7 @@ along an attribute axis, and summarize a whole stereotype pattern in one score.
 You write three functions in `bias_probe.py`. The toy vectors and the report
 formatting are given.
 
-## 2. Understanding the math
-
-![Bias pipeline: human text encodes stereotypes, models learn and amplify them, harm falls unevenly](../lecture/visuals/bias-fairness.png)
-
-Everything is built on cosine similarity:
-
-$$\cos(a, b) = \frac{a \cdot b}{\lVert a \rVert \, \lVert b \rVert}$$
-
-One word's association is how much closer it sits, on average, to attribute set
-$A$ than to set $B$. Averaging each side is what lets the two sets differ in size:
-
-$$s(w, A, B) = \frac{1}{|A|} \sum_{a \in A} \cos(w, a) \; - \; \frac{1}{|B|} \sum_{b \in B} \cos(w, b)$$
-
-The WEAT-style effect applies that to two groups of target words at once, and
-asks whether $X$ leans toward $A$ while $Y$ leans toward $B$:
-
-$$\mathrm{effect}(X, Y, A, B) = \frac{1}{|X|} \sum_{x \in X} s(x, A, B) \; - \; \frac{1}{|Y|} \sum_{y \in Y} s(y, A, B)$$
-
-![Example run of bias_probe.py showing per-word associations and the overall EFFECT score](../lecture/visuals/bias-output.png)
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -40,7 +20,13 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `cosine`
+## 3. Implement `cosine`
+
+![Bias pipeline: human text encodes stereotypes, models learn and amplify them, harm falls unevenly](../lecture/visuals/bias-fairness.png)
+
+Everything in this lab is built on cosine similarity:
+
+$$\cos(a, b) = \frac{a \cdot b}{\lVert a \rVert \, \lVert b \rVert}$$
 
 Dot product over the two lengths, and 0.0 when a vector has no length.
 
@@ -53,7 +39,12 @@ pytest -k step1 -q
 4 passed, 6 deselected
 ```
 
-## 5. Implement `association`
+## 4. Implement `association`
+
+One word's association is how much closer it sits, on average, to attribute set
+$A$ than to set $B$. Averaging each side is what lets the two sets differ in size:
+
+$$s(w, A, B) = \frac{1}{|A|} \sum_{a \in A} \cos(w, a) \; - \; \frac{1}{|B|} \sum_{b \in B} \cos(w, b)$$
 
 Average the cosine against each set, then subtract.
 
@@ -66,7 +57,14 @@ pytest -k step2 -q
 3 passed, 7 deselected
 ```
 
-## 6. Implement `effect`
+## 5. Implement `effect`
+
+![Example run of bias_probe.py showing per-word associations and the overall EFFECT score](../lecture/visuals/bias-output.png)
+
+The WEAT-style effect applies that to two groups of target words at once, and
+asks whether $X$ leans toward $A$ while $Y$ leans toward $B$:
+
+$$\mathrm{effect}(X, Y, A, B) = \frac{1}{|X|} \sum_{x \in X} s(x, A, B) \; - \; \frac{1}{|Y|} \sum_{y \in Y} s(y, A, B)$$
 
 The same subtraction, one level up, over two groups of target words.
 
@@ -79,7 +77,7 @@ pytest -k step3 -q
 3 passed, 7 deselected
 ```
 
-## 7. Run it, then question it
+## 6. Run it, then question it
 
 ```bash
 python bias_probe.py

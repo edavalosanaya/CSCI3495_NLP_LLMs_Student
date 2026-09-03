@@ -33,7 +33,7 @@ def top_mask_predictions(sentence_with_mask: str, k: int = 5) -> list[str]:
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The formula is the first half of README section 2.
+    #   The formula is in README section 3.
     #
     #   build the tokenizer and the masked-LM model from MLM_MODEL. bert-tiny
     #       ships only a vocab.txt, so use BertTokenizerFast and
@@ -59,7 +59,7 @@ def finetune_and_eval(epochs: int = 8, seed: int = 0) -> float:
     """
     # TODO (STEP 2): implement. Check with: pytest -k step2
     #
-    #   The formula is the second half of README section 2.
+    #   The formula is in README section 4.
     #
     #   seed torch, then load the tokenizer and a SEQUENCE CLASSIFICATION model
     #       from MLM_MODEL with two labels. The classification head starts

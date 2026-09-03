@@ -34,7 +34,7 @@ class LoRALinear(nn.Module):
 
         # TODO (STEP 1): implement. Check with: pytest -k step1
         #
-        #   The formula is in README section 2.
+        #   The shapes are in README section 3, the scaling in section 4.
         #
         #   keep the Linear above, but freeze its weight so no gradient ever
         #       reaches it: that frozen matrix is the pretrained model

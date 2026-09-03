@@ -9,22 +9,7 @@ what it used.
 You write two things in `rag.py`: the retriever's search, and the grounded
 prompt. Chunking, citation checking and the generators are given.
 
-## 2. Understanding the math
-
-![RAG: retriever plus generator joined by a prompt (SLP3 Fig. 11.13)](../lecture/visuals/assets/slp3-fig-11-13.png)
-
-The index is TF-IDF, exactly as in W3C1:
-
-$$w_{t,d} = \mathrm{tf}_{t,d} \times \log\!\frac{N}{\mathrm{df}_t}$$
-
-![Retrieve step: embed the query, take the top-k nearest chunks by cosine](../lecture/visuals/retrieve-step.png)
-
-and chunks are ranked against the query by cosine, which is why the query must
-be transformed with the vectorizer already fitted on the corpus:
-
-$$\mathrm{score}(q, c) = \cos(\mathbf{q}, \mathbf{c}) = \frac{\mathbf{q} \cdot \mathbf{c}}{\lVert\mathbf{q}\rVert\,\lVert\mathbf{c}\rVert}.$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -36,7 +21,18 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `TfidfRetriever.retrieve`
+## 3. Implement `TfidfRetriever.retrieve`
+
+![Retrieve step: embed the query, take the top-k nearest chunks by cosine](../lecture/visuals/retrieve-step.png)
+
+The index is TF-IDF, exactly as in W3C1:
+
+$$w_{t,d} = \mathrm{tf}_{t,d} \times \log\!\frac{N}{\mathrm{df}_t}$$
+
+and chunks are ranked against the query by cosine, which is why the query must
+be transformed with the vectorizer already fitted on the corpus:
+
+$$\mathrm{score}(q, c) = \cos(\mathbf{q}, \mathbf{c}) = \frac{\mathbf{q} \cdot \mathbf{c}}{\lVert\mathbf{q}\rVert\,\lVert\mathbf{c}\rVert}.$$
 
 Transform the query with the fitted vectorizer, score it against every chunk,
 and return the k best.
@@ -50,7 +46,12 @@ pytest -k step1 -q
 2 passed, 5 deselected
 ```
 
-## 5. Implement `build_prompt`
+## 4. Implement `build_prompt`
+
+![RAG: retriever plus generator joined by a prompt (SLP3 Fig. 11.13)](../lecture/visuals/assets/slp3-fig-11-13.png)
+
+The prompt is the join: it is where the retrieved chunks stop being search
+results and become the only evidence the generator is allowed to use.
 
 Number the chunks, demand citations, and give the model permission to say it
 does not know.
@@ -64,7 +65,7 @@ pytest -k step2 -q
 1 passed, 6 deselected
 ```
 
-## 6. Run it, then question it
+## 5. Run it, then question it
 
 ```bash
 python rag.py

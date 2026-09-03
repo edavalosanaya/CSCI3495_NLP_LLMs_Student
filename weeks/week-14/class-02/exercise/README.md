@@ -8,7 +8,15 @@ reproducibility check over the code you are about to hand in.
 There is nothing to implement. `repro_check.py` is written; you point it at
 your own files and act on what it says.
 
-## 2. Understanding the math
+## 2. Getting started
+
+From the repository root on your own machine, once per session:
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-02/exercise course bash
+```
+
+## 3. Check a file that is reproducible
 
 ![Chained 90 percent reliable steps decay: 0.9, 0.81, 0.73, 0.66, 0.59](../lecture/visuals/why-expensive.png)
 
@@ -19,22 +27,6 @@ $$
 P(\text{whole task succeeds}) = p^{n},
 \qquad \text{e.g. } 0.9^{5} \approx 0.59
 $$
-
-![Decision checklist: prompt, then augmented LLM, then workflow, and only last an agent](../lecture/visuals/decision-checklist.png)
-
-That is the argument for the checklist: reach for a plain prompt first, then an
-augmented LLM, then a fixed workflow, and only last an agent that decides its
-own control flow.
-
-## 3. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-02/exercise course bash
-```
-
-## 4. Check a file that is reproducible
 
 ```bash
 python repro_check.py ../../../week-04/class-01/solutions/mlp_classifier.py
@@ -47,7 +39,7 @@ Reproducibility check: ../../../week-04/class-01/solutions/mlp_classifier.py
   Note: run your real entry point in Docker too; this is only a static hint.
 ```
 
-## 5. Check one that is not
+## 4. Check one that is not
 
 ```bash
 python repro_check.py ../../../week-02/class-01/solutions/ngram_lm.py
@@ -60,7 +52,7 @@ Reproducibility check: ../../../week-02/class-01/solutions/ngram_lm.py
   Note: run your real entry point in Docker too; this is only a static hint.
 ```
 
-## 6. Check your own project
+## 5. Check your own project
 
 ```bash
 python repro_check.py /workspace/<path to your project file>
@@ -69,7 +61,13 @@ python repro_check.py /workspace/<path to your project file>
 Run it over every file you intend to submit. Fix each `[WARN]` before the
 checkpoint, or be ready to say why it does not apply.
 
-## 7. The checkpoint conversation
+## 6. The checkpoint conversation
+
+![Decision checklist: prompt, then augmented LLM, then workflow, and only last an agent](../lecture/visuals/decision-checklist.png)
+
+That decay is the argument for the checklist: reach for a plain prompt first,
+then an augmented LLM, then a fixed workflow, and only last an agent that
+decides its own control flow.
 
 Bring answers to these. They are the same questions the final rubric asks.
 

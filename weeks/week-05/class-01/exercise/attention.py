@@ -30,7 +30,7 @@ def additive_scores(
     """
     # TODO (STEP 1): implement. Check with: pytest -k step1
     #
-    #   The score formula is the first third of README section 2.
+    #   The score formula is in README section 3.
     #
     #   project the query with W_s, giving one vector of length attn
     #   project every key with W_h, giving one such vector per key
@@ -68,7 +68,7 @@ class AdditiveAttention(nn.Module):
         """
         # TODO (STEP 2): implement. Check with: pytest -k step2
         #
-        #   Three lines, the rest of README section 2, in order.
+        #   Three lines: the two formulas in README section 4, in order.
         #
         #   score every key against the query, using this module's parameters
         #   turn those scores into a distribution over the keys

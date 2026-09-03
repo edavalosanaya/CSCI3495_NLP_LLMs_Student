@@ -8,22 +8,7 @@ real local model at temperature 0, and measure which wording actually helps.
 You write two functions in `prompt_lab.py`: the few-shot prompt builder and
 the experiment loop. Parsing, accuracy and the model backends are given.
 
-## 2. Understanding the math
-
-![Anatomy of a few-shot prompt: instruction, demonstrations, query, output cue](../lecture/visuals/prompt-anatomy.png)
-
-A few-shot prompt is four parts: an instruction, some demonstrations, the
-query, and an output cue the model completes. The cue is the part people
-forget, and without it the model has no signal about what shape to answer in.
-
-![The experiment loop: prompt variant, model at temperature 0, parse, score](../lecture/visuals/experiment-loop.png)
-
-Everything runs at temperature 0, so a difference between two variants is a
-difference in the prompt, not in the sampling:
-
-$$\text{accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}[\hat{y}_i = y_i]$$
-
-## 3. Getting started
+## 2. Getting started
 
 From the repository root on your own machine, once per session:
 
@@ -35,7 +20,13 @@ A step you have not written yet reports `skipped`, not a failure. If you get
 stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
 not graded.
 
-## 4. Implement `build_fewshot_prompt`
+## 3. Implement `build_fewshot_prompt`
+
+![Anatomy of a few-shot prompt: instruction, demonstrations, query, output cue](../lecture/visuals/prompt-anatomy.png)
+
+A few-shot prompt is four parts: an instruction, some demonstrations, the
+query, and an output cue the model completes. The cue is the part people
+forget, and without it the model has no signal about what shape to answer in.
 
 Instruction, blank line, each demonstration as a review/sentiment pair, then
 the query and a bare `Sentiment:` cue.
@@ -49,7 +40,14 @@ pytest -k step1 -q
 1 passed, 5 deselected
 ```
 
-## 5. Implement `run_experiment`
+## 4. Implement `run_experiment`
+
+![The experiment loop: prompt variant, model at temperature 0, parse, score](../lecture/visuals/experiment-loop.png)
+
+Everything runs at temperature 0, so a difference between two variants is a
+difference in the prompt, not in the sampling:
+
+$$\text{accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}[\hat{y}_i = y_i]$$
 
 Build a prompt per item, generate, parse, and score.
 
@@ -62,7 +60,7 @@ pytest -k step2 -q
 1 passed, 5 deselected
 ```
 
-## 6. Run it, then break it
+## 5. Run it, then break it
 
 ```bash
 python prompt_lab.py
