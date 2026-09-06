@@ -1,328 +1,115 @@
-# W12C2 Walkthrough: giving the model hands
+# W12C2 Walkthrough: Mini RAG, step by step
 
-Step-by-step solutions for `exercise/README.md`. Code here is copied verbatim
-from `tools.py` and `agent.py` next to this file. Try each step yourself
-first; the point of the lab is the failures you meet on the way.
+Instructor reference and student rescue hatch. **Read only the step you are
+stuck on.**
 
----
-
-## Step 1, `calculator`
-
-```python
-def calculator(expr: str) -> str:
-    """Evaluate an arithmetic expression safely. Returns an Observation string.
-
-    `^` is rewritten to `**` first. This matters more than it looks: in Python
-    `^` is bitwise XOR, so `log(3^2 * 16 - 10)` would silently evaluate as
-    log(3 XOR 22) = log(21) and return a plausible, wrong number. A tool that
-    is quietly wrong is worse than one that errors.
-    """
-    expr = expr.strip().replace("^", "**")
-    if not expr:
-        return "Error: empty expression"
-    try:
-        result = _eval_node(ast.parse(expr, mode="eval"))
-    except ZeroDivisionError:
-        return "Error: division by zero"
-    except Exception:  # noqa: BLE001, any parse/type error becomes an Observation
-        return f"Error: could not evaluate '{expr}'"
-    if isinstance(result, float) and result.is_integer():
-        result = int(result)
-    try:
-        return str(result)
-    except ValueError:
-        # A huge integer (calc[9999**9999]) evaluates fine and then blows up on
-        # str(), past CPython's 4300-digit conversion limit. Every failure in
-        # this tool has to leave as a string, including this one.
-        return "Error: result too large to display"
-```
-
-**The idea.** All the real work is in `_eval_node`, which was given to you: it
-walks the AST and evaluates only whitelisted node types. Your job is the
-wrapper, and the wrapper's job is that **nothing escapes as an exception**.
-
-Expected output:
-
-```
->>> calculator("log(3^2 * 16 - 10)")
-'4.897839799950911'
->>> calculator("3^2")
-'9'
->>> calculator("1/0")
-'Error: division by zero'
->>> calculator("__import__('os')")
-"Error: could not evaluate '__import__('os')'"
-```
-
-**Common mistakes**
-
-- *Forgetting the `^` rewrite.* This is the one that hurts, because it does not
-  raise. `log(3^2 * 16 - 10)` becomes `log(3 XOR 22)` = `log(21)` = **3.0445**.
-  You get a number, it looks fine, and it is wrong.
-- *Letting the exception propagate.* One bad expression then kills the whole
-  agent run instead of costing it one step.
-- *Returning `4.0` where a human expects `4`.* Cosmetic, but the tests pin it,
-  and observations get pasted straight back into the prompt.
+The complete file is `rag.py` in this folder. Every printed value was produced by
+running it against `qwen2.5:0.5b`.
 
 ---
 
-## Given, `today`
+## Given, `chunk_documents`
 
-```python
-def today(_arg: str = "") -> str:
-    return _dt.date.today().isoformat()
-```
+Split on blank lines, assign **globally sequential** ids across the whole corpus.
 
-**The idea.** The argument is accepted and ignored on purpose: the model writes
-`today[]` on one turn and `today[now]` on the next, and neither should be an
-error.
+**The id scheme is not incidental.** Citations in Step 4 refer to these numbers,
+so restarting them per document would make citation `[1]` ambiguous. There is a
+dedicated test (`test_step1_chunking_full_corpus_ids_sequential`).
 
-**Common mistake:** giving the parameter no default. The loop sometimes calls it
-with an empty string and sometimes with nothing at all.
-
----
-
-## Given, `weather`
-
-```python
-def weather(arg: str) -> str:
-    city, _, day = arg.partition(",")
-    city = city.strip().strip('"\'').lower().replace("_", " ")
-    if not city:
-        return "Error: usage is weather[city, day]"
-    if city not in _SERIES:
-        return f"Error: no weather for '{city}'. Known: {', '.join(sorted(_SERIES))}."
-    off = _day_offset(day)
-    if off is None:
-        return f"Error: could not read the date '{day.strip()}'. Use today, yesterday, or YYYY-MM-DD."
-    if not 0 <= off < len(_SERIES[city]):
-        return f"Error: no reading that far back; I have the last {len(_SERIES[city])} days."
-    return str(_SERIES[city][off])
-```
-
-**The idea.** `partition(",")` rather than `split(",")` so a stray second comma
-cannot explode into three values. Then normalise hard: strip whitespace, strip
-quotes, lowercase, underscores to spaces.
-
-Expected output:
-
-```
->>> weather("san antonio, today")
-'101.0'
->>> weather("San_Antonio, yesterday")
-'94.0'
->>> weather('austin, "yesterday"')
-'96.0'
->>> weather("paris, today")
-"Error: no weather for 'paris'. Known: austin, boston, san antonio, seattle."
-```
-
-**Common mistakes**
-
-- *Not stripping quotes.* The model really does emit `weather[San_Antonio,
-  "yesterday"]`. Observed, not hypothetical.
-- *An error message that does not say what IS allowed.* `Error: bad city` gives
-  the model nothing to recover with; listing the known cities lets it retry
-  correctly on the very next turn.
+**Chunking is the most under-appreciated decision in RAG.** Too large and each
+retrieved chunk carries mostly irrelevant text that dilutes the prompt and
+crowds the context window. Too small and a fact gets separated from the sentence
+that qualifies it. Blank-line splitting is the crudest reasonable rule; real
+systems chunk by tokens with overlap, or by document structure. Worth asking the
+class what would break if a chunk cut a definition in half.
 
 ---
 
-## Given, `search`
+## Step 1, `TfidfRetriever.retrieve`
 
-```python
-def search(query: str) -> str:
-    query = query.strip()
-    if not query:
-        return "Error: empty query"
-    q = _tokens(query)
-    best_key, best_score = None, 0
-    for key, text in CORPUS.items():
-        score = len(q & _tokens(key + " " + text))
-        if score > best_score:
-            best_key, best_score = key, score
-    if best_key is None:
-        return f"No results found for '{query}'."
-    return CORPUS[best_key]
-```
+Transform the query with the **already-fitted** vectorizer (`transform`, not
+`fit_transform`, or you refit on one query and destroy the vocabulary), cosine
+against the chunk matrix, take the top `k` descending.
 
-**The idea.** Score by set overlap against the key *and* the body, so both
-`search[reflexion]` and `search[what does the reflexion paper do]` land on the
-same entry. `best_score` starts at 0, so zero overlap correctly returns nothing
-rather than an arbitrary first entry.
+**This is W4C1's search engine with sklearn doing the TF-IDF.** Point that out:
+students built this by hand in Week 4, including the cosine and the tie-break.
+Retrieval in a production RAG system swaps TF-IDF for dense embeddings and an
+approximate-nearest-neighbour index, but the shape is identical.
 
 ---
 
-## Step 2, the `TOOLS` registry
+## Step 2, `build_prompt`
 
-```python
-TOOLS = {
-    "calc": calculator,
-    "today": today,
-    "weather": weather,
-    "search": search,
-}
-```
+Numbered context, then the question, plus two instructions: answer **only** from
+the context, and say "I don't know" if the context does not support an answer.
 
-**Why this is a whole step.** `build_prompt(tools)` generates the tool list in
-the prompt from this dict. Register nothing and the model is told about no
-tools and will answer from memory, exactly as it did before you started. This
-is the most common "my agent ignores my tool" bug, and it is always this.
+**The abstention clause is the whole architecture.** Without it, a model handed
+three chunks will use them regardless of relevance, because that is what the
+prompt appears to ask for. With it, the model has a licensed way to decline. This
+is the same instinct as the unanswerable item in W10C2's dataset: you have to make
+"no answer" a legitimate output or you will never get one.
 
 ---
 
-## Step 3, `parse_action`
+## Given, `verify_citations`
 
-```python
-def parse_action(text: str) -> Optional[tuple[str, str]]:
-    """Extract the FIRST `Action: tool[input]` from model text.
+Return the set of cited ids that actually appear among the retrieved chunks.
 
-    Scans for the delimiter that matches the one it opened with, so nested
-    brackets survive: `calc[log(3**2 * 16 - 10)]` keeps its whole expression.
-    Accepts `tool(input)` too, because small models slip into parentheses and
-    there is nothing to be gained by failing on that.
-    """
-    m = _ACTION_OPEN.search(text)
-    if not m:
-        return None
-    tool = m.group(1)
-    opener = m.group(2)
-    if opener == "[":
-        closer = "]"
-    else:
-        closer = ")"
+**An invented citation is worse than none**, because it carries the appearance of
+evidence. Models cite fluently and inaccurately, and checking mechanically costs
+a few lines. Most RAG demos skip this step, which is exactly why it is here.
 
-    depth = 1
-    out = []
-    i = m.end()
-    while i < len(text):
-        ch = text[i]
-        if ch == opener:
-            depth += 1
-        elif ch == closer:
-            depth -= 1
-            if depth == 0:
-                return tool, "".join(out).strip()
-        out.append(ch)
-        i += 1
-    return None   # never closed: treat as malformed
-```
-
-**The idea.** Depth counting, not a regex. Only the delimiter that was opened
-with is counted, so the parens inside `calc[log(3**2 * 16 - 10)]` are just
-characters and the whole expression survives.
-
-Expected output:
-
-```
->>> parse_action("Action: calc[log(3**2 * 16 - 10)]")
-('calc', 'log(3**2 * 16 - 10)')
->>> parse_action("Action: finish(7 degrees)")
-('finish', '7 degrees')
->>> parse_action("Action: calc[1 + 2") is None
-True
-```
-
-**Common mistakes**
-
-- *`re.search(r"\[(.*?)\]")`.* Non-greedy, so it stops at the first `]` and you
-  silently truncate every expression containing brackets.
-- *Greedy `\[(.*)\]` instead.* Now it runs to the last `]` anywhere in the
-  reply and swallows the model's next sentence.
-- *Rejecting `tool(input)`.* Small models drift into parentheses constantly.
-  Accepting both costs one line and saves a step every few turns.
-
----
-
-## Step 4, `is_grounded`
-
-```python
-def is_grounded(answer: str, observations: list[str]) -> bool:
-    """True if every number in the answer also appears in some Observation.
-
-    Why this exists: with tools available, the most common failure of a small
-    model is not a broken tool call, it is SKIPPING one and writing a
-    plausible number from memory instead. The loop cannot tell a real lookup
-    from an invented one, but this check can.
-    """
-    # Every number any tool actually produced.
-    seen = set()
-    for obs in observations:
-        for n in _NUM_RE.findall(obs):
-            seen.add(n)
-
-    for n in _NUM_RE.findall(answer):
-        if n not in seen:
-            # This number came from the model, not from a tool.
-            return False
-
-    return True
-```
-
-**The idea.** Every number in the final answer must have appeared in some
-observation. An answer with no numbers is trivially grounded, which is what you
-want: this check is about fabricated *quantities*, not about prose.
-
-Expected output:
-
-```
->>> is_grounded("7 degrees hotter", ["101.0", "94.0", "7"])
-True
->>> is_grounded("98.0", ["101.0", "94.0"])
-False
-```
-
-**Why it earns its place.** From a real run of this lab, the model looked up
-today's temperature, then invented yesterday's instead of calling the tool
-again:
-
-```
-weather[san antonio, today] -> 101.0
-calc[101.0 - 98.0]          -> 3.0
-finish[3.0 degrees hotter]
-```
-
-Every step is well-formed. No tool errored. The loop has no way to notice, and
-the answer is wrong by 4 degrees. `is_grounded` catches it because `98.0` never
-came out of a tool.
-
-**Common mistake:** comparing floats numerically after parsing. Keep it as
-string matching against what the observation actually said; `7` and `7.0` are
-different strings and the tests pin the behaviour you get from the real tools.
+Note the verification is shallow: it checks that a cited chunk *was retrieved*,
+not that it *supports the claim*. The deeper check (does chunk 2 actually entail
+this sentence?) is an open problem, and it is worth saying so rather than
+implying the citation check makes the answer true.
 
 ---
 
 ## Running it
 
 ```
-23 passed
+Q: How does RAG reduce hallucination?
+  retrieved: ['week11-rag.md', 'week11-rag.md', 'week10-prompting.md']
+  answer: RAG (Retrieval-Augmented Generation) reduces hallucination by allowing a model
+          to use fresh or private knowledge without retraining...
+  valid citations: [1, 2, 3]
+
+Q: What does temperature do during decoding?
+  retrieved: ['week07-decoding.md', 'week11-rag.md', 'week11-rag.md']
+  answer: I don't know.
+  valid citations: []
 ```
 
-The demo (needs Ollama, `qwen2.5:1.5b`) is in `run_demo.py`; its verified output
-is printed in the README. The headline: `log(3^2 * 16 - 10)` goes from **4** to
-**4.897839799950911**, the date goes from **2023-11-04** to the real one, and
-the three-call chain answers **7 degrees hotter** with every number traceable to
-a tool.
+**Teach the third query, not the second.** The retriever found the *correct*
+document (`week07-decoding.md`) and the model still said "I don't know". Students
+will read that as a failure. It is the system working:
 
----
+- The retrieved chunk did not contain enough to answer the question.
+- The grounding instruction told the model to abstain rather than fill the gap
+  from its parameters.
+- So it abstained.
 
-## Where the floor is
+**The trade RAG makes** is converting "confidently wrong" into "honestly
+unhelpful". That is usually the better failure mode, and it moves the bottleneck:
+answer quality is now capped by **retrieval** quality. If you want a better
+answer to that question, you improve the chunking or the retriever, not the
+prompt.
 
-Rerunning on `qwen2.5:0.5b` is worth doing once, because the failure is
-specific rather than general. Measured on this lab, the 0.5b:
+**Two other things visible in the output.**
 
-- picks the **right tool** and gets the **right number** for calc, weather and
-  search;
-- almost never emits `finish`, so the loop's fallback is what produces its
-  answer;
-- makes all three correct calls in the chain task and then loops instead of
-  finishing.
+The third retrieved chunk is frequently irrelevant, because `k=3` always returns
+three chunks whether or not three are relevant. Same fixed-`k` problem students
+met in W4C1 and W4C2. Real systems apply a score threshold.
 
-The answer to the README's closing question: `build_prompt` emits one line per
-registered tool plus the rules and the exemplar, so going from one tool to four
-roughly doubles the prompt. A 0.5B model has to hold the task, the tool list,
-the format rules and the running transcript in the same small attention budget,
-and the instruction that suffers first is the one it needs last, `finish`. This
-is the same shape as the Week 10 result: the ability to follow multi-step
-procedural instructions appears with scale, and prompting harder does not
-substitute for it. Which is also why the answer is a **guard in the loop**, not
-a longer prompt.
+The first query retrieves `week10-prompting.md` for a CoT question and answers
+correctly with citation `[1]`. Retrieval that spans documents is the normal case,
+and it is why chunk ids are global.
+
+**Connecting to the CTF next door.** W12C1's lesson was that model output must be
+validated before anything downstream trusts it. `verify_citations` is that same
+control applied to a claim of evidence. And the stretch goal in W12C1 (indirect
+injection via a retrieved record) is precisely an attack on *this* pipeline: if a
+chunk in your corpus contains "ignore previous instructions", RAG hands it to the
+model as trusted context. Worth mentioning here so students see the two halves of
+the week connect.

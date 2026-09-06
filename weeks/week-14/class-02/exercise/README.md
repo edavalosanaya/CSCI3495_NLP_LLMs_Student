@@ -1,84 +1,37 @@
-# W14C2 Lab: Project Work & Reproducibility Check
+# W14C2 Lab: Making Your Project Reproducible
 
-## 1. Learning objective
+Everything for this session is in **`lab.ipynb`**. We work through it together in
+class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
 
-Push your project forward with an instructor checkpoint, and run a
-reproducibility check over the code you are about to hand in.
+## Getting started
 
-There is nothing to implement. `repro_check.py` is written; you point it at
-your own files and act on what it says.
-
-## 2. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-14/class-02/exercise course bash
-```
-
-## 3. Check a file that is reproducible
-
-![Chained 90 percent reliable steps decay: 0.9, 0.81, 0.73, 0.66, 0.59](../lecture/visuals/why-expensive.png)
-
-Reliability multiplies across chained LLM steps. With per-step success $p$ over
-$n$ steps, a pipeline that feels fine at each step is not fine end to end:
-
-$$
-P(\text{whole task succeeds}) = p^{n},
-\qquad \text{e.g. } 0.9^{5} \approx 0.59
-$$
-
-```bash
-python repro_check.py ../../../week-04/class-01/solutions/mlp_classifier.py
-```
+Once, from the repository root on your own machine:
 
 ```
-Reproducibility check: ../../../week-04/class-01/solutions/mlp_classifier.py
-  [OK]   parses cleanly.
-  [OK]   found seeding: torch.manual_seed
-  Note: run your real entry point in Docker too; this is only a static hint.
+uv sync
 ```
 
-## 4. Check one that is not
+Then open `weeks/week-14/class-02/exercise/lab.ipynb` in your editor, select the project's
+**`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
+nothing else to install.
 
-```bash
-python repro_check.py ../../../week-02/class-01/solutions/ngram_lm.py
-```
+## What you will do
 
-```
-Reproducibility check: ../../../week-02/class-01/solutions/ngram_lm.py
-  [OK]   parses cleanly.
-  [WARN] no RNG seeding found, set seeds for reproducible results.
-  Note: run your real entry point in Docker too; this is only a static hint.
-```
+1. Run the same code twice and get two different answers.
+2. Fix it, and prove the fix worked.
+3. Write the environment record your final report needs.
 
-## 5. Check your own project
+## What is in this folder
 
-```bash
-python repro_check.py /workspace/<path to your project file>
-```
+| File | What it is |
+|---|---|
+| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
 
-Run it over every file you intend to submit. Fix each `[WARN]` before the
-checkpoint, or be ready to say why it does not apply.
+## How this lab works
 
-## 6. The checkpoint conversation
+Everything already runs the moment you open it. Nothing raises, and there is no
+test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
+you should see when it is right, in real numbers, and the answers are in the
+last cell of the notebook.
 
-![Decision checklist: prompt, then augmented LLM, then workflow, and only last an agent](../lecture/visuals/decision-checklist.png)
-
-That decay is the argument for the checklist: reach for a plain prompt first,
-then an augmented LLM, then a fixed workflow, and only last an agent that
-decides its own control flow.
-
-Bring answers to these. They are the same questions the final rubric asks.
-
-1. Run the numbers on your own pipeline. How many LLM calls are chained end to
-   end, and what is $p^{n}$ if each is 90% reliable? If that number is
-   uncomfortable, which step would you delete first?
-2. Walk down the decision checklist for your project. What is the simplest
-   design that would still meet your goal, and what specifically does your
-   current design buy over it?
-3. `repro_check.py` is a static hint: it greps for seeding and never runs your
-   code. Name a way your project could be irreproducible that this tool cannot
-   possibly detect.
-4. State the one result you will show in the final presentation, and the
-   command a reader would run to reproduce it.
+Read the output and judge whether it looks right. That is the skill.

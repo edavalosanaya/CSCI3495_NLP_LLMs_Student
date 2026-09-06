@@ -1,101 +1,37 @@
-# W9C1 Lab: LoRA & Quantization
+# W9C1 Lab: Byte Pair Encoding, by Hand and for Real
 
-## 1. Learning objective
+Everything for this session is in **`lab.ipynb`**. We work through it together in
+class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
 
-Fine-tune a frozen layer by training a tiny low-rank adapter beside it, then
-see what quantizing the weights costs in accuracy.
+## Getting started
 
-You write two things in `lora_lab.py`: the adapter's constructor and its
-forward pass. The training loop and the quantizer are given.
-
-## 2. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-09/class-01/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 3. Implement `LoRALinear.__init__`
-
-![LoRA: freeze W, train a low-rank B @ A update, merge at inference (Hu et al. 2021, Fig. 1)](../lecture/visuals/assets/lora-2021-fig-1.png)
-
-$W_0$ never moves. The update is forced through $r$ dimensions, so it costs
-$r(d_{in} + d_{out})$ parameters instead of $d_{in} d_{out}$:
-
-$$A \in \mathbb{R}^{r \times d_{in}}, \qquad B \in \mathbb{R}^{d_{out} \times r}, \qquad r \ll \min(d_{in}, d_{out})$$
-
-$B$ starts at zero, so at step 0 the adapter contributes nothing and training
-begins from the pretrained model rather than a randomly damaged one.
-
-Freeze the base weight, add a down-projection and an up-projection, and store
-the scaling. The up-projection starts at zero.
-
-```bash
-pytest -k step1 -q
-```
+Once, from the repository root on your own machine:
 
 ```
-...                                                                      [100%]
-3 passed, 6 deselected
+uv sync
 ```
 
-## 4. Implement `LoRALinear.forward`
+Then open `weeks/week-09/class-01/exercise/lab.ipynb` in your editor, select the project's
+**`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
+nothing else to install.
 
-The frozen layer and the adapter are added, with the adapter scaled by
-$\alpha / r$:
+## What you will do
 
-$$h = W_0 x + \frac{\alpha}{r}\, B A x$$
+1. See how a real tokenizer splits words you have never seen.
+2. Run BPE merges yourself and watch the vocabulary build itself.
+3. Find out what tokenization costs you on unusual text.
 
-Base output, plus the scaled down-then-up update.
+## What is in this folder
 
-```bash
-pytest -k step2 -q
-```
+| File | What it is |
+|---|---|
+| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
 
-```
-..                                                                       [100%]
-2 passed, 7 deselected
-```
+## How this lab works
 
-## 5. Run it, then break it
+Everything already runs the moment you open it. Nothing raises, and there is no
+test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
+you should see when it is right, in real numbers, and the answers are in the
+last cell of the notebook.
 
-Quantization is a separate saving, and the given `quantize` stores each weight
-on a coarse grid:
-
-$$s = \frac{\max |w|}{2^{k-1} - 1}, \qquad \hat{w} = s \cdot \mathrm{clamp}\!\left(\mathrm{round}\!\left(\frac{w}{s}\right), -(2^{k-1}-1), \, 2^{k-1}-1\right)$$
-
-```bash
-python lora_lab.py
-```
-
-```
-LoRA loss: 9.744 -> 0.000
-Trainable params: 48  |  Frozen params: 32
-
-Quantization bake-off (mean abs error vs original):
-  8-bit: error = 0.0072
-  4-bit: error = 0.1316
-  2-bit: error = 0.7530
-```
-
-Note that here the adapter has MORE parameters than the layer it is adapting.
-Each experiment below is a one-line edit; undo it before the next.
-
-1. Sweep the rank. Build the adapter with `r=` 1, 2, 4 and 8. Trainable
-   parameters go 12, 24, 48, 96 while frozen stays 32. On an 8x4 layer, LoRA is
-   a loss, not a saving. At what layer size does it start paying off, and why
-   are real LLM layers on the right side of that line?
-2. Start `B` at random instead of zero. Set `self.B = nn.Parameter(torch.randn(out_features, r) * 0.01)`.
-   The adapter's output at initialization is no longer identical to the frozen
-   layer's. What does that cost you at the very start of fine-tuning?
-3. Quantize harder. The error climbs 0.0072, 0.1316, 0.7530 for 8, 4 and 2 bits,
-   roughly ten times worse per halving. Which of those would you still ship, and
-   what would you need to measure to decide properly?
-4. Quantize the adapter too. Apply `quantize` to `A` and `B` rather than to the
-   base weight. Is the damage comparable, and does that suggest anything about
-   which parts of a model are safe to compress?
+Read the output and judge whether it looks right. That is the skill.

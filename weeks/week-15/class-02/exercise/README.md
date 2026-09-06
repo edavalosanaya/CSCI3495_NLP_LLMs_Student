@@ -9,10 +9,11 @@ There is no code today. This is the facilitation guide and your checklist.
 
 ## 2. Getting started
 
-Test your demo before class, in the same image everything else ran in:
+Test your demo before class, in the same environment everything else ran in:
 
-```bash
-docker compose -f docker/docker-compose.yml run --rm -w /workspace/<your project> course bash
+```
+uv sync
+uv run python <your project entry point>
 ```
 
 Have a fallback ready, screenshots or recorded output, in case the live demo

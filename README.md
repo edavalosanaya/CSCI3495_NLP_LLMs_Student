@@ -6,35 +6,53 @@ Course materials for CSCI 3495. Everything you need for the semester lives here.
 
 | Folder | What it is |
 |---|---|
-| `docker/` | The course environment. Set this up in week 1 and everything else just runs. |
+| `docker/` | The local LLM server (Ollama). Python is managed by uv, not Docker. |
 | `weeks/week-NN/class-NN/lecture/` | The slide deck for each session (`slides.pptx`). |
-| `weeks/week-NN/class-NN/exercise/` | The in-class exercise: starter code, instructions, and any data. |
+| `weeks/week-NN/class-NN/exercise/` | The in-class lab: `lab.ipynb`, a short README, and any data. |
 | `weeks/week-NN/class-NN/solutions/` | The worked answer to that exercise, plus a step-by-step `WALKTHROUGH.md`. |
-| `homeworks/hw1` ... `hw6` | The six homework assignments, with starter code and the tests they must pass. |
+| `homeworks/hw1` ... `hw6` | The six homework assignments, one notebook each. |
 | `project/` | The semester project: spec, rubrics, and the proposal / checkpoint / report templates. |
 | `syllabus/` | The syllabus. |
 | `schedule/` | The week-by-week schedule with every due date. |
 
 ## Setup
 
-Follow `docker/README.md`. It takes about fifteen minutes the first time and
-nothing after that.
+Install [uv](https://docs.astral.sh/uv/), then from this folder:
+
+```
+uv sync
+uv run python scripts/setup_data.py
+docker compose -f docker/docker-compose.yml up -d ollama
+docker compose -f docker/docker-compose.yml exec ollama ollama pull qwen2.5:0.5b
+uv run python scripts/env_check.py
+```
+
+`uv sync` takes about a minute. Everything after it is instant.
 
 ## How you work
 
-You work **inside the container**, not on your own machine, so every command is
-the same on macOS, Linux and Windows. Each lab and homework README opens with
-one `docker compose ... bash` line that drops you into a shell already sitting
-in that folder. After that the commands are short and you type them, not paste
-them: `pytest -k step1 -q`, `python text_tools.py`.
+Open the labs with:
 
-## About the in-class exercises
+```
+uv run jupyter lab
+```
 
-The labs are **not graded**. They exist to be attempted, so the worked solution
-and a step-by-step walkthrough ship next to every one of them, in `solutions/`.
-Try the step first; if you are stuck for more than a few minutes, read the
-walkthrough for *that step* and keep going. Homework is different: it is graded,
-and its solutions are not here.
+Jupyter will offer exactly **one** kernel, the course environment, so there is
+nothing to choose. Every lab is a notebook that already runs the moment you open
+it: run the cells from the top, then edit the `YOUR TURN` cells.
+
+There is no test to run. Each task says in a comment what you should see when it
+is right, and the answers are in the last cell of the notebook.
+
+## About the in-class labs
+
+The labs are **not graded**. They exist to be attempted, and every one carries
+its own answers in its last cell, so you are never blocked. Try the task first;
+if you are stuck for more than a few minutes, read the answer for *that task*
+and keep going.
+
+Homework is different: it is graded, submitted as the `.ipynb` with all cells
+run, and its solutions are not here.
 
 ## Getting updates
 

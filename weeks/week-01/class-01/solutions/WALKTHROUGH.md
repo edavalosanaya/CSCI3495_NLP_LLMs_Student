@@ -137,7 +137,7 @@ find an edge:
 - Multi-step reasoning ("if I have 3 boxes of 4 pens and give away 5...").
 
 These failures are not a detour, they are the raw material for the scavenger hunt
-and the first data point in the reliability thread that runs to Week 9 (evaluation
+and the first data point in the reliability thread that runs to Week 10 (evaluation
 and hallucination) and Week 15 (ethics).
 
 ---
@@ -174,7 +174,7 @@ floating-point differences, and server-side changes can all perturb it. It held
 across the runs above, and it is a reasonable expectation, but "deterministic"
 here means "argmax decoding", not "provably reproducible forever".
 
-**Where this goes.** Week 7 covers decoding properly, greedy vs beam vs top-k vs
+**Where this goes.** Week 8 covers decoding properly, greedy vs beam vs top-k vs
 nucleus, and students implement the sampling themselves. All that is needed today
 is the intuition that the knob exists and controls a randomness/quality trade-off.
 
@@ -195,8 +195,8 @@ ChatGPT" without an example. Ask what they ran.
 
 That observation, that fluency and accuracy are separate axes and the model
 signals no difference between them, is the single most useful thing a student can
-carry out of Week 1. It is the thesis of W9C2 (hallucination) and it is why the
-course spends Week 9 on evaluation at all.
+carry out of Week 1. It is the thesis of W10C2 (hallucination) and it is why the
+course spends Week 10 on evaluation at all.
 
 ---
 

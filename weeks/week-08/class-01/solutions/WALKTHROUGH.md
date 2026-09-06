@@ -1,249 +1,231 @@
-# W8C1 Walkthrough: BPE from scratch, step by step
+# W8C1 Walkthrough: Decoding strategies, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `bpe.py` in this folder. Every code block below is taken
-from it, and every printed value was produced by running it on the demo corpus
-`["low low low low low", "lower lower", "newest newest newest", "widest"]`.
+The complete file is `decoding.py` in this folder. Every code block below is
+taken from it, and every printed value was produced by running it on the toy
+logits `{"sunny": 2.0, "cloudy": 1.2, "cold": 0.6, "nice": 0.1, "banana": -3.0}`.
 
 ---
 
-## Given, `build_vocab`
+## Given, `apply_temperature`
 
 ```python
-def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
-    vocab: Counter = Counter()
-    for line in corpus:
-        for word in line.lower().split():
-            symbols = tuple(word) + (END,)
-            vocab[symbols] += 1
-    return dict(vocab)
+def apply_temperature(logits: dict[str, float], temperature: float) -> dict[str, float]:
+    if temperature < 1e-6:
+        # Greedy: all mass on the argmax.
+        best = max(logits, key=logits.get)
+        return {t: (1.0 if t == best else 0.0) for t in logits}
+    scaled = {t: v / temperature for t, v in logits.items()}
+    m = max(scaled.values())  # for numerical stability
+    exps = {t: math.exp(v - m) for t, v in scaled.items()}
+    z = sum(exps.values())
+    return {t: e / z for t, e in exps.items()}
 ```
 
-**Why a tuple of symbols rather than a string.** The whole algorithm is symbols
-merging into bigger symbols. After one merge a word is `("l","o","w","er","</w>")`,
-where `"er"` occupies one slot. A string cannot express "these two characters are
-now one unit", and the pair-counting step would then find pairs that straddle a
-merged symbol. Tuples are also hashable, so they work as dict keys.
+**The `T < 1e-6` branch is a definition, not a hack.** As $T \to 0$ the softmax
+converges to a one-hot on the argmax, but you cannot compute the limit by
+dividing by zero. Every real inference server special-cases this the same way,
+which is why "temperature 0" and "greedy decoding" are used interchangeably.
 
-**Why `</w>` exists.** It marks word ends, which does two jobs. It distinguishes
-`er` inside a word from `er` that ends one (English suffixes are a real
-distinction). And it lets the tokenizer reconstruct spacing, since without it
-`["low", "est"]` and `["lowest"]` would be indistinguishable after decoding.
+**The `- m` is the same stability trick as W6C2.** Dividing by a small `T`
+*amplifies* the logits (a logit of 2.0 at `T = 0.01` becomes 200), so overflow is
+far more likely here than in plain softmax. Subtracting the max is what makes low
+temperatures survivable at all.
 
-**Frequency, not a set.** The counts are what makes BPE *statistical*. A pair in a
-word that appears 1000 times should be merged before a pair in a word that
-appears twice, and that only works if the frequency rides along.
+**What you should see:**
 
 ```python
->>> build_vocab(["low low"])
-{('l', 'o', 'w', '</w>'): 2}
+>>> {k: round(v, 3) for k, v in apply_temperature(logits, 0.5).items()}
+{'sunny': 0.778, 'cloudy': 0.157, 'cold': 0.047, 'nice': 0.017, 'banana': 0.0}
+>>> {k: round(v, 3) for k, v in apply_temperature(logits, 1.5).items()}
+{'sunny': 0.435, 'cloudy': 0.255, 'cold': 0.171, 'nice': 0.123, 'banana': 0.016}
 ```
+
+**Teach these two rows against each other.** Same logits, and the ordering never
+changes (temperature is monotonic, it cannot make `cloudy` beat `sunny`). What
+changes is the *spread*: 0.778 vs 0.435 for the leader, and `banana` going from
+effectively 0 to a real 1.6% chance of being emitted.
+
+That is the whole creativity/coherence trade-off in two lines of numbers, and it
+is worth connecting back to W1C1, where students turned this knob without knowing
+what it did.
 
 ---
 
-## Step 1, `count_pairs`
+## Given, `greedy`
 
 ```python
-def count_pairs(vocab: dict[tuple[str, ...], int]) -> Counter:
-    pairs: Counter = Counter()
-    for symbols, freq in vocab.items():
-        for a, b in zip(symbols, symbols[1:]):
-            pairs[(a, b)] += freq
-    return pairs
+def greedy(dist: dict[str, float]) -> str:
+    return max(dist, key=dist.get)
 ```
 
-**`zip(symbols, symbols[1:])`** is the standard adjacent-pairs idiom: pair each
-element with the one after it, stopping naturally at the end.
+**One line, and worth thirty seconds anyway.** Greedy is not a *bad* strategy, it
+is a strategy with a specific failure mode: it is deterministic, so it produces
+the same output every time, and on open-ended text it degenerates into loops
+("the best way to do this is the best way to do this is..."). Holtzman et al.
+2020 measured this; the repetition is not a bug in any implementation, it is what
+maximizing per-token probability actually does.
 
-**`+= freq`, not `+= 1`.** This is the single most common bug in this step.
-Counting occurrences of pairs *in the vocab* rather than *in the corpus* makes
-every distinct word contribute equally regardless of how often it appears, and
-BPE stops being frequency-driven. The test uses a word with frequency 2 to catch
-exactly this.
+For anything with one right answer (classification, extraction, structured
+output) greedy is usually correct. W11's structured-output work leans on that.
 
 ---
 
-## Step 2, `merge_pair`
+## Step 1, `top_k_filter`
 
 ```python
-    a, b = pair
-    merged = a + b
-    new_vocab: dict[tuple[str, ...], int] = {}
-    for symbols, freq in vocab.items():
-        out: list[str] = []
-        i = 0
-        n = len(symbols)
-        while i < n:
-            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
-                out.append(merged)
-                i += 2
-            else:
-                out.append(symbols[i])
-                i += 1
-        new_vocab[tuple(out)] = new_vocab.get(tuple(out), 0) + freq
-    return new_vocab
+def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
+    ordered = sorted(dist.items(), key=by_probability)
+
+    kept = {}
+    for token, probability in ordered[:k]:
+        kept[token] = probability
+
+    return renormalize(kept)
 ```
 
-**The manual index walk is deliberate.** The tempting shortcut is
-`" ".join(symbols).replace(a + " " + b, merged)`, which is what the original BPE
-paper's reference code does with a regex. It works, but it hides the mechanics
-and breaks in interesting ways once symbols contain spaces or regex
-metacharacters. The explicit walk is clearer for teaching and has no such
-failure modes.
+**Renormalization is what makes it a distribution again.** After dropping tokens
+the remaining probabilities sum to less than 1, and `sample` walks a cumulative
+sum expecting a total of 1. Skipping the division makes sampling silently biased
+toward the fallback branch.
 
-**`i += 2` after a match** prevents overlapping merges. Merging `("a","a")` in
-`("a","a","a")` gives `("aa","a")`, not `("aa","aa")`. That is the correct
-behavior: each symbol is consumed once.
+**The `if z > 0` guard** handles an all-zero input, which happens if someone
+top-k filters an already-filtered distribution where the survivors were rounded
+to zero. Rare, but it turns a `ZeroDivisionError` into a harmless passthrough.
 
-**`new_vocab.get(tuple(out), 0) + freq`** rather than plain assignment, because
-two distinct words can collapse to the same tuple after a merge, and their
-frequencies must add. Overwriting silently loses counts, which then quietly
-distorts every later merge decision.
-
-**Returns a new dict** rather than mutating in place, so `train_bpe` can reason
-about each round independently.
+**What you should see:**
 
 ```python
->>> merge_pair(('e', 'r'), {('l', 'o', 'w', 'e', 'r', '</w>'): 1})
-{('l', 'o', 'w', 'er', '</w>'): 1}
+>>> {k: round(v, 3) for k, v in top_k_filter(base, 2).items()}
+{'sunny': 0.69, 'cloudy': 0.31}
 ```
+
+`sunny` was about 0.55 at `T = 1.0` and is 0.69 after filtering. The mass from
+the three discarded tokens was redistributed proportionally. Students sometimes
+expect the kept values to be unchanged; ask them what the numbers would sum to if
+so.
+
+**The weakness to name:** `k` is fixed. If the model is certain, top-5 drags in
+four tokens it had all but ruled out. If the model is genuinely torn between
+twenty options, top-5 amputates sixteen of them. The threshold should depend on
+the model's confidence, which is Step 4.
 
 ---
 
-## Step 3, `train_bpe`
+## Step 2, `top_p_filter`
 
 ```python
-def train_bpe(corpus: list[str], num_merges: int) -> list[tuple[str, str]]:
-    vocab = build_vocab(corpus)
-    merges: list[tuple[str, str]] = []
-    for _ in range(num_merges):
-        pairs = count_pairs(vocab)
-        if not pairs:
+def top_p_filter(dist: dict[str, float], p: float) -> dict[str, float]:
+    ordered = sorted(dist.items(), key=by_probability)
+
+    kept = {}
+    running_total = 0.0
+    for token, probability in ordered:
+        # Keep this token FIRST, then check. Stopping before the token that
+        # crosses p would leave the kept mass below p.
+        kept[token] = probability
+        running_total = running_total + probability
+        if running_total >= p:
             break
-        # Most frequent pair. When two pairs tie, the larger pair wins, so
-        # two runs on the same corpus always learn the same merges.
-        best = None
-        best_count = -1
-        for pair, count in pairs.items():
-            if count > best_count or (count == best_count and pair > best):
-                best = pair
-                best_count = count
-        vocab = merge_pair(best, vocab)
-        merges.append(best)
-    return merges
+
+    return renormalize(kept)
 ```
 
-**The tie-break is not cosmetic.** On a small corpus, ties are the common case,
-not the exception. `key=lambda kv: (kv[1], kv[0])` sorts by count and then by the
-pair itself, so equal counts resolve alphabetically instead of by dict insertion
-order. There is a dedicated test (`test_step4_train_is_deterministic`) because a
-tokenizer that changes between runs would make every downstream model
-irreproducible.
+**Add first, then check.** The token is inserted into `kept` *before* the
+cumulative sum is tested, which is what guarantees at least one token survives
+even when `p` is smaller than the top token's probability. Writing the check
+first produces an empty dict for small `p` and a crash downstream; there is a
+dedicated test for exactly this.
 
-**`if not pairs: break`** handles the case where everything has merged into
-single symbols and there is nothing adjacent left. Without it, `max` on an empty
-Counter raises.
+**Note the boundary is inclusive.** The token that pushes the total over `p` is
+kept, so the nucleus always covers *at least* `p` of the mass, never less. That
+matches Holtzman et al.'s definition.
 
-**What is returned is the merge list, not a vocabulary.** This surprises students,
-and it is worth dwelling on: the *model* of a BPE tokenizer is an ordered
-sequence of rewrite rules. The vocabulary is derivable from it, but the order is
-the thing that must be preserved, because merge 9 can only fire on symbols that
-merges 1 to 8 created.
+**What you should see:**
 
 ```python
->>> train_bpe(demo, num_merges=3)
-[('o', 'w'), ('l', 'ow'), ('low', '</w>')]
+>>> {k: round(v, 3) for k, v in top_p_filter(base, 0.8).items()}
+{'sunny': 0.59, 'cloudy': 0.265, 'cold': 0.145}
 ```
 
-Merge 2 consumes merge 1's output; merge 3 consumes merge 2's. The compounding is
-the algorithm.
+**Put this next to Step 3's output and let the class find the difference.** Same
+distribution: top-2 kept two tokens, top-p 0.8 kept three. The nucleus sized
+itself to the distribution.
+
+The demonstration that makes it click: apply top-p to a *confident* distribution
+(say `{a: 0.95, b: 0.03, c: 0.02}`) and the nucleus is one token. Apply it to a
+*flat* one and it is nearly all of them. Top-k gives the same count either way.
+That adaptivity is why nucleus sampling is the default in most production
+serving.
 
 ---
 
-## Given, `encode_word`
+## Given, `sample`
 
 ```python
-def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
-    symbols: list[str] = list(word.lower()) + [END]
-    for a, b in merges:
-        merged = a + b
-        out: list[str] = []
-        i = 0
-        n = len(symbols)
-        while i < n:
-            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
-                out.append(merged)
-                i += 2
-            else:
-                out.append(symbols[i])
-                i += 1
-        symbols = out
-    return symbols
+def sample(dist: dict[str, float], seed: int | None = None) -> str:
+    rng = random.Random(seed)
+    r = rng.random()
+    cum = 0.0
+    last = None
+    for tok, prob in dist.items():
+        last = tok
+        cum += prob
+        if r <= cum:
+            return tok
+    return last  # floating-point fallback
 ```
 
-**Encoding replays training.** Start from characters, then apply every learned
-merge **in training order**. Applying them in a different order, or applying only
-the ones that "fit", gives a different and generally worse segmentation.
+**Inverse-transform sampling**, and it is worth drawing on the board: lay the
+probabilities end to end along the interval `[0, 1)`, throw a dart at a uniform
+random point, and return whichever segment it lands in. Segments are as wide as
+their probability, so tokens are chosen in proportion.
 
-**No vocabulary lookup, and no unknown-token branch.** Any string can be encoded,
-because the worst case is that no merge fires and you get characters back. That
-is why subword tokenizers eliminated the `<UNK>` token that plagued word-level
-models.
+**`random.Random(seed)` is local**, not the global `random`, so tests reproduce
+regardless of what else consumed randomness. Same discipline as W2C1's `generate`
+and W5C2's sampler.
+
+**The `return last` fallback is not dead code.** After renormalization the
+probabilities sum to 1 only up to floating-point error. If they sum to
+0.9999999999, a draw of `r = 0.99999999995` falls past the end of every segment
+and the loop exits without returning. Returning the last token is the sane
+resolution. This is a real bug in student implementations that appears roughly
+one run in a billion, which is the worst kind.
+
+**What you should see:**
 
 ```python
->>> encode_word("lowest", merges)
-['low', 'est</w>']
+>>> sample(base, seed=0) == sample(base, seed=0)
+True
+>>> sample({"only": 1.0}, seed=3)
+'only'
 ```
-
-**"lowest" is not in the training corpus.** It is assembled from `low` (learned
-from "low" and "lower") and `est</w>` (learned from "newest" and "widest"). This
-one line is the payoff of the entire session; make sure students run it and
-notice.
 
 ---
 
 ## Running it
 
 ```
-Learned merges (in order):
-   1. 'o' + 'w'
-   2. 'l' + 'ow'
-   3. 'low' + '</w>'
-   4. 't' + '</w>'
-   5. 's' + 't</w>'
-   6. 'e' + 'st</w>'
-   7. 'w' + 'est</w>'
-   8. 'n' + 'e'
-   9. 'ne' + 'west</w>'
-  10. 'r' + '</w>'
-
-Encoding 'lowest': ['low', 'est</w>']
+temp=0.5 -> {'sunny': 0.778, 'cloudy': 0.157, 'cold': 0.047, 'nice': 0.017, 'banana': 0.0}
+temp=1.5 -> {'sunny': 0.435, 'cloudy': 0.255, 'cold': 0.171, 'nice': 0.123, 'banana': 0.016}
+greedy   -> sunny
+top-2    -> {'sunny': 0.69, 'cloudy': 0.31}
+top-p .8 -> {'sunny': 0.59, 'cloudy': 0.265, 'cold': 0.145}
 ```
 
-**Read the merge list aloud as a narrative.** Merges 1 to 3 build the word "low"
-because it is the most frequent thing in the corpus. Merges 4 to 6 build
-`est</w>` from the end backwards, which is the English superlative suffix,
-discovered with no linguistic input whatsoever. Merge 7 then makes `west</w>`,
-and merge 9 makes `newest</w>` a single token because it appears three times.
+**The `banana` token is the through-line.** It is in the vocabulary with logit
+-3.0, deliberately absurd. Watch what each strategy does with it: temperature
+0.5 buries it (0.000), temperature 1.5 gives it a genuine 1.6% chance, and both
+filters remove it entirely. When a model emits something bizarre, one of these
+knobs is usually why.
 
-Three points to draw out:
+**Then push them to `playground.py`.** The toy distribution makes the arithmetic
+visible; the real model makes the consequence audible. Students who only do the
+math tend to think of temperature as an abstract parameter, and students who only
+turn the knob never learn what it does. The pairing is the point of the session.
 
-1. **Morphology emerges from frequency.** Nobody encoded that *-est* is a suffix.
-   It is a suffix *because* it recurs across different stems, and BPE finds
-   exactly the recurring pieces.
-2. **Vocabulary size is a dial, not a fact.** `num_merges` decides how coarse the
-   tokens are. Few merges means near-character tokens (long sequences, small
-   vocab); many merges means whole words (short sequences, large vocab). Real
-   models pick a point on that trade-off, typically 32k to 128k merges.
-3. **The corpus decides the tokenizer.** This one learned "low" and "est" because
-   that is what it saw. A tokenizer trained mostly on English fragments other
-   languages into many more tokens, which means those users pay more per word in
-   context length and in API cost. That is the fertility issue from lecture, and
-   the third stretch goal makes it concrete in about a minute.
-
-**Connecting forward:** every model in the rest of the course sits on top of a
-tokenizer built exactly this way. When W9C2 discusses why a model cannot count
-the letters in a word, or why it is bad at arithmetic on long numbers, the answer
-is usually visible in the token boundaries students just learned to compute.
+**Where this goes.** W10 asks students to hold decoding *fixed* (temperature 0,
+fixed seed) while A/B testing prompts, and this is the lab that earns them the
+right to that instruction: they now know exactly what varies when they do not.

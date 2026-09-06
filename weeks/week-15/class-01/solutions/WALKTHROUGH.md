@@ -10,7 +10,7 @@ more than the code, which is short.
 
 ## Step 1, `cosine`
 
-Fourth appearance in the course: W3C1 (sparse dicts), W3C2 (numpy), W6C1 (lists),
+Fourth appearance in the course: W4C1 (sparse dicts), W4C2 (numpy), W7C1 (lists),
 here. **Worth naming the repetition explicitly**: the instrument used to measure
 social bias in a representation is the same three lines as the search engine from
 week three. There is no special "bias mathematics".

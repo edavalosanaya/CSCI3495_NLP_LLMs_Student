@@ -1,81 +1,70 @@
-# Course Environment Setup (Docker + Ollama)
+# The local LLM server (Ollama)
 
-Everything in this course runs in a single reproducible Docker image, **no GPU, no paid API keys, no cloud accounts**. Local LLMs run via **Ollama**.
+Docker has exactly one job in this course: running a language model on your own
+machine. **Python is not in Docker.** It is a single [uv](https://docs.astral.sh/uv/)
+environment managed from the repository root, and that is where the notebooks run.
+
+No GPU, no API keys, no cloud accounts, no paid anything.
 
 ## Prerequisites
-- [Docker Desktop](https://docs.docker.com/get-docker/) (or Docker Engine + Compose v2) installed and running.
-- ~10 GB free disk (image + a couple of small models).
 
-**Every command in this course works on macOS, Linux and Windows**, because the
-work happens inside the Linux container, not on your machine. Type them in
-Terminal (macOS, Linux) or in PowerShell or Command Prompt (Windows). The one
-thing that differs between systems is how you make a shortcut for a long
-command, and each handout spells out all three forms.
+- [Docker Desktop](https://docs.docker.com/get-docker/), or Docker Engine plus
+  Compose v2 on Linux.
+- About 5 GB of free disk for the server and a couple of small models.
 
-On **Windows**, install Docker Desktop with the WSL 2 backend (its installer
-offers this and it is the default). Keep the repository on your `C:` drive
-rather than a network drive, or the container will not see your edits. Use
-forward slashes in the commands exactly as printed: they are paths inside the
-container, not Windows paths.
+On **Windows**, install Docker Desktop with the WSL 2 backend, which its
+installer offers by default.
 
 ## One-time setup
-```bash
-# From the repository root:
-docker compose -f docker/docker-compose.yml build          # build the course image (~5-10 min first time)
-docker compose -f docker/docker-compose.yml up -d ollama    # start the local LLM server
 
-# Pull the small models the course uses (CPU-friendly):
+From the repository root:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d ollama
 docker compose -f docker/docker-compose.yml exec ollama ollama pull qwen2.5:0.5b
-docker compose -f docker/docker-compose.yml exec ollama ollama pull llama3.2:1b
-docker compose -f docker/docker-compose.yml exec ollama ollama pull nomic-embed-text   # embeddings for RAG
 ```
 
-## Daily workflow
+That is the whole setup. The first pull is about 400 MB; everything after it is
+instant.
 
-**Work inside the container.** Each lab's README opens with one command that
-drops you into a shell already sitting in that lab's folder, so every command
-after it is short: `pytest -k step1 -q`, `python text_tools.py`. You only paste
-the long line once per session.
+`qwen2.5:0.5b` is the course default and is deliberately small: it runs on any
+laptop CPU, and the labs are written so that a weak model still makes the point.
+If your machine is comfortable, `qwen2.5:1.5b` gives noticeably better answers
+and the labs work unchanged.
+
+## Daily use
+
+The server keeps running in the background once started, and restarts with
+Docker. You do not interact with it directly: the notebooks talk to it over
+`localhost:11434` through the `ollama` Python package, which is already in the
+course environment.
 
 ```bash
-# The shape of it (each lab README gives you its own copy):
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-01/class-02/exercise course bash
-
-# Or a plain shell at the repository root:
-docker compose -f docker/docker-compose.yml run --rm course bash
-
-# Or launch JupyterLab:
-docker compose -f docker/docker-compose.yml run --rm --service-ports course jupyter lab --ip=0.0.0.0 --no-browser --NotebookApp.token=""
-# then open http://localhost:8888
+docker compose -f docker/docker-compose.yml ps        # is it up?
+docker compose -f docker/docker-compose.yml stop ollama
+docker compose -f docker/docker-compose.yml up -d ollama
 ```
 
-Inside the container, the LLM server is reachable at `http://ollama:11434` (already set as `OLLAMA_HOST`). From your host it's `http://localhost:11434`.
+Check the whole environment, Python and server together, with:
 
-## Quick check
 ```bash
-docker compose -f docker/docker-compose.yml run --rm course python scripts/env_check.py
-```
-This verifies Python, the key libraries, and connectivity to Ollama.
-
-## Using Ollama from Python
-```python
-import ollama
-client = ollama.Client()  # reads OLLAMA_HOST from the environment
-resp = client.chat(model="qwen2.5:0.5b",
-                   messages=[{"role": "user", "content": "Say hello in one sentence."}])
-print(resp["message"]["content"])
+uv run python scripts/env_check.py
 ```
 
-## Running locally without Docker (not recommended, but supported)
-1. Install Python 3.12 and create a venv.
-2. `pip install -r docker/requirements.txt` (install CPU torch first: `pip install --index-url https://download.pytorch.org/whl/cpu torch==2.5.1`).
-3. Install Ollama natively from <https://ollama.com> and `ollama serve`; set `OLLAMA_HOST=http://localhost:11434`.
+Labs that need the model say so at the top, and every one of them falls back to
+a canned reply if the server is not running, so a missing Ollama never stops you
+finishing a notebook.
 
-## Troubleshooting
-- **`permission denied ... /var/run/docker.sock` (Linux):** your user isn't in the `docker` group. Either prefix commands with `sudo`, or add yourself once: `sudo usermod -aG docker $USER` then log out/in (or `newgrp docker`).
-- **`docker: command not found`:** Docker Desktop is installed but not running. Start it and wait for the whale icon to stop animating, then try again.
-- **Windows: the container starts but your edits do nothing.** The repository is probably on a network drive or outside your user folder. Move it under `C:\Users\<you>\` and re-run.
-- **Windows: `docker compose` complains about the file path.** Run the commands from the repository root, the folder holding `docker/`, not from inside `docker/`.
-- **`connection refused` to Ollama:** ensure the `ollama` service is up (`docker compose ... up -d ollama`) and the model is pulled.
-- **Slow generation:** expected on CPU; the course uses sub-1B/1B models so responses take seconds, not minutes.
-- **Out of disk:** `docker system prune` and remove unused models with `ollama rm <model>`.
+## Upgrading from the old setup
+
+Earlier in the term the whole course ran inside a `csci3495-nlp` Docker image.
+That image is no longer used and is three to five gigabytes of dead weight. To
+reclaim the space, from the repository root:
+
+```bash
+bash scripts/cleanup_course_docker.sh
+```
+
+It shows you exactly what it will remove and asks before doing anything. It
+removes only the course image and its model cache, and refuses to touch Ollama
+or anything else on your machine.

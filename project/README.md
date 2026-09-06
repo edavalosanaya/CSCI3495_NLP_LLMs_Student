@@ -26,9 +26,9 @@ Individuals or teams of up to **3**. Scope scales with team size (a 3-person tea
 | **Mid-semester checkpoint** | 10 | 10% | 1-page summary (abstract, method, preliminary results) + in-class peer-review round (`checkpoint/`) |
 | **Final report & presentation** | 15 / finals | 20% | 6-8 page NeurIPS-format report + **5-8 min** talk/demo + **2 min** Q&A (`final/`) |
 
-A **work + instructor-feedback session** is provided in **Week 14, Class 2** before final presentations; project work/feedback time is also built into **Week 9**.
+A **work + instructor-feedback session** is provided in **Week 14, Class 2** before final presentations; project work/feedback time is also built into **Week 10**.
 
-### How the checkpoint runs (Week 10, Class 1, 30 min)
+### How the checkpoint runs (Week 11, Class 1, 30 min)
 There are no whole-class presentations. Instead:
 - **Before class:** each project writes **one page** (one side) covering **abstract, method, and preliminary results**. Bring a copy for yourself; you hand it in at the end.
 - **In class:** you sit in a **review group of four**, drawn from **different projects** so you get outside eyes.

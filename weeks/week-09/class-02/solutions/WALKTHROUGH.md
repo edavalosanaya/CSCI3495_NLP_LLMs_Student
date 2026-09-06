@@ -1,204 +1,213 @@
-# W9C2 Walkthrough: Evaluation harness, step by step
+# W9C2 Walkthrough: Be the reward model, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `eval_harness.py` in this folder. Every code block below is
-taken from it, and every printed value was produced by running it against
-`qwen2.5:0.5b`.
+The complete file is `preferences.py` in this folder. Every code block below is
+taken from it, and every printed value was produced by running it.
 
 ---
 
 ## Orientation
 
-The dataset is four items, and the fourth is a trap:
-
 ```python
-    {"q": "Who won the Nobel Prize in Physics in the year 2087?", "gold": None, "answerable": False},
+PREFERENCES: list[tuple[str, str]] = [
+    ("A", "B"),
+    ("A", "C"),
+    ("A", "D"),
+    ("B", "C"),
+    ("B", "D"),
+    ("C", "D"),
+]
 ```
 
-**Traps have to be designed in.** A benchmark scraped from question-answer pairs
-contains only answerable questions, so it can measure accuracy and is structurally
-incapable of measuring truthfulness. If you want to know whether a model knows
-when to say "I don't know", you must include questions where that is the correct
-answer. TruthfulQA is built on exactly this insight.
-
-`biased_judge` is provided as a deterministic stand-in for a position-biased
-model, so the swap test can be demonstrated offline with no Ollama.
+Six pairs, complete and consistent, encoding `A > B > C > D`. **There are no
+scores anywhere in the input.** That is not a simplification, it is the actual
+design of RLHF Stage 2: humans are reasonably consistent at "which of these two
+is better" and badly inconsistent at "rate this 1 to 10", so the data collected is
+comparisons and the scalar is inferred.
 
 ---
 
-## Given, `normalize_answer` / `exact_match`
-
-Standard SQuAD-style normalization: lowercase, drop punctuation, drop articles,
-collapse whitespace. Every QA benchmark ships something like this, and the details
-are load-bearing: dropping articles is why `"the Paris"` and `"Paris"` score the
-same, and forgetting it silently penalizes verbose models.
-
-Exact match is then a string equality on the normalized forms. It is the
-strictest grader available, and it is what most leaderboards report.
-
----
-
-## Given, `contains_answer`
-
-**Token boundaries, not raw substrings.** This is the step with a real trap, and
-there is a dedicated test for it: gold `"4"` must **not** match a prediction
-containing `"42"`. A naive `gold in pred` on strings returns True and quietly
-inflates every numeric score.
-
-Splitting both normalized strings into token lists and searching for the gold's
-token sequence is the fix.
-
-**Why have two graders at all.** Models answer in sentences. "The capital is
-Paris." is a correct answer that exact match scores as wrong. Containment rescues
-it, at the cost of accepting "not Paris" and other failures. Neither grader is
-correct in general, which is precisely the point: **the number you report is a
-property of your grader as much as of the model.** Have students run both on the
-live output and compare; the gap is usually larger than they expect.
-
----
-
-## Given, `accuracy`
-
-The `ValueError` on mismatched lengths is worth defending explicitly. Python's
-`zip` stops at the shorter input, so an off-by-one in the prediction list would
-silently evaluate on a subset and report a plausible number. Evaluation code
-attracts this class of bug because nothing downstream ever looks wrong. Failing
-loudly is the whole feature.
-
----
-
-## Step 1, `is_hallucination`
+## Given, `sigmoid`
 
 ```python
-def is_hallucination(pred: str, item: dict) -> bool:
-    abstain_cues = (
-        "i don't know", "i do not know", "cannot", "can't", "no winner",
-        "hasn't happened", "has not happened", "in the future", "not sure",
-        "no information", "unable", "fictional", "does not exist", "doesn't exist",
-    )
-    if item["answerable"]:
-        # A question that HAS an answer is never a hallucination here, however
-        # wrong the prediction is. This measures fabrication, not accuracy.
-        return False
-
-    low = pred.lower()
-    for cue in abstain_cues:
-        if cue in low:
-            # The model refused, which is the right move on this item.
-            return False
-
-    return True
+def sigmoid(x: float) -> float:
+    if x >= 0:
+        z = math.exp(-x)
+        return 1.0 / (1.0 + z)
+    z = math.exp(x)
+    return z / (1.0 + z)
 ```
 
-**Be upfront with students that this detector is crude.** It is a keyword list.
-Its failure modes are easy to name and worth naming:
+**Both branches are the same function**, algebraically. Multiply
+$1/(1+e^{-x})$ top and bottom by $e^{x}$ and you get $e^{x}/(1+e^{x})$. The
+point is that each branch only ever exponentiates a **negative** number, so the
+result is in $(0, 1]$ and cannot overflow.
 
-- A model that abstains with wording outside the list ("that is beyond my
-  training data") is **falsely flagged**.
-- A model that hallucinates while including a hedge ("I'm not sure, but the
-  winner was Dr. Chen") **escapes**.
-- It says nothing about answerable items, where a model can hallucinate a *wrong*
-  answer and the accuracy metric will simply mark it incorrect without ever using
-  the word hallucination.
+The naive single-expression version raises `OverflowError` for `x` below about
+-745 in float64. Score differences in a reward model routinely reach that range
+once training has separated the extremes, so this is not hypothetical.
 
-Detecting hallucination in general is unsolved. A keyword list is the honest
-floor, and knowing why it is a floor is more valuable than a better list.
-
----
-
-## Step 2, `judge_pairwise`
-
-<!-- not-solution -->
 ```python
-    #   1) raw1 = judge(question, ans1, ans2); map "A"->"ans1", "B"->"ans2"
-    #   2) raw2 = judge(question, ans2, ans1); now "A"->"ans2", "B"->"ans1"
-    #   3) consistent = (winner_run1 == winner_run2)
+>>> sigmoid(-800.0)
+0.0
 ```
-
-**The inversion in run 2 is the entire step**, and it is where students go wrong.
-The judge always reports slots ("A" or "B"), but the second call put `ans2` in
-slot A. Translating slot back to answer is what makes the two runs comparable. A
-student who forgets the inversion gets `consistent == True` for a maximally biased
-judge, which is the opposite of the truth and passes no test.
-
-**Why a swap and not three runs, or a confidence score.** Position is the
-cheapest bias to control for: one extra call, and any verdict that does not
-survive is discarded. It does not address verbosity or self-enhancement bias
-(both in the lecture figure), which need different controls.
 
 ---
 
-## Step 3, `position_bias_rate`
+## Step 1, `neg_log_likelihood`
 
-The rate is a diagnostic on the *judge*, not on the answers. A fair judge scores
-0.0. A judge that always picks the first slot scores 1.0, since run 1 names
-answer 1 and run 2 names answer 2 on every pair.
+```python
+    total = 0.0
+    for w, l in prefs:
+        p = sigmoid(scores[w] - scores[l])
+        # Clamp to avoid log(0).
+        p = min(max(p, 1e-12), 1.0)
+        total += -math.log(p)
+    return total / len(prefs)
+```
+
+**Only the difference matters**, `scores[w] - scores[l]`. This is the property
+that makes the scores unidentifiable up to a constant, which Step 3 has to handle.
+
+**The clamp earns its place.** A confidently wrong ordering drives `p` to
+underflow to exactly 0.0, and `math.log(0)` raises `ValueError`. Clamping turns
+"infinitely surprised" into "very surprised", which keeps the loop running. Real
+implementations use the log-sigmoid function directly, which is stable without a
+clamp, and that is a reasonable thing to mention.
+
+**The mean, not the sum**, so the loss is comparable across datasets of different
+sizes and the learning rate does not have to be rescaled when preferences are
+added.
+
+**What you should see:**
+
+```python
+>>> flat = {k: 0.0 for k in "ABCD"}
+>>> round(neg_log_likelihood(flat, PREFERENCES), 4)
+0.6931
+>>> good = {"A": 3.0, "B": 1.0, "C": -1.0, "D": -3.0}
+>>> round(neg_log_likelihood(good, PREFERENCES), 4)
+0.0699
+```
+
+**0.6931 is $\ln 2$.** With all scores equal, every comparison is 50/50 and the
+loss is the entropy of a fair coin. Students have now seen this number as the
+starting loss in W5C1 (binary classifier), W5C2 (with $\ln 23$ for 23 characters),
+and here. Worth naming the pattern: an uninformed model's loss is the entropy of
+its uninformed guess, and checking that is how you know your loss function is
+wired correctly.
+
+---
+
+## Step 2, `fit_reward_model`
+
+```python
+def fit_reward_model(
+    prefs: list[tuple[str, str]], lr: float = 0.5, steps: int = 500
+) -> dict[str, float]:
+    # Every response mentioned anywhere in the preferences, in a fixed order.
+    seen = set()
+    for winner, loser in prefs:
+        seen.add(winner)
+        seen.add(loser)
+    items = sorted(seen)
+
+    scores = {}
+    for x in items:
+        scores[x] = 0.0
+    for _ in range(steps):
+        grad = {}
+        for x in items:
+            grad[x] = 0.0
+        for w, l in prefs:
+            # d/ds of -log sigmoid(s_w - s_l):  s_w gets +(1-p), s_l gets -(1-p)
+            p = sigmoid(scores[w] - scores[l])
+            push = 1.0 - p
+            grad[w] += push
+            grad[l] -= push
+        for x in items:
+            scores[x] += lr * grad[x] / len(prefs)
+        # Re-center: scores are only identifiable up to an additive constant,
+        # so without this they drift together forever and never settle.
+        total = 0.0
+        for value in scores.values():
+            total = total + value
+        mean = total / len(scores)
+        for x in items:
+            scores[x] -= mean
+    return scores
+```
+
+**`push = 1 - p` is the entire learning signal**, and it is worth deriving on the
+board because it is unusually clean. The loss for one pair is
+$-\log \sigma(s_w - s_l)$, and
+
+$$\frac{\partial}{\partial s_w}\Big[-\log \sigma(s_w - s_l)\Big] = -(1 - \sigma(s_w - s_l))$$
+
+so gradient *descent* moves $s_w$ up by $(1 - p)$ and $s_l$ down by the same
+amount. Read what that means behaviorally:
+
+- The model already believes the winner wins (`p` near 1): `push` near 0, almost
+  no update. Settled preferences stop teaching.
+- The model has it backwards (`p` near 0): `push` near 1, maximum correction.
+  Violated preferences dominate learning.
+
+This self-balancing is not designed in; it falls out of the likelihood. Compare
+with the hinge-style losses students may have seen, which need an explicit margin.
+
+**`sorted(...)` on the item set** makes the iteration order deterministic. Set
+iteration order varies between runs, and floating-point addition is not
+associative, so without the sort two runs can differ in the last decimal place.
+Minor, but it is the same determinism discipline as the tie-breaks in W2C1 and
+W9C1.
+
+**Re-centering is the conceptually important line.** Since only differences enter
+the loss, adding 100 to every score changes nothing observable. The scores live
+in a one-dimensional family of equivalent solutions, and gradient descent will
+happily drift along it. Re-centering to mean 0 picks one representative. There is
+a test asserting this (`test_step3_scores_centered`), and the third stretch goal
+(fit a single preference) makes the under-determination vivid: two items, one
+comparison, and infinitely many score pairs fit equally well.
 
 ---
 
 ## Running it
 
-### The factuality half
-
 ```
-Q: Who won the Nobel Prize in Physics in the year 2087?
-A: As an AI language model, I can tell you that the current Nobel Prize in
-   Physics was awarded to two scientists: John C. B <-- HALLUCINATION?
-
-------------------------------------------------------------
-Accuracy on answerable items: 100.00%
+Learned reward-model scores (higher = more preferred):
+  A: +5.010
+  B: +1.579
+  C: -1.579
+  D: -5.010
+Implied ranking: A > B > C > D
 ```
 
-**Put those two facts side by side on the board.** The model scored **100%** and
-invented a Nobel laureate for a year that has not happened, in fluent, confident
-prose. A leaderboard reporting only the accuracy would call this model perfect.
+**The ranking is recovered exactly from comparisons alone.** No score was ever
+supplied. That is Stage 2 of RLHF, and students have now done it by hand.
 
-The hallucination was caught by the **protocol** (include unanswerable items,
-check for abstention), not by the **metric** (accuracy, which never saw that
-item because its gold is `None`). That is the session's thesis: a benchmark is
-dataset plus metric plus protocol, and the parts you leave out determine what you
-are structurally unable to notice.
+**The uneven spacing is the part worth teaching.** The A-to-B gap is 3.43; the
+B-to-C gap is 3.16. The scores are symmetric about zero because of re-centering,
+but the extremes are pushed further out: A appears only as a winner and D only as
+a loser, so their gradients never receive an opposing push, while B and C are
+pulled from both sides.
 
-### The judge half
+Draw the conclusion explicitly: **the ordering is meaningful, the magnitudes are
+much less so.** A reward model's scalar is not a calibrated quality rating. This
+matters directly for Stage 3, where PPO optimizes *against* these numbers: a
+policy that discovers a region where the reward model scores absurdly high will
+exploit it, whether or not the responses are actually good. That is reward
+hacking, and the seed of it is visible right here in the unbounded extremes.
 
-```
-== Deterministic biased judge (always picks the first slot) ==
-Position-bias (inconsistency) rate: 100%
+**Then have them use their own labels** from `label_sheet.md`. The moment a
+student's own inconsistent rankings produce compromise scores, the abstraction
+becomes personal: the model learned *their* values, disagreements and all. Ask
+whose values a real reward model encodes, and note that InstructGPT's own paper
+acknowledges its labelers were a small, non-representative group. That is the
+limitation question on Quiz 8.
 
-== Live judge: qwen2.5:0.5b (with swap check) ==
-Q: Explain why the sky is blue.
-  run1 winner: ans1  run2 winner: ans2  consistent: False
-Q: What is a good study tip?
-  run1 winner: ans1  run2 winner: ans2  consistent: False
-Position-bias (inconsistency) rate: 100%
-```
-
-**The real model scored identically to the deliberately-broken one.** On both
-pairs it chose whichever answer it read first, despite one answer being clearly
-better on the merits (Rayleigh scattering vs "the ocean reflecting upward";
-spaced practice vs cramming). Its verdicts carried no information about quality
-whatsoever, and without the swap test you would have collected two confident
-judgments and believed them.
-
-Two things to be careful about when teaching this:
-
-1. **Do not overclaim from a 0.5B judge.** A tiny model is a bad judge, and 100%
-   is the worst possible score. Larger judges do substantially better. Zheng et
-   al. 2023 measured position bias in GPT-4 as a judge and still found it
-   substantial, so the phenomenon is real at every scale, just not this extreme.
-2. **The fix is protocol, not model choice.** Running both orders and discarding
-   what does not survive works regardless of judge quality, and it costs one extra
-   call. That is the transferable lesson.
-
-**Connecting to the week.** W9C1 was about making models cheap to adapt. This
-session is about whether you can tell if the adaptation helped. The two together
-are the argument for why evaluation gets its own week: it is the part everyone
-skips, and it is the part that decides whether any of the rest was real.
-
-**Contamination follow-on.** The lecture's contamination slide ("what if the test
-set was already in the training data?") is the same failure in a different guise:
-a metric that cannot see the thing that invalidates it. Worth referring back to
-here, because students have now personally built a metric that missed something
-obvious.
+**Running the contradictory-preference stretch goal live is worth the two
+minutes.** Add both `("A","B")` and `("B","A")` and the two scores collapse
+toward each other, because the pushes cancel. Real preference datasets are full of
+this, and the reward model does not resolve the disagreement, it averages it.

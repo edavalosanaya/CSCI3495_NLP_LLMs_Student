@@ -1,102 +1,34 @@
-# W4C1 Lab: MLP Text Classifier
+# W4C1: From ingredients to a search engine
 
-## 1. Learning objective
+Everything for this session is in **`lab.ipynb`**. We work through it together in
+class, cell by cell. Each part ends with a `TRY IT`: one question, one empty
+cell. After the break you get a pantry and twenty-five minutes.
 
-Build the first neural classifier of the course: average a document's word
-embeddings into one vector, push it through a two-layer network, and train the
-network and the embeddings together.
+## Getting started
 
-You write two things in `mlp_classifier.py`: the averaging, and the forward
-pass. The vocabulary, the training loop and the accuracy check are given.
-
-## 2. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-04/class-01/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 3. Implement `embed_document`
-
-![tokenize, look up embeddings, average into one vector, classify](../lecture/visuals/deep-averaging.png)
-
-A document of $n$ tokens becomes one vector by averaging its embedding rows,
-where $E$ is the embedding table:
-
-$$x = \frac{1}{n}\sum_{i=1}^{n} E[w_i]$$
-
-Turn a document into one vector of length `embedding_dim`. Looking up a
-document's tokens gives you a 2-D tensor: one row per token, and the columns
-are the dimensions of the embedding space, so averaging the rows leaves one
-number per dimension. A document with no tokens still has to return that shape.
-
-```bash
-pytest -k step1 -q
-```
+Once, from the repository root on your own machine:
 
 ```
-.                                                                        [100%]
-1 passed, 3 deselected
+uv sync
 ```
 
-## 4. Implement `MLP.forward`
+Then open `weeks/week-04/class-01/exercise/lab.ipynb` in your editor, select the
+project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
 
-That vector goes through a linear layer, a nonlinearity, and a second linear
-layer, with $W$ and $U$ the two weight matrices:
+## What is in this folder
 
-$$h = \sigma(Wx + b) \qquad z = Uh$$
+| File | What it is |
+|---|---|
+| `lab.ipynb` | Why Ctrl+F fails, then tf, idf and cosine similarity, then all 100 recipes. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `data/recipes.csv` | 100 recipes, each one a name and a list of ingredients. Only the ingredients are searched. |
+| `images/` | The figures from the lecture, so the notebook stands on its own. |
 
-$z$ is a pair of raw scores, not probabilities. The loss applies the softmax
-itself, so applying one here too would flatten the gradients.
+## How this lab works
 
-One line: first linear layer, activation, second linear layer. Stop there.
-A layer is called like a function, so `self.fc1(x)` runs `x` through `fc1` and
-gives you back what it produced.
+Everything already runs the moment you open it. Nothing raises, and there is no
+test to run and nothing to submit. Every `YOUR TURN` says in a comment what you
+should see when it is right, in real numbers, and the answers to everything are
+in the last cell of the notebook.
 
-```bash
-pytest -k step2 -q
-```
-
-```
-.                                                                        [100%]
-1 passed, 3 deselected
-```
-
-## 5. Run it, then break it
-
-![the five-line PyTorch training loop: zero_grad, forward, loss, backward, step](../lecture/visuals/training-loop.png)
-
-```bash
-python mlp_classifier.py
-```
-
-```
-vocab size: 25
-epoch   1 loss: 0.7414
-epoch 200 loss: 0.0000
-train accuracy: 1.00
-```
-
-Loss 0.0000 on eight training sentences means memorized, not learned. Each
-experiment below is a one-line edit; undo it before the next.
-
-1. Delete the nonlinearity. In `MLP.__init__`, set `self.act = nn.Identity()`.
-   Accuracy stays at 1.00 and the loss still reaches 0.0000. What does that say
-   about this dataset, and what would you have to change about the data before
-   the ReLU started earning its place?
-2. Starve the hidden layer. Change `hidden=8` to `hidden=1` in `main`. Still
-   1.00. How many numbers is the model squeezing the whole document through,
-   and why is that enough here?
-3. Stop early. Change `epochs=200` to `epochs=5`. Accuracy drops to 0.88 and
-   loss sits at 0.5431. Which sentence do you think it gets wrong first, and
-   how would you check?
-4. Test the averaging. Compare `embed_document("great", ...)` with
-   `embed_document("great great great", ...)`: the two vectors are identical.
-   Then compare `"a wonderful movie"` with `"movie wonderful a"`: also
-   identical. Which of those two facts is a feature of averaging, and which is
-   the limitation that Week 5's attention exists to fix?
+The last part is a race. Work in your team, and do not read the answers cell
+until your instructor calls time.

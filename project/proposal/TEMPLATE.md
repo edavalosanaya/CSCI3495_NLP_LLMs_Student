@@ -2,7 +2,7 @@
 
 **Team:** [names]  ·  **Track:** [new method / reproduction / benchmark-analysis]  ·  **Date:**
 
-*One page, one side. Due Week 5. Written submission only; there is no in-class pitch.*
+*One page, one side. Due Week 6. Written submission only; there is no in-class pitch.*
 
 ## 1. Problem & motivation
 What question are you answering, and why is it interesting/important? (3-5 sentences.)
@@ -17,7 +17,7 @@ What question are you answering, and why is it interesting/important? (3-5 sente
 - **Evaluation:** how you'll measure success (metrics, baselines).
 
 ## 4. Milestones & risks
-- What will be done by the Week 10 checkpoint vs. final.
+- What will be done by the Week 11 checkpoint vs. final.
 - Biggest risk and your backup plan if the main idea doesn't pan out.
 
 ## 5. Feasibility check

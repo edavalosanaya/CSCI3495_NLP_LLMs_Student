@@ -1,213 +1,180 @@
-# W8C2 Walkthrough: Be the reward model, step by step
+# W8C2 Walkthrough: Measuring scaling, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `preferences.py` in this folder. Every code block below is
-taken from it, and every printed value was produced by running it.
+The complete file is `scaling.py` in this folder. Every code block below is taken
+from it, and every printed value was produced by running it.
+
+This session's in-class time goes to the compute-budget whiteboard exercise and
+the structured debate; the code is a take-home lab or a quick demo. The teaching
+value here is less about the four functions (they are short) and more about what
+they expose regarding measurement.
 
 ---
 
-## Orientation
+## Given, `normalize`
 
 ```python
-PREFERENCES: list[tuple[str, str]] = [
-    ("A", "B"),
-    ("A", "C"),
-    ("A", "D"),
-    ("B", "C"),
-    ("B", "D"),
-    ("C", "D"),
-]
+def normalize(text: str) -> str:
+    return text.strip().strip(string.punctuation + " ").lower()
 ```
 
-Six pairs, complete and consistent, encoding `A > B > C > D`. **There are no
-scores anywhere in the input.** That is not a simplification, it is the actual
-design of RLHF Stage 2: humans are reasonably consistent at "which of these two
-is better" and badly inconsistent at "rate this 1 to 10", so the data collected is
-comparisons and the scalar is inferred.
+**Two `strip` calls, doing different jobs.** The first removes whitespace; the
+second removes any character in `string.punctuation` **or space** from both ends.
+The second is needed because a model answers `"Paris."` and the target is
+`"paris"`.
 
----
-
-## Given, `sigmoid`
-
-```python
-def sigmoid(x: float) -> float:
-    if x >= 0:
-        z = math.exp(-x)
-        return 1.0 / (1.0 + z)
-    z = math.exp(x)
-    return z / (1.0 + z)
-```
-
-**Both branches are the same function**, algebraically. Multiply
-$1/(1+e^{-x})$ top and bottom by $e^{x}$ and you get $e^{x}/(1+e^{x})$. The
-point is that each branch only ever exponentiates a **negative** number, so the
-result is in $(0, 1]$ and cannot overflow.
-
-The naive single-expression version raises `OverflowError` for `x` below about
--745 in float64. Score differences in a reward model routinely reach that range
-once training has separated the extremes, so this is not hypothetical.
+**`strip` only touches the ends**, which is deliberate. Stripping punctuation
+everywhere would turn "10 minus 3" into "10minus3" and break substring matching
+in a different way.
 
 ```python
->>> sigmoid(-800.0)
-0.0
+>>> normalize("  Paris.  ")
+'paris'
 ```
 
 ---
 
-## Step 1, `neg_log_likelihood`
+## Given, `is_correct`
 
 ```python
-    total = 0.0
-    for w, l in prefs:
-        p = sigmoid(scores[w] - scores[l])
-        # Clamp to avoid log(0).
-        p = min(max(p, 1e-12), 1.0)
-        total += -math.log(p)
-    return total / len(prefs)
+def is_correct(model_output: str, target: str) -> bool:
+    return normalize(target) in normalize(model_output)
 ```
 
-**Only the difference matters**, `scores[w] - scores[l]`. This is the property
-that makes the scores unidentifiable up to a constant, which Step 3 has to handle.
+**This is the most consequential line in the file, and it is a compromise.**
 
-**The clamp earns its place.** A confidently wrong ordering drives `p` to
-underflow to exactly 0.0, and `math.log(0)` raises `ValueError`. Clamping turns
-"infinitely surprised" into "very surprised", which keeps the loop running. Real
-implementations use the log-sigmoid function directly, which is stable without a
-clamp, and that is a reasonable thing to mention.
+What it buys: a model that answers "7 days" when the target is "7", or "The
+answer is 4", is graded correct. Small models are bad at obeying format
+instructions, and a strict grader would score them near zero for reasons that
+have nothing to do with whether they know the answer. Since the whole point is to
+compare models, format noise would swamp the signal.
 
-**The mean, not the sum**, so the loss is comparable across datasets of different
-sizes and the learning rate does not have to be rescaled when preferences are
-added.
+What it costs, and students should be able to name these:
 
-**What you should see:**
+- `is_correct("not 4", "4")` returns **True**. Negation defeats it entirely.
+- `is_correct("17", "7")` returns **True**. Substrings of numbers match.
+- A model that emits the entire alphabet would match any single-letter target.
 
-```python
->>> flat = {k: 0.0 for k in "ABCD"}
->>> round(neg_log_likelihood(flat, PREFERENCES), 4)
-0.6931
->>> good = {"A": 3.0, "B": 1.0, "C": -1.0, "D": -3.0}
->>> round(neg_log_likelihood(good, PREFERENCES), 4)
-0.0699
-```
-
-**0.6931 is $\ln 2$.** With all scores equal, every comparison is 50/50 and the
-loss is the entropy of a fair coin. Students have now seen this number as the
-starting loss in W4C1 (binary classifier), W4C2 (with $\ln 23$ for 23 characters),
-and here. Worth naming the pattern: an uninformed model's loss is the entropy of
-its uninformed guess, and checking that is how you know your loss function is
-wired correctly.
+**There is no neutral grader.** Lenient overcounts, strict undercounts, and an
+LLM judge brings its own biases (W10C2). The honest move is to state which way
+your grader errs and by how much, which is exactly what the third stretch goal
+asks students to measure.
 
 ---
 
-## Step 2, `fit_reward_model`
+## Step 1, `accuracy`
 
 ```python
-def fit_reward_model(
-    prefs: list[tuple[str, str]], lr: float = 0.5, steps: int = 500
-) -> dict[str, float]:
-    # Every response mentioned anywhere in the preferences, in a fixed order.
-    seen = set()
-    for winner, loser in prefs:
-        seen.add(winner)
-        seen.add(loser)
-    items = sorted(seen)
+def accuracy(outputs: list[str], targets: list[str]) -> float:
+    if len(outputs) == 0:
+        # No questions asked is not the same as every question right.
+        return 0.0
 
-    scores = {}
-    for x in items:
-        scores[x] = 0.0
-    for _ in range(steps):
-        grad = {}
-        for x in items:
-            grad[x] = 0.0
-        for w, l in prefs:
-            # d/ds of -log sigmoid(s_w - s_l):  s_w gets +(1-p), s_l gets -(1-p)
-            p = sigmoid(scores[w] - scores[l])
-            push = 1.0 - p
-            grad[w] += push
-            grad[l] -= push
-        for x in items:
-            scores[x] += lr * grad[x] / len(prefs)
-        # Re-center: scores are only identifiable up to an additive constant,
-        # so without this they drift together forever and never settle.
-        total = 0.0
-        for value in scores.values():
-            total = total + value
-        mean = total / len(scores)
-        for x in items:
-            scores[x] -= mean
-    return scores
+    correct = 0
+    for i in range(len(outputs)):
+        if is_correct(outputs[i], targets[i]):
+            correct = correct + 1
+
+    return correct / len(outputs)
 ```
 
-**`push = 1 - p` is the entire learning signal**, and it is worth deriving on the
-board because it is unusually clean. The loss for one pair is
-$-\log \sigma(s_w - s_l)$, and
+`sum` over booleans works because `True` is 1. The empty guard avoids a
+`ZeroDivisionError` on an empty suite, which happens when every model is skipped
+for not being pulled.
 
-$$\frac{\partial}{\partial s_w}\Big[-\log \sigma(s_w - s_l)\Big] = -(1 - \sigma(s_w - s_l))$$
+**Note it divides by `len(outputs)`, not by the number of pairs `zip` produced.**
+If `outputs` and `targets` have different lengths, `zip` stops at the shorter one
+and the accuracy is silently deflated. Not a problem in this exercise, but worth
+seeing as the kind of quiet bug evaluation code attracts.
 
-so gradient *descent* moves $s_w$ up by $(1 - p)$ and $s_l$ down by the same
-amount. Read what that means behaviorally:
+```python
+>>> accuracy(["4", "Lyon", "7", "green", "six"], targets)
+0.6
+```
 
-- The model already believes the winner wins (`p` near 1): `push` near 0, almost
-  no update. Settled preferences stop teaching.
-- The model has it backwards (`p` near 0): `push` near 1, maximum correction.
-  Violated preferences dominate learning.
+Three of five: it missed "Lyon" for Paris and "six" for 7. The "six" miss is a
+*format* failure (the model said the right number in words), and lenient
+substring grading does not rescue it. That distinction is question 2 of the
+pre-baked exercise.
 
-This self-balancing is not designed in; it falls out of the likelihood. Compare
-with the hinge-style losses students may have seen, which need an explicit margin.
+---
 
-**`sorted(...)` on the item set** makes the iteration order deterministic. Set
-iteration order varies between runs, and floating-point addition is not
-associative, so without the sort two runs can differ in the last decimal place.
-Minor, but it is the same determinism discipline as the tie-breaks in W2C1 and
-W8C1.
+## Step 2, `scaling_trend`
 
-**Re-centering is the conceptually important line.** Since only differences enter
-the loss, adding 100 to every score changes nothing observable. The scores live
-in a one-dimensional family of equivalent solutions, and gradient descent will
-happily drift along it. Re-centering to mean 0 picks one representative. There is
-a test asserting this (`test_step3_scores_centered`), and the third stretch goal
-(fit a single preference) makes the under-determination vivid: two items, one
-comparison, and infinitely many score pairs fit equally well.
+```python
+def scaling_trend(results: dict[str, float]) -> bool:
+    # The caller promises these are already ordered smallest model first.
+    vals = list(results.values())
+
+    for i in range(len(vals) - 1):
+        if vals[i] > vals[i + 1]:
+            # A bigger model did worse than the one before it.
+            return False
+
+    return True
+```
+
+**It relies on dict insertion order**, which Python has guaranteed since 3.7. The
+caller is responsible for inserting models smallest-first, and nothing checks
+that. Worth flagging as fragile: a student who builds the dict in a different
+order gets a confidently wrong answer with no error.
+
+**`<=` and not `<`.** Ties count as "scaling helped". With a 5-item suite, a tie
+is the most likely outcome between adjacent model sizes, and demanding strict
+improvement would report failure for pure noise. Choosing this *before* seeing
+data is the discipline being taught; choosing it after would be exactly the kind
+of analysis flexibility that makes published results unreproducible.
+
+```python
+>>> scaling_trend({"small": 0.6, "mid": 0.6, "large": 1.0})
+True
+>>> scaling_trend({"small": 1.0, "large": 0.6})
+False
+```
 
 ---
 
 ## Running it
 
 ```
-Learned reward-model scores (higher = more preferred):
-  A: +5.010
-  B: +1.579
-  C: -1.579
-  D: -5.010
-Implied ranking: A > B > C > D
+small-model accuracy: 0.60
+large-model accuracy: 1.00
+accuracy non-decreasing with size? True
 ```
 
-**The ranking is recovered exactly from comparisons alone.** No score was ever
-supplied. That is Stage 2 of RLHF, and students have now done it by hand.
+**Be explicit that these outputs are simulated.** `_demo` hard-codes what a small
+and a large model "might say". It exercises the scoring core; it is not evidence
+of scaling. A student who reports "I measured scaling and got 0.60 vs 1.00" from
+this run has measured nothing.
 
-**The uneven spacing is the part worth teaching.** The A-to-B gap is 3.43; the
-B-to-C gap is 3.16. The scores are symmetric about zero because of re-centering,
-but the extremes are pushed further out: A appears only as a winner and D only as
-a loser, so their gradients never receive an opposing push, while B and C are
-pulled from both sides.
+The real measurement is `measure.py`, and it needs two models pulled.
 
-Draw the conclusion explicitly: **the ordering is meaningful, the magnitudes are
-much less so.** A reward model's scalar is not a calibrated quality rating. This
-matters directly for Stage 3, where PPO optimizes *against* these numbers: a
-policy that discovers a region where the reward model scores absurdly high will
-exploit it, whether or not the responses are actually good. That is reward
-hacking, and the seed of it is visible right here in the unbounded extremes.
+---
 
-**Then have them use their own labels** from `label_sheet.md`. The moment a
-student's own inconsistent rankings produce compromise scores, the abstraction
-becomes personal: the model learned *their* values, disagreements and all. Ask
-whose values a real reward model encodes, and note that InstructGPT's own paper
-acknowledges its labelers were a small, non-representative group. That is the
-limitation question on Quiz 8.
+## Teaching this session
 
-**Running the contradictory-preference stretch goal live is worth the two
-minutes.** Add both `("A","B")` and `("B","A")` and the two scores collapse
-toward each other, because the pushes cancel. Real preference datasets are full of
-this, and the reward model does not resolve the disagreement, it averages it.
+**The suite was chosen, not found.** Simple arithmetic and strict-format short
+answers were picked because a 0.5B model genuinely fails where a 3B model
+succeeds, so the gap is visible with five questions. That is a legitimate choice
+for a demo, and it is also exactly the kind of choice that makes benchmark
+results hard to trust in general. Both halves of that sentence are worth saying.
+
+**The MMLU warning is the most important paragraph in the README.** On a 4-choice
+test, chance is 25%. With a handful of items, two models can both land near
+chance and a student concludes "scaling does not work". They have discovered a
+statistical power problem, not a fact about models. The chance-floor stretch goal
+has students produce this failure deliberately, which is a much better lesson
+than being warned about it.
+
+**Connecting to the debate.** Schaeffer et al. 2023 argue that many claimed
+"emergent abilities" are artifacts of discontinuous metrics: switch from exact
+match to a continuous score and the sharp jump becomes a smooth curve. Students
+who have just written both a lenient and a strict grader (stretch goal 3) and
+watched the numbers move have the concrete version of that argument in hand.
+
+**The honest summary for the class:** this lab measures scaling badly, on
+purpose, at a scale you can run on a laptop. Kaplan and Chinchilla measured it
+well, with many orders of magnitude of compute and careful loss curves. What
+transfers is the shape of the reasoning, not the confidence of the conclusion.

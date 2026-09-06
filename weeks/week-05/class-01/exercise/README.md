@@ -1,110 +1,44 @@
-# W5C1 Lab: Additive Attention
+# W5C1: A neural classifier, and a competition to improve it
 
-## 1. Learning objective
+Everything for this session is in **`lab.ipynb`**. We build the classifier
+together before the break, cell by cell, and it will not be very good. After the
+break it is yours to improve, in teams, against a public scoreboard.
 
-Implement Bahdanau attention, watch a random scorer turn into a diagonal
-alignment, and see what the attention weights let you inspect.
+## Getting started
 
-You write two things in `attention.py`: the score, and the score-softmax-blend
-pass. The parameters and the ASCII heatmap are given.
-
-## 2. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-05/class-01/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 3. Implement `additive_scores`
-
-![Additive attention math: score, weights, context](../lecture/visuals/additive-math.png)
-
-Each encoder state $h_i$ is scored against the decoder state $s_{t-1}$:
-
-$$e_{t,i} = v^\top \tanh(W_s s_{t-1} + W_h h_i)$$
-
-One number per key. The projected query broadcasts across every key's row, so
-there is no loop.
-
-```bash
-pytest -k step1 -q
-```
+Once, from the repository root on your own machine:
 
 ```
-.                                                                        [100%]
-1 passed, 3 deselected
+uv sync
+uv run python scripts/setup_data.py
 ```
 
-## 4. Implement `AdditiveAttention.forward`
+The second command downloads the 2,000 film reviews this lab is scored on. It
+takes a few seconds and only has to happen once, so **do it before class**, not
+during it.
 
-The scores become a distribution, and the distribution blends the values:
+Then open `weeks/week-05/class-01/exercise/lab.ipynb` in your editor, select the
+project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
 
-$$\alpha_{t,i} = \mathrm{softmax}_i(e_{t,i}) \qquad c_t = \sum_i \alpha_{t,i} h_i$$
+## What is in this folder
 
-The softmax runs over $i$, the key axis, so the weights say how the query
-divided its attention across the source positions and sum to 1.
+| File | What it is |
+|---|---|
+| `lab.ipynb` | Pooling word embeddings, an MLP, training, F1, then the competition. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `data/glove-50d-20k.npz` | Real GloVe vectors, for the `pretrained` setting. |
+| `images/` | The figures from the lecture, so the notebook stands on its own. |
 
-Score, softmax over the key axis, blend the values. Return the context and the
-weights.
+The corpus is the **movie review polarity dataset** (Pang & Lee, ACL 2004), 2,000
+labelled reviews, fetched through NLTK rather than shipped here.
 
-```bash
-pytest -k step2 -q
-```
+## How the competition works
 
-```
-..                                                                       [100%]
-2 passed, 2 deselected
-```
+Three splits, and the difference matters:
 
-## 5. Run it, then break it
+- **train** (1,200) is what the model learns from,
+- **validation** (300) is what you tune against, as often as you like,
+- **test** (500) is scored **once**, at the end, by everyone at the same time.
 
-![Attention alignment heatmap for "la maison bleue est grande"](../lecture/visuals/attention-alignment.png)
-
-```bash
-python attention.py
-```
-
-```
-UNTRAINED attention weights: [0.328, 0.322, 0.35]
-  (a random scorer has no opinion yet: everything gets ~1/3)
-weights sum: 1.0
-
-Untrained heatmap (3 queries x 3 keys), a uniform gray blur:
-        k0   k1   k2
-   q0 ---- ---- ----
-   q1 ---- ---- ----
-   q2 ---- ---- ----
-
-TRAINED attention weights (query 1): [0.0, 1.0, 0.0]
-context vector: [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-Trained heatmap, the diagonal emerges (dark = high weight):
-        k0   k1   k2
-   q0 @@@@
-   q1      @@@@
-   q2           @@@@
-```
-
-Each experiment below is a one-line edit; undo it before the next.
-
-1. Sharpen the untrained scorer by hand. Multiply the scores by 5 before the
-   softmax, then by 20: the weights go from `[0.328, 0.322, 0.35]` to
-   `[0.302, 0.278, 0.42]` to `[0.182, 0.132, 0.686]`. The scorer learned
-   nothing in between, so what exactly did scaling change?
-2. Change the values but not the keys. Pass `values=torch.arange(24.).reshape(3, 8)`
-   while leaving `keys` alone. The weights come back identical and only the
-   context moves. Say precisely which of keys/values decides "where to look"
-   and which decides "what you get".
-3. Skip the softmax. Blend the values with the raw scores instead of the
-   normalized weights. The "weights" now sum to -0.1456 rather than 1.0, the
-   context comes out near zero, and `pytest -k step2` fails. Attention still
-   ran and still produced a vector, so what exactly did normalizing buy?
-4. Look at the trained weights: `[0.0, 1.0, 0.0]`, a hard one-hot. That is a
-   perfect alignment on a toy task built to have one. What would the heatmap
-   look like for a real translation where one target word draws on three source
-   words at once?
+Choosing a model by looking at the test set is how you fool yourself into
+reporting a number that will not survive contact with real data. That is why the
+last cell exists and why you only run it when time is called.

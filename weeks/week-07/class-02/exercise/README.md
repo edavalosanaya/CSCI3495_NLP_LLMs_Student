@@ -1,98 +1,37 @@
-# W7C2 Lab: Scaling Laws
+# W7C2 Lab: Masked Language Modelling and Transfer
 
-## 1. Learning objective
+Everything for this session is in **`lab.ipynb`**. We work through it together in
+class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
 
-Build the measuring instrument behind every scaling claim: score a model's
-answers, then check whether accuracy actually holds up as models get bigger.
+## Getting started
 
-You write two functions in `scaling.py`. Answer normalization and the lenient
-match are given, and `measure.py` runs the same suite against real Ollama
-models.
-
-## 2. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-07/class-02/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 3. Implement `accuracy`
-
-![Kaplan et al. 2020, Fig. 1: loss falls as a power law in compute, data, and parameters](../lecture/visuals/assets/kaplan-2020-fig-1.png)
-
-Accuracy is the fraction of the $n$ items the model got right:
-
-$$\text{accuracy} = \frac{1}{n} \sum_{i=1}^{n} \mathbf{1}\big[\text{is\_correct}(o_i, t_i)\big]$$
-
-Count the items `is_correct` accepts and divide. Handle the empty run.
-
-```bash
-pytest -k step1 -q
-```
+Once, from the repository root on your own machine:
 
 ```
-..                                                                       [100%]
-2 passed, 6 deselected
+uv sync
 ```
 
-## 4. Implement `scaling_trend`
+Then open `weeks/week-07/class-02/exercise/lab.ipynb` in your editor, select the project's
+**`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
+nothing else to install.
 
-![Hoffmann et al. 2022 (Chinchilla), Fig. 3: for a fixed FLOP budget, too big is as wasteful as too small](../lecture/visuals/assets/chinchilla-2022-fig-3.png)
+## What you will do
 
-Training compute is roughly six FLOPs per parameter per token, and Chinchilla's
-rule of thumb says a budget is best spent at about twenty tokens per parameter,
-not on parameters alone:
+1. Watch BERT fill in a blank, and see what it considers.
+2. Find a sentence where its guess reveals a bias.
+3. Reuse a frozen BERT as features for your own classifier.
 
-$$C \approx 6\,N D \qquad D_{\text{opt}} \approx 20\,N$$
+## What is in this folder
 
-What you measure is whether accuracy is non-decreasing across the models,
-ordered smallest to largest:
+| File | What it is |
+|---|---|
+| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
 
-$$\text{scaling\_trend} = \text{True} \iff a_1 \le a_2 \le \dots \le a_m$$
+## How this lab works
 
-One line: is the accuracy list non-decreasing in the order given?
+Everything already runs the moment you open it. Nothing raises, and there is no
+test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
+you should see when it is right, in real numbers, and the answers are in the
+last cell of the notebook.
 
-```bash
-pytest -k step2 -q
-```
-
-```
-...                                                                      [100%]
-3 passed, 5 deselected
-```
-
-## 5. Run it, then question it
-
-```bash
-python scaling.py
-```
-
-```
-small-model accuracy: 0.60
-large-model accuracy: 1.00
-accuracy non-decreasing with size? True
-```
-
-Those two "models" are hard-coded answer lists, not models. Before trusting the
-verdict, attack the instrument.
-
-1. Look at what the lenient match forgives. The large model answered `"Paris."`
-   and `"7 days"` and both scored correct, because the target is a substring.
-   Now imagine an answer of `"not Paris"`. Would `is_correct` accept it? Try
-   it, and decide whether that is a bug or an acceptable cost.
-2. Test the trend function's edges. `scaling_trend({})` is `True` and
-   `scaling_trend({"a": 0.3})` is `True`. Is "no evidence" the same answer as
-   "evidence that scaling helps"? Say what you would rather these returned.
-3. Break the ordering promise. `scaling_trend` never sorts; it trusts the
-   caller to pass models smallest-first. Pass them largest-first instead and
-   watch a real improvement report as `False`. Where should that ordering be
-   enforced?
-4. Run it on real models: `python measure.py`. Compare the accuracies you get
-   from `qwen2.5:0.5b` and `qwen2.5:1.5b` against the simulated 0.60 and 1.00.
-   Five questions is a very small suite. How many would you want before
-   claiming a scaling law?
+Read the output and judge whether it looks right. That is the skill.

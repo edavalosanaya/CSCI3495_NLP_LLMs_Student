@@ -1,8 +1,8 @@
 # Mid-Semester Checkpoint: [Project Title]
 
-**Team:** [names]  ·  **Date:** (Week 10)
+**Team:** [names]  ·  **Date:** (Week 11)
 
-*One page, one side. Worth 10%. You present it in a group of four in Week 10, Class 1.*
+*One page, one side. Worth 10%. You present it in a group of four in Week 11, Class 1.*
 
 > Keep it to a single side. The point is that three peers and the instructor can
 > read it in two minutes and give you useful criticism, not that you write a lot.
@@ -26,7 +26,7 @@ your reviewers.
 
 ---
 
-### What happens in class (Week 10, Class 1, 30 min)
+### What happens in class (Week 11, Class 1, 30 min)
 - Groups of four, drawn from different projects.
 - Four rounds of ~7 min: **3 min** presenting your page, **4 min** of critique
   from the other three. Everyone presents once.
@@ -40,5 +40,5 @@ See `../RUBRICS.md`. In short: demonstrated progress (3), a working baseline
 with a real result (3), a clear remaining plan (2), and the quality of the
 feedback you give your peers (2).
 
-> Bring your questions to the Week 9 work/feedback time to get input before you
+> Bring your questions to the Week 10 work/feedback time to get input before you
 > write this.

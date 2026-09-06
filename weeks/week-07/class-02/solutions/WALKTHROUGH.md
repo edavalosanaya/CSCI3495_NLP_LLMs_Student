@@ -1,137 +1,175 @@
-# W7C2 Walkthrough: Measuring scaling, step by step
+# W7C2 Walkthrough: Masked LM and fine-tuning, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `scaling.py` in this folder. Every code block below is taken
-from it, and every printed value was produced by running it.
-
-This session's in-class time goes to the compute-budget whiteboard exercise and
-the structured debate; the code is a take-home lab or a quick demo. The teaching
-value here is less about the four functions (they are short) and more about what
-they expose regarding measurement.
+The complete file is `bert_mlm.py` in this folder. Every code block below is
+taken from it, and every printed value was produced by running it.
 
 ---
 
-## Given, `normalize`
+## Orientation
 
-```python
-def normalize(text: str) -> str:
-    return text.strip().strip(string.punctuation + " ").lower()
-```
-
-**Two `strip` calls, doing different jobs.** The first removes whitespace; the
-second removes any character in `string.punctuation` **or space** from both ends.
-The second is needed because a model answers `"Paris."` and the target is
-`"paris"`.
-
-**`strip` only touches the ends**, which is deliberate. Stripping punctuation
-everywhere would turn "10 minus 3" into "10minus3" and break substring matching
-in a different way.
-
-```python
->>> normalize("  Paris.  ")
-'paris'
-```
+Eight training sentences, two test sentences. That ratio is the honest framing
+for everything below: this session demonstrates *mechanisms*, and any accuracy
+number it produces is a smoke test rather than a measurement.
 
 ---
 
-## Given, `is_correct`
+## Step 1, `top_mask_predictions`
 
 ```python
-def is_correct(model_output: str, target: str) -> bool:
-    return normalize(target) in normalize(model_output)
+def top_mask_predictions(sentence_with_mask: str, k: int = 5) -> list[str]:
+    # bert-tiny ships only vocab.txt (no tokenizer.json) and no `model_type` in
+    # its config, so the Auto* dispatch that `pipeline(model=...)` uses fails
+    # under transformers >= 5. Build the fast tokenizer + model explicitly and
+    # hand them to the pipeline.
+    from transformers import BertForMaskedLM, BertTokenizerFast, pipeline
+
+    tok = BertTokenizerFast.from_pretrained(MLM_MODEL)
+    model = BertForMaskedLM.from_pretrained(MLM_MODEL)
+    fill = pipeline("fill-mask", model=model, tokenizer=tok)
+    results = fill(sentence_with_mask, top_k=k)
+
+    words = []
+    for r in results:
+        # Each result is a dict; the word lives under "token_str" and arrives
+        # with leading whitespace from the tokenizer.
+        words.append(r["token_str"].strip())
+    return words
 ```
 
-**This is the most consequential line in the file, and it is a compromise.**
+**The explicit tokenizer/model construction is a workaround, and the code comment
+says why:**
 
-What it buys: a model that answers "7 days" when the target is "7", or "The
-answer is 4", is graded correct. Small models are bad at obeying format
-instructions, and a strict grader would score them near zero for reasons that
-have nothing to do with whether they know the answer. Since the whole point is to
-compare models, format noise would swamp the signal.
+> bert-tiny ships only vocab.txt (no tokenizer.json) and no `model_type` in its
+> config, so the Auto* dispatch that `pipeline(model=...)` uses fails under
+> transformers >= 5.
 
-What it costs, and students should be able to name these:
+Passing `model="prajjwal1/bert-tiny"` as a string is the documented one-liner and
+it will not work here. A student following a blog post will hit this; point at
+the comment rather than letting them conclude their environment is broken.
 
-- `is_correct("not 4", "4")` returns **True**. Negation defeats it entirely.
-- `is_correct("17", "7")` returns **True**. Substrings of numbers match.
-- A model that emits the entire alphabet would match any single-letter target.
+**`BertForMaskedLM`, not `BertModel`.** The MLM head is the vocabulary-sized
+output layer that turns a hidden state into a distribution over word-pieces. The
+bare `BertModel` from W7C1 does not have it, which is why *that* file got the
+"unexpected keys" warning (it was discarding this head) and this one does not.
 
-**There is no neutral grader.** Lenient overcounts, strict undercounts, and an
-LLM judge brings its own biases (W9C2). The honest move is to state which way
-your grader errs and by how much, which is exactly what the third stretch goal
-asks students to measure.
+**`.strip()`** because the pipeline can return tokens with leading whitespace
+depending on the tokenizer; the tests compare exact strings.
+
+**What you should see:**
+
+```python
+>>> top_mask_predictions("The capital of France is [MASK].")
+['france', 'spain', 'germany', 'algeria', 'canada']
+```
+
+**This is the single best teaching output in the session, precisely because it is
+wrong.** The correct answer is Paris. The model returns five countries, with
+*france* first.
+
+What that tells you, and what to draw out of the class:
+
+1. **It learned the shape of the sentence, not the fact.** The blank sits where a
+   proper noun belongs, in a sentence about France, so it proposes salient
+   country tokens. Distributional structure is cheap to learn; facts are
+   expensive.
+2. **It is copying a nearby token.** "france" appears in the input. Small models
+   lean heavily on local repetition, which is a failure mode worth naming before
+   Week 10's hallucination material.
+3. **4M parameters is genuinely tiny.** `bert-base` (110M) answers *paris* here.
+   The gap is a concrete argument for scale that students can verify in the
+   stretch goal.
+
+**Why the bidirectionality matters.** Ask the class to try
+`"The [MASK] of France is Paris."` The model conditions on tokens *after* the
+blank, which a causal model structurally cannot do. That difference is exactly
+what separates BERT-style encoders from GPT-style decoders, and it is why masked
+LM was invented rather than just using a left-to-right LM.
+
+**Running MASK roulette.** The scoring rewards stumping your partner, which
+pushes students toward right-context-only sentences and rare words, both of which
+expose the model's reliance on local statistics. If a pair is stuck, suggest they
+try a sentence where the answer is obvious to a human but requires world
+knowledge.
 
 ---
 
-## Step 1, `accuracy`
+## Step 2, `finetune_and_eval`
 
 ```python
-def accuracy(outputs: list[str], targets: list[str]) -> float:
-    if len(outputs) == 0:
-        # No questions asked is not the same as every question right.
-        return 0.0
+def finetune_and_eval(epochs: int = 8, seed: int = 0) -> float:
+    import torch
+    from transformers import BertForSequenceClassification, BertTokenizerFast
 
-    correct = 0
-    for i in range(len(outputs)):
-        if is_correct(outputs[i], targets[i]):
-            correct = correct + 1
+    torch.manual_seed(seed)
 
-    return correct / len(outputs)
+    tok = BertTokenizerFast.from_pretrained(MLM_MODEL)
+    model = BertForSequenceClassification.from_pretrained(MLM_MODEL, num_labels=2)
+    model.train()
+
+    texts = []
+    label_values = []
+    for text, y in TRAIN_DATA:
+        texts.append(text)
+        label_values.append(y)
+    labels = torch.tensor(label_values)
+    enc = tok(texts, padding=True, truncation=True, return_tensors="pt")
+
+    opt = torch.optim.AdamW(model.parameters(), lr=5e-4)
+    for _ in range(epochs):
+        opt.zero_grad()
+        out = model(**enc, labels=labels)
+        out.loss.backward()
+        opt.step()
+
+    model.eval()
+    test_texts = [t for t, _ in TEST_DATA]
+    test_labels = torch.tensor([y for _, y in TEST_DATA])
+    tenc = tok(test_texts, padding=True, truncation=True, return_tensors="pt")
+    with torch.no_grad():
+        logits = model(**tenc).logits
+    preds = logits.argmax(dim=-1)
+    return (preds == test_labels).float().mean().item()
 ```
 
-`sum` over booleans works because `True` is 1. The empty guard avoids a
-`ZeroDivisionError` on an empty suite, which happens when every model is skipped
-for not being pulled.
+**The "MISSING" warning is the lesson, not a problem.** Loading prints:
 
-**Note it divides by `len(outputs)`, not by the number of pairs `zip` produced.**
-If `outputs` and `targets` have different lengths, `zip` stops at the shorter one
-and the accuracy is silently deflated. Not a problem in this exercise, but worth
-seeing as the kind of quiet bug evaluation code attracts.
-
-```python
->>> accuracy(["4", "Lyon", "7", "green", "six"], targets)
-0.6
+```
+classifier.weight                          | MISSING
+classifier.bias                            | MISSING
 ```
 
-Three of five: it missed "Lyon" for Paris and "six" for 7. The "six" miss is a
-*format* failure (the model said the right number in words), and lenient
-substring grading does not rescue it. That distinction is question 2 of the
-pre-baked exercise.
+The pretrained checkpoint has no 2-class head, so transformers creates one with
+random weights. **Everything else transfers.** That is Devlin et al. Fig. 1's
+right-hand side stated as a log line: pretrain once, then swap a tiny output
+layer per task. Point at it explicitly, because students read "MISSING" as an
+error.
 
----
+**It is the same five-line loop from W5C1**, just with the loss computed inside
+the model. Passing `labels=` makes `BertForSequenceClassification` return
+`out.loss` directly, so there is no explicit `CrossEntropyLoss` object. Worth
+connecting: the universal training loop has not changed since Week 5, only the
+model got bigger and pretrained.
 
-## Step 2, `scaling_trend`
+**Whole-batch training, no DataLoader.** Eight sentences fit in one batch, so each
+"epoch" is a single gradient step. Fine at this scale, and it keeps the loop
+readable; a real fine-tune would shuffle and batch.
 
-```python
-def scaling_trend(results: dict[str, float]) -> bool:
-    # The caller promises these are already ordered smallest model first.
-    vals = list(results.values())
+**`padding=True`** pads to the longest sentence in the batch so the tensors are
+rectangular. The attention mask that the tokenizer also returns (and that
+`**enc` passes through) is what stops the model attending to the padding.
 
-    for i in range(len(vals) - 1):
-        if vals[i] > vals[i + 1]:
-            # A bigger model did worse than the one before it.
-            return False
+**`lr=5e-4` is high for fine-tuning** (2e-5 to 5e-5 is typical). It is turned up
+because there are only eight steps; with a normal learning rate this would not
+move. Another artifact of the toy scale, worth flagging so nobody copies the
+hyperparameter into a real project.
 
-    return True
+**What you should see:**
+
 ```
-
-**It relies on dict insertion order**, which Python has guaranteed since 3.7. The
-caller is responsible for inserting models smallest-first, and nothing checks
-that. Worth flagging as fragile: a student who builds the dict in a different
-order gets a confidently wrong answer with no error.
-
-**`<=` and not `<`.** Ties count as "scaling helped". With a 5-item suite, a tie
-is the most likely outcome between adjacent model sizes, and demanding strict
-improvement would report failure for pure noise. Choosing this *before* seeing
-data is the discipline being taught; choosing it after would be exactly the kind
-of analysis flexibility that makes published results unreproducible.
-
-```python
->>> scaling_trend({"small": 0.6, "mid": 0.6, "large": 1.0})
-True
->>> scaling_trend({"small": 1.0, "large": 0.6})
-False
+Fine-tuned tiny BERT test accuracy: 1.00
 ```
 
 ---
@@ -139,42 +177,31 @@ False
 ## Running it
 
 ```
-small-model accuracy: 0.60
-large-model accuracy: 1.00
-accuracy non-decreasing with size? True
+...                                                                      [100%]
+3 passed
 ```
 
-**Be explicit that these outputs are simulated.** `_demo` hard-codes what a small
-and a large model "might say". It exercises the scoring core; it is not evidence
-of scaling. A student who reports "I measured scaling and got 0.60 vs 1.00" from
-this run has measured nothing.
+**Handle the 1.00 accuracy carefully.** The test set has **two sentences**, so
+the achievable scores are 0.00, 0.50, and 1.00. A perfect score means the model
+got two easy, in-vocabulary examples right. The test is deliberately named
+`beats_chance`, not `is_accurate`.
 
-The real measurement is `measure.py`, and it needs two models pulled.
+**The result that actually matters** is not the accuracy, it is how little it
+took: eight sentences, eight gradient steps, a few seconds of CPU, and a working
+sentiment classifier. That is only possible because the encoder already knew
+English. This is the payoff of the whole pretrain-then-finetune paradigm the week
+has been building toward.
 
----
+**The demonstration that makes it land** (first stretch goal, worth doing live if
+there is time): build the same architecture from a fresh `BertConfig` instead of
+`from_pretrained`, so the weights are random, and run the identical loop. It does
+not learn. Same architecture, same data, same optimizer, and the only difference
+is whether the encoder was pretrained. Students who see both runs stop thinking
+of pretraining as a preliminary step and start thinking of it as where the
+knowledge is.
 
-## Teaching this session
-
-**The suite was chosen, not found.** Simple arithmetic and strict-format short
-answers were picked because a 0.5B model genuinely fails where a 3B model
-succeeds, so the gap is visible with five questions. That is a legitimate choice
-for a demo, and it is also exactly the kind of choice that makes benchmark
-results hard to trust in general. Both halves of that sentence are worth saying.
-
-**The MMLU warning is the most important paragraph in the README.** On a 4-choice
-test, chance is 25%. With a handful of items, two models can both land near
-chance and a student concludes "scaling does not work". They have discovered a
-statistical power problem, not a fact about models. The chance-floor stretch goal
-has students produce this failure deliberately, which is a much better lesson
-than being warned about it.
-
-**Connecting to the debate.** Schaeffer et al. 2023 argue that many claimed
-"emergent abilities" are artifacts of discontinuous metrics: switch from exact
-match to a continuous score and the sharp jump becomes a smooth curve. Students
-who have just written both a lenient and a strict grader (stretch goal 3) and
-watched the numbers move have the concrete version of that argument in hand.
-
-**The honest summary for the class:** this lab measures scaling badly, on
-purpose, at a scale you can run on a laptop. Kaplan and Chinchilla measured it
-well, with many orders of magnitude of compute and careful loss curves. What
-transfers is the shape of the reasoning, not the confidence of the conclusion.
+**Connecting to the rest of the course.** This is the last week where fine-tuning
+means "update every parameter". W10C1 asks what to do when the model is 7B
+parameters and full fine-tuning no longer fits on the machine, which is where
+LoRA and quantization come in. The contrast is much sharper if students remember
+that here they updated all 4M parameters without thinking about it.

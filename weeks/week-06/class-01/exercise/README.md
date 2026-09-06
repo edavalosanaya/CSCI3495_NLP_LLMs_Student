@@ -1,98 +1,43 @@
-# W6C1 Lab: Static vs. Contextual Embeddings
+# W6C1: Taking a transformer apart with your hands
 
-## 1. Learning objective
+Everything for this session is in **`lab.ipynb`**. We work through it together
+before the break. After the break you experiment on two real language models, in
+teams.
 
-Show that a word's vector changes with the sentence around it. Pull the same
-word out of two sentences with a real BERT, and compare against the static
-lookup that cannot tell those sentences apart.
+## Getting started
 
-You write two functions in `contextual_embeddings.py`. Cosine similarity, the
-model loader and the token-locating helpers are given.
-
-## 2. Getting started
-
-From the repository root on your own machine, once per session:
-
-```bash
-docker compose -f docker/docker-compose.yml run --rm --no-deps -w /workspace/weeks/week-06/class-01/exercise course bash
-```
-
-A step you have not written yet reports `skipped`, not a failure. If you get
-stuck, `../solutions/WALKTHROUGH.md` works out every step, and these labs are
-not graded.
-
-## 3. Implement `contextual_vector`
-
-![Contextual idea: run a deep LM over the sentence; its hidden states ARE the representations](../lecture/visuals/contextual-idea.png)
-
-A word's vector averages over the $m$ word-pieces it was split into. The
-contextual one averages the model's LAST hidden layer $\mathbf{h}^{(L)}$, after
-the whole sentence has been read:
-
-$$\text{contextual\_vector}(s, w) = \frac{1}{m}\sum_{i=1}^{m} \mathbf{h}^{(L)}_i$$
-
-Run the sentence through the model, take the last hidden layer, and average
-the positions the word occupies.
-
-```bash
-pytest -k step1 -q
-```
+Once, from the repository root on your own machine:
 
 ```
-.                                                                        [100%]
-1 passed, 5 deselected
+uv sync
+uv run python scripts/setup_data.py
 ```
 
-## 4. Implement `static_vector`
+The second command downloads the two models this lab uses. Do it **before
+class**, not during it.
 
-![Static vs. contextual embeddings: both senses of "bank" collapse to one static vector, but contextual vectors differ](../lecture/visuals/static-vs-contextual.png)
+Then open `weeks/week-06/class-01/exercise/lab.ipynb` in your editor, select the
+project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
 
-The static one averages the same $m$ pieces, but from the input embedding table
-$E$, which no sentence has touched:
+## What is in this folder
 
-$$\text{static\_vector}(w) = \frac{1}{m}\sum_{i=1}^{m} E[t_i]$$
+| File | What it is |
+|---|---|
+| `lab.ipynb` | Tokens to vectors, the attention weights drawn as a heatmap, the same word in two sentences, then the experiments. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `images/` | The figure from the lecture, so the notebook stands on its own. |
 
-Both are compared with the usual cosine, which is given:
+The models are **DistilBERT** (an encoder, 66M parameters) and **DistilGPT-2** (a
+decoder). Neither has been fine-tuned or filtered, which is exactly why their raw
+behaviour is worth looking at.
 
-$$\mathrm{cosine}(\mathbf{u}, \mathbf{v}) = \frac{\mathbf{u} \cdot \mathbf{v}}{\lVert\mathbf{u}\rVert \, \lVert\mathbf{v}\rVert}$$
+## What we are not doing
 
-Look the word's sub-tokens up in the input embedding table and average them.
-No sentence, no forward pass.
+We are not implementing attention. We are loading a trained transformer and
+taking it apart: reading its attention weights, watching a word's vector change
+with its sentence, and finding out what it does and does not know.
 
-```bash
-pytest -k step2 -q
-```
+## The rule for the second half
 
-```
-.                                                                        [100%]
-1 passed, 5 deselected
-```
-
-## 5. Run it, then question it
-
-```bash
-python contextual_embeddings.py
-```
-
-```
-Contextual cosine('bank' river vs. money): 0.809
-Static     cosine('bank' river vs. money): 1.000
-Expect: static == 1.000 (identical), contextual < static (sense-dependent).
-```
-
-The static number is 1.000 by construction: the same word, looked up the same
-way, twice.
-
-1. Try a different ambiguous word. Use `bat` in "The bat flew out of the cave
-   at dusk." and "He swung the bat and hit a home run.": the contextual cosine
-   is 0.860, higher than `bank`'s 0.809. Which of the two words do you think
-   this model separates better, and does that match your intuition?
-2. Try a word with no senses at all. Run `the` through the two `bank`
-   sentences: 0.905, the highest of the three. Why should a function word move
-   less than an ambiguous noun, and what would a cosine of exactly 1.0 mean?
-3. Read a different layer. Take `out.hidden_states[0]` instead of `[-1]`. The
-   cosine becomes 0.818 rather than 0.809, and layer 1 gives 0.901. Layer 0 is
-   the embedding layer, so why is it not exactly 1.000 like `static_vector`?
-4. This model has 2 layers and 128 hidden dimensions. The `bank` senses are
-   only 0.809 apart. What would you expect from a 12-layer BERT, and what
-   experiment on this file would settle it?
+A claim about a model comes with the prompt that produced it and the numbers it
+returned. "It is biased" is not a finding. "`the doctor finished [MASK] shift`
+gives *his* 0.44 and *her* 0.10" is a finding.

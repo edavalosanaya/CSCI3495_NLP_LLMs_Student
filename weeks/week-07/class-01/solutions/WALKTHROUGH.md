@@ -1,231 +1,205 @@
-# W7C1 Walkthrough: Decoding strategies, step by step
+# W7C1 Walkthrough: Static vs contextual embeddings, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `decoding.py` in this folder. Every code block below is
-taken from it, and every printed value was produced by running it on the toy
-logits `{"sunny": 2.0, "cloudy": 1.2, "cold": 0.6, "nice": 0.1, "banana": -3.0}`.
+The complete file is `contextual_embeddings.py` in this folder. Every code block
+below is taken from it, and every printed value was produced by running it with
+`prajjwal1/bert-tiny`.
 
 ---
 
-## Given, `apply_temperature`
+## Orientation
+
+`load_model()` ships written, and its comment explains a real packaging wrinkle:
 
 ```python
-def apply_temperature(logits: dict[str, float], temperature: float) -> dict[str, float]:
-    if temperature < 1e-6:
-        # Greedy: all mass on the argmax.
-        best = max(logits, key=logits.get)
-        return {t: (1.0 if t == best else 0.0) for t in logits}
-    scaled = {t: v / temperature for t, v in logits.items()}
-    m = max(scaled.values())  # for numerical stability
-    exps = {t: math.exp(v - m) for t, v in scaled.items()}
-    z = sum(exps.values())
-    return {t: e / z for t, e in exps.items()}
+        from transformers import BertModel, BertTokenizerFast
 ```
 
-**The `T < 1e-6` branch is a definition, not a hack.** As $T \to 0$ the softmax
-converges to a one-hot on the argmax, but you cannot compute the limit by
-dividing by zero. Every real inference server special-cases this the same way,
-which is why "temperature 0" and "greedy decoding" are used interchangeably.
+`prajjwal1/bert-tiny` ships only a `vocab.txt` (no `tokenizer.json`) and a config
+without `model_type`, so the `Auto*` classes cannot dispatch under transformers
+5.x. Naming the concrete `Bert*` classes sidesteps it. Students who go looking
+for `AutoModel` in the docs and try to "modernize" this will break it; the
+comment is there to stop that.
 
-**The `- m` is the same stability trick as W5C2.** Dividing by a small `T`
-*amplifies* the logits (a logit of 2.0 at `T = 0.01` becomes 200), so overflow is
-far more likely here than in plain softmax. Subtracting the max is what makes low
-temperatures survivable at all.
+**The load warning is expected.** The checkpoint carries masked-LM head weights
+that a bare `BertModel` has no home for, so transformers reports unexpected keys.
+Nothing is wrong. Say so before a student spends ten minutes on it.
+
+**What the tokenizer does**, which everything else depends on:
+
+```python
+>>> tok("I sat by the river bank.")["input_ids"]
+[101, 1045, 2938, 2011, 1996, 2314, 2924, 1012, 102]
+>>> tok("bank", add_special_tokens=False)["input_ids"]
+[2924]
+```
+
+101 and 102 are `[CLS]` and `[SEP]`. "bank" is id 2924, sitting at index 6.
+
+---
+
+## Given, `cosine_similarity`
+
+```python
+def cosine_similarity(u: list[float], v: list[float]) -> float:
+    dot = sum(a * b for a, b in zip(u, v))
+    nu = math.sqrt(sum(a * a for a in u))
+    nv = math.sqrt(sum(b * b for b in v))
+    if nu == 0.0 or nv == 0.0:
+        return 0.0
+    return dot / (nu * nv)
+```
+
+Third time students have written this (W4C1 on sparse dicts, W4C2 on numpy
+arrays, now on plain lists). Worth naming that repetition out loud: the same
+similarity measure keeps reappearing because "compare two vectors by angle" is
+the operation the whole field runs on.
+
+```python
+>>> cosine_similarity([1.0, 0.0], [1.0, 0.0])
+1.0
+>>> cosine_similarity([1.0, 1.0], [3.0, 3.0])
+1.0
+```
+
+---
+
+## Step 1, `contextual_vector`
+
+```python
+def contextual_vector(sentence: str, word: str):
+    import torch
+
+    tok, model = load_model()
+    enc = tok(sentence, return_tensors="pt")
+    with torch.no_grad():
+        out = model(**enc, output_hidden_states=True)
+    last = out.hidden_states[-1][0]  # (seq_len, hidden)
+
+    ids = enc["input_ids"][0].tolist()
+    word_ids = _word_token_ids(tok, word)
+    positions = _find_positions(ids, word_ids)
+    if not positions:
+        # Fallback: average everything except special tokens.
+        positions = list(range(1, len(ids) - 1))
+    vec = last[positions].mean(dim=0)
+    return vec.tolist()
+```
+
+**The whole sentence goes through the model**, and only then do we pick out the
+word's position. That ordering *is* the definition of contextual: the vector at
+position 6 was computed with every other token visible (BERT is bidirectional, no
+causal mask), so it encodes "bank, in this sentence".
+
+**Locating the word** is the fiddly part, and it is why two helpers exist:
+
+```python
+def _word_token_ids(tok, word: str) -> list[int]:
+    """Sub-token ids for `word` alone, without special tokens."""
+    return tok(word, add_special_tokens=False)["input_ids"]
+
+
+def _find_positions(haystack: list[int], needle: list[int]) -> list[int]:
+    """Return the indices in `haystack` covered by the first match of `needle`."""
+```
+
+Tokenize the word by itself, then search for that run of ids in the sentence.
+This handles multi-word-piece words (a rarer word might split into three pieces)
+and words anywhere in the sentence. `add_special_tokens=False` is essential: with
+the default, the "word" would come back wrapped in `[CLS]`/`[SEP]` and would
+never match.
+
+**`hidden_states[-1][0]`**: `-1` is the last layer, `[0]` is the first (and only)
+item in the batch. Note that `hidden_states[0]` is the *embedding* layer output,
+not layer 1, which matters for the stretch goal comparing layers.
+
+**`torch.no_grad()`** because nothing here is being trained; it saves memory and
+time.
+
+**The fallback** (average all non-special tokens when the word is not found)
+keeps the function from returning `None` and producing a confusing crash later.
+It is a defensive choice, not a correct one; if a student's word never matches,
+the fallback silently returns a sentence-average and they will chase a wrong
+number. Worth mentioning as a debugging trap.
 
 **What you should see:**
 
 ```python
->>> {k: round(v, 3) for k, v in apply_temperature(logits, 0.5).items()}
-{'sunny': 0.778, 'cloudy': 0.157, 'cold': 0.047, 'nice': 0.017, 'banana': 0.0}
->>> {k: round(v, 3) for k, v in apply_temperature(logits, 1.5).items()}
-{'sunny': 0.435, 'cloudy': 0.255, 'cold': 0.171, 'nice': 0.123, 'banana': 0.016}
+>>> a = contextual_vector("I sat by the river bank and watched the water.", "bank")
+>>> b = contextual_vector("I deposited my paycheck at the bank downtown.", "bank")
+>>> len(a)
+128
+>>> round(cosine_similarity(a, b), 3)
+0.809
 ```
 
-**Teach these two rows against each other.** Same logits, and the ordering never
-changes (temperature is monotonic, it cannot make `cloudy` beat `sunny`). What
-changes is the *spread*: 0.778 vs 0.435 for the leader, and `banana` going from
-effectively 0 to a real 1.6% chance of being emitted.
-
-That is the whole creativity/coherence trade-off in two lines of numbers, and it
-is worth connecting back to W1C1, where students turned this knob without knowing
-what it did.
+128 is `bert-tiny`'s hidden size. Two different vectors for the same string, which
+is the result the whole week is built on.
 
 ---
 
-## Given, `greedy`
+## Step 2, `static_vector`
 
 ```python
-def greedy(dist: dict[str, float]) -> str:
-    return max(dist, key=dist.get)
+def static_vector(word: str):
+    import torch
+
+    tok, model = load_model()
+    emb = model.get_input_embeddings()  # nn.Embedding: id -> vector
+    word_ids = _word_token_ids(tok, word)
+    with torch.no_grad():
+        vecs = emb(torch.tensor(word_ids))
+    return vecs.mean(dim=0).tolist()
 ```
 
-**One line, and worth thirty seconds anyway.** Greedy is not a *bad* strategy, it
-is a strategy with a specific failure mode: it is deterministic, so it produces
-the same output every time, and on open-ended text it degenerates into loops
-("the best way to do this is the best way to do this is..."). Holtzman et al.
-2020 measured this; the repetition is not a bug in any implementation, it is what
-maximizing per-token probability actually does.
-
-For anything with one right answer (classification, extraction, structured
-output) greedy is usually correct. W11's structured-output work leans on that.
-
----
-
-## Step 1, `top_k_filter`
+**Look at the signature: there is no sentence parameter.** That is the entire
+concept. `get_input_embeddings()` returns the lookup table that maps a token id
+to a vector *before any layer runs*, so it is context-free by construction. It is
+the same kind of object as the word2vec table from Week 4, living inside a
+contextual model as its input layer.
 
 ```python
-def top_k_filter(dist: dict[str, float], k: int) -> dict[str, float]:
-    ordered = sorted(dist.items(), key=by_probability)
-
-    kept = {}
-    for token, probability in ordered[:k]:
-        kept[token] = probability
-
-    return renormalize(kept)
+>>> round(cosine_similarity(static_vector("bank"), static_vector("bank")), 3)
+1.0
 ```
 
-**Renormalization is what makes it a distribution again.** After dropping tokens
-the remaining probabilities sum to less than 1, and `sample` walks a cumulative
-sum expecting a total of 1. Skipping the division makes sampling silently biased
-toward the fallback branch.
-
-**The `if z > 0` guard** handles an all-zero input, which happens if someone
-top-k filters an already-filtered distribution where the survivors were rounded
-to zero. Rare, but it turns a `ZeroDivisionError` into a harmless passthrough.
-
-**What you should see:**
-
-```python
->>> {k: round(v, 3) for k, v in top_k_filter(base, 2).items()}
-{'sunny': 0.69, 'cloudy': 0.31}
-```
-
-`sunny` was about 0.55 at `T = 1.0` and is 0.69 after filtering. The mass from
-the three discarded tokens was redistributed proportionally. Students sometimes
-expect the kept values to be unchanged; ask them what the numbers would sum to if
-so.
-
-**The weakness to name:** `k` is fixed. If the model is certain, top-5 drags in
-four tokens it had all but ruled out. If the model is genuinely torn between
-twenty options, top-5 amputates sixteen of them. The threshold should depend on
-the model's confidence, which is Step 4.
-
----
-
-## Step 2, `top_p_filter`
-
-```python
-def top_p_filter(dist: dict[str, float], p: float) -> dict[str, float]:
-    ordered = sorted(dist.items(), key=by_probability)
-
-    kept = {}
-    running_total = 0.0
-    for token, probability in ordered:
-        # Keep this token FIRST, then check. Stopping before the token that
-        # crosses p would leave the kept mass below p.
-        kept[token] = probability
-        running_total = running_total + probability
-        if running_total >= p:
-            break
-
-    return renormalize(kept)
-```
-
-**Add first, then check.** The token is inserted into `kept` *before* the
-cumulative sum is tested, which is what guarantees at least one token survives
-even when `p` is smaller than the top token's probability. Writing the check
-first produces an empty dict for small `p` and a crash downstream; there is a
-dedicated test for exactly this.
-
-**Note the boundary is inclusive.** The token that pushes the total over `p` is
-kept, so the nucleus always covers *at least* `p` of the mass, never less. That
-matches Holtzman et al.'s definition.
-
-**What you should see:**
-
-```python
->>> {k: round(v, 3) for k, v in top_p_filter(base, 0.8).items()}
-{'sunny': 0.59, 'cloudy': 0.265, 'cold': 0.145}
-```
-
-**Put this next to Step 3's output and let the class find the difference.** Same
-distribution: top-2 kept two tokens, top-p 0.8 kept three. The nucleus sized
-itself to the distribution.
-
-The demonstration that makes it click: apply top-p to a *confident* distribution
-(say `{a: 0.95, b: 0.03, c: 0.02}`) and the nucleus is one token. Apply it to a
-*flat* one and it is nearly all of them. Top-k gives the same count either way.
-That adaptivity is why nucleus sampling is the default in most production
-serving.
-
----
-
-## Given, `sample`
-
-```python
-def sample(dist: dict[str, float], seed: int | None = None) -> str:
-    rng = random.Random(seed)
-    r = rng.random()
-    cum = 0.0
-    last = None
-    for tok, prob in dist.items():
-        last = tok
-        cum += prob
-        if r <= cum:
-            return tok
-    return last  # floating-point fallback
-```
-
-**Inverse-transform sampling**, and it is worth drawing on the board: lay the
-probabilities end to end along the interval `[0, 1)`, throw a dart at a uniform
-random point, and return whichever segment it lands in. Segments are as wide as
-their probability, so tokens are chosen in proportion.
-
-**`random.Random(seed)` is local**, not the global `random`, so tests reproduce
-regardless of what else consumed randomness. Same discipline as W2C1's `generate`
-and W4C2's sampler.
-
-**The `return last` fallback is not dead code.** After renormalization the
-probabilities sum to 1 only up to floating-point error. If they sum to
-0.9999999999, a draw of `r = 0.99999999995` falls past the end of every segment
-and the loop exits without returning. Returning the last token is the sane
-resolution. This is a real bug in student implementations that appears roughly
-one run in a billion, which is the worst kind.
-
-**What you should see:**
-
-```python
->>> sample(base, seed=0) == sample(base, seed=0)
-True
->>> sample({"only": 1.0}, seed=3)
-'only'
-```
+Exactly 1.0, necessarily. The same table lookup twice returns the same row, and
+any vector has cosine 1 with itself. If a student's answer is not 1.0, they are
+accidentally reading a hidden state rather than the embedding table.
 
 ---
 
 ## Running it
 
 ```
-temp=0.5 -> {'sunny': 0.778, 'cloudy': 0.157, 'cold': 0.047, 'nice': 0.017, 'banana': 0.0}
-temp=1.5 -> {'sunny': 0.435, 'cloudy': 0.255, 'cold': 0.171, 'nice': 0.123, 'banana': 0.016}
-greedy   -> sunny
-top-2    -> {'sunny': 0.69, 'cloudy': 0.31}
-top-p .8 -> {'sunny': 0.59, 'cloudy': 0.265, 'cold': 0.145}
+Contextual cosine('bank' river vs. money): 0.809
+Static     cosine('bank' river vs. money): 1.000
 ```
 
-**The `banana` token is the through-line.** It is in the vocabulary with logit
--3.0, deliberately absurd. Watch what each strategy does with it: temperature
-0.5 buries it (0.000), temperature 1.5 gives it a genuine 1.6% chance, and both
-filters remove it entirely. When a model emits something bizarre, one of these
-knobs is usually why.
+**The two numbers are the week's thesis.** Static: 1.000, the model literally
+cannot distinguish the senses, because the representation never saw the sentence.
+Contextual: 0.809, meaningfully lower, because it did.
 
-**Then push them to `playground.py`.** The toy distribution makes the arithmetic
-visible; the real model makes the consequence audible. Students who only do the
-math tend to think of temperature as an abstract parameter, and students who only
-turn the knob never learn what it does. The pairing is the point of the session.
+**Now the caveat, which matters more than the headline.** Do not let students
+read 0.809 as "the model understands that these are different meanings". Two
+honest qualifications:
 
-**Where this goes.** W10 asks students to hold decoding *fixed* (temperature 0,
-fixed seed) while A/B testing prompts, and this is the lab that earns them the
-right to that instruction: they now know exactly what varies when they do not.
+1. **0.809 is still high.** The vectors are more alike than different. A larger
+   model separates the senses further, which is a good stretch-goal experiment
+   (`bert-base-uncased` typically lands lower).
+2. **`bert-tiny` is 2 layers and about 4M parameters**, chosen so this runs on a
+   laptop in seconds, not because it is good. The demonstration is that the
+   representation is *a function of the sentence*; how well it separates senses is
+   a separate question about model quality.
+
+**Connecting back and forward.** W4C2 ended on exactly this gap: static
+embeddings give `bank` one vector regardless of context. This session closes it
+and, with the ELMo layer finding from lecture (lower layers syntax, higher layers
+sense), sets up why the pretrain-then-finetune paradigm took over in 2018.
+
+**Best live follow-up if the jigsaw finishes early:** compare
+`hidden_states[1]` against `hidden_states[-1]`. The contextual cosine should be
+*higher* at the lower layer, since less contextualization has happened. That is
+ELMo's Table 4 result reproduced in three lines on a student's laptop.

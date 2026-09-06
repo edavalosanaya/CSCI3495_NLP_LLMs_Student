@@ -20,7 +20,7 @@
 | Quality of the feedback you give your review group | 2 |
 | **Total** | **10** |
 
-*The deliverable is a **one-page** summary (abstract, method, preliminary results) presented in a four-person review group in Week 10, Class 1. The last 2 points are for being a useful reviewer, not for polish on your own slides: specific, actionable criticism of the three projects you hear.*
+*The deliverable is a **one-page** summary (abstract, method, preliminary results) presented in a four-person review group in Week 11, Class 1. The last 2 points are for being a useful reviewer, not for polish on your own slides: specific, actionable criticism of the three projects you hear.*
 
 ## Final report & presentation (20%)
 | Criterion | Pts |

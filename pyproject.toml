@@ -1,0 +1,81 @@
+[project]
+name = "csci3495-nlp-llms"
+version = "2026.9.0"
+description = "CSCI 3495, NLP and LLMs: one environment for the whole semester"
+requires-python = ">=3.12,<3.13"
+
+# Everything the course needs, for all fifteen weeks. One environment, one
+# kernel, no per-week installs. Versions are the same set the course image
+# pinned, so nothing students have already run changes behaviour.
+dependencies = [
+    # Core scientific stack
+    "numpy==2.5.1",
+    "scipy==1.18.0",
+    "pandas==3.0.3",
+    "scikit-learn==1.9.0",
+    "matplotlib==3.10.7",
+    "seaborn==0.13.2",
+
+    # Classical NLP
+    "nltk==3.9.2",
+    "regex==2025.11.3",
+
+    # Deep learning, CPU only (see the index pin below)
+    "torch==2.12.1",
+
+    # Transformers and the Hugging Face ecosystem
+    "transformers==5.13.0",
+    "datasets==5.0.0",
+    "tokenizers==0.22.2",
+    "accelerate==1.14.0",
+    "evaluate==0.4.6",
+    "sentence-transformers==5.6.0",
+    "peft==0.19.1",
+
+    # Local LLM inference. The server itself still runs in Docker; this is the
+    # Python client that talks to it.
+    "ollama==0.6.2",
+
+    # Retrieval and RAG
+    "faiss-cpu==1.14.3",
+
+    # Notebooks. ipykernel is what makes the project's own venv the one and only
+    # kernel Jupyter offers, which is the whole point of moving off Docker.
+    "jupyterlab==4.5.0",
+    "ipykernel>=7.0",
+    "ipywidgets==8.1.7",
+    "tqdm==4.67.1",
+]
+
+[dependency-groups]
+# Instructor-side only. Students never need these.
+dev = [
+    "pytest==9.1.1",
+    "python-pptx>=1.0",
+    "python-docx>=1.1",
+    "openpyxl>=3.1",
+    "nbformat>=5.10",
+
+    # Figure and document verification: HTML -> PNG, PPTX/DOCX -> PDF -> read back.
+    "playwright>=1.62.0",
+    "pymupdf>=1.28.2",
+    "pillow>=12.3.0",
+]
+
+# CPU-only PyTorch. The retired course image enforced this with
+# --index-url https://download.pytorch.org/whl/cpu. Without this pin, resolving
+# torch on Linux drags in sixteen NVIDIA CUDA packages plus triton, several GB
+# of GPU libraries that a CPU-only course can never use. `explicit = true` means
+# the index is consulted ONLY for the packages routed to it below.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[tool.uv]
+# The whole course is one environment; there is no package to build from this
+# repository, it is course material.
+package = false

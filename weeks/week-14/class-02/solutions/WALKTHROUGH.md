@@ -26,7 +26,7 @@ local `random.Random(seed)` inside `generate` rather than calling a global
 
 Use it. Ask the class what the tool actually measured (a syntactic pattern) versus
 what it claims to measure (reproducibility), and note that this is the same gap
-they met in W9C2's keyword-based hallucination detector and W7C2's substring
+they met in W10C2's keyword-based hallucination detector and W8C2's substring
 grader. **Cheap automated checks report what they can see.** They are worth
 running and worth not trusting.
 
