@@ -19,8 +19,8 @@ NLTK_SETS = ["punkt", "punkt_tab", "stopwords", "wordnet",
 # ~/.cache/huggingface. Together they are well under 500 MB; the course never
 # uses a model big enough to need a GPU.
 HF_MODELS = [
-    ("sentence-transformers/all-MiniLM-L6-v2", "contextual embeddings, W7C1"),
-    ("distilbert-base-uncased", "masked language modelling, W7C2"),
+    ("sentence-transformers/all-MiniLM-L6-v2", "sentence embeddings, W12C2"),
+    ("distilbert-base-uncased", "masked language modelling, W6C1 and W7C2"),
     ("distilgpt2", "text generation and decoding, W8C1"),
 ]
 

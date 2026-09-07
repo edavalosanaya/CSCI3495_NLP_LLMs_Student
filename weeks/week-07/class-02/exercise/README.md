@@ -1,7 +1,7 @@
-# W7C2 Lab: Masked Language Modelling and Transfer
+# W7C2: BERT in code
 
-Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
+Everything for this session is in **`lab.ipynb`**. We work through Parts 1 to 3
+together before the break. After the break you fine-tune the model, in pairs.
 
 ## Getting started
 
@@ -9,29 +9,33 @@ Once, from the repository root on your own machine:
 
 ```
 uv sync
+uv run python scripts/setup_data.py
 ```
 
-Then open `weeks/week-07/class-02/exercise/lab.ipynb` in your editor, select the project's
-**`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
-nothing else to install.
+The second command downloads the model this lab uses. Do it **before class**,
+not during it.
 
-## What you will do
-
-1. Watch BERT fill in a blank, and see what it considers.
-2. Find a sentence where its guess reveals a bias.
-3. Reuse a frozen BERT as features for your own classifier.
+Then open `weeks/week-07/class-02/exercise/lab.ipynb` in your editor, select the
+project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The input BERT reads, filling in a `[MASK]`, the `[CLS]` vector as a sentence, then fine-tuning. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `data/headlines.csv` | 26,000 news headlines, labelled sarcastic or not. The lab uses 4,000 of them. |
 
-## How this lab works
+The model is **DistilBERT** (an encoder, 66M parameters). It is a BERT trained to
+be smaller, and it behaves like one.
 
-Everything already runs the moment you open it. Nothing raises, and there is no
-test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
-you should see when it is right, in real numbers, and the answers are in the
-last cell of the notebook.
+## What we are not doing
 
-Read the output and judge whether it looks right. That is the skill.
+We are not implementing a transformer. We are loading a trained one and using it
+the way anybody actually does: read its input, read its output, then move its
+weights.
+
+## The number that matters
+
+A frozen DistilBERT plus a logistic regression scores **0.827** on this task,
+having learned nothing about sarcasm. Everything after the break is measured
+against that.
