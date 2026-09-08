@@ -1,4 +1,4 @@
-# W11C1 Lab: Prompting, Measured Instead of Guessed
+# W11C1 Lab: LoRA and Quantization, Measured
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
@@ -17,9 +17,9 @@ nothing else to install.
 
 ## What you will do
 
-1. Score a zero-shot prompt on a real task, so you have a baseline.
-2. Add examples and measure whether they actually helped.
-3. Find the part of a prompt that matters most.
+1. Count how many numbers a full fine-tune has to change.
+2. Write LoRA yourself, in five lines, and count again.
+3. Squeeze a model to 8 bits and measure exactly what you lose.
 
 ## What is in this folder
 

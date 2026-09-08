@@ -1,8 +1,8 @@
-# W5C1: A neural classifier, and a competition to improve it
+# W5C1: From ingredients to a search engine
 
-Everything for this session is in **`lab.ipynb`**. We build the classifier
-together before the break, cell by cell, and it will not be very good. After the
-break it is yours to improve, in teams, against a public scoreboard.
+Everything for this session is in **`lab.ipynb`**. We work through it together in
+class, cell by cell. Each part ends with a `TRY IT`: one question, one empty
+cell. After the break you get a pantry and twenty-five minutes.
 
 ## Getting started
 
@@ -10,12 +10,7 @@ Once, from the repository root on your own machine:
 
 ```
 uv sync
-uv run python scripts/setup_data.py
 ```
-
-The second command downloads the 2,000 film reviews this lab is scored on. It
-takes a few seconds and only has to happen once, so **do it before class**, not
-during it.
 
 Then open `weeks/week-05/class-01/exercise/lab.ipynb` in your editor, select the
 project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
@@ -24,21 +19,16 @@ project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | Pooling word embeddings, an MLP, training, F1, then the competition. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
-| `data/glove-50d-20k.npz` | Real GloVe vectors, for the `pretrained` setting. |
+| `lab.ipynb` | Why Ctrl+F fails, then tf, idf and cosine similarity, then all 100 recipes. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `data/recipes.csv` | 100 recipes, each one a name and a list of ingredients. Only the ingredients are searched. |
 | `images/` | The figures from the lecture, so the notebook stands on its own. |
 
-The corpus is the **movie review polarity dataset** (Pang & Lee, ACL 2004), 2,000
-labelled reviews, fetched through NLTK rather than shipped here.
+## How this lab works
 
-## How the competition works
+Everything already runs the moment you open it. Nothing raises, and there is no
+test to run and nothing to submit. Every `YOUR TURN` says in a comment what you
+should see when it is right, in real numbers, and the answers to everything are
+in the last cell of the notebook.
 
-Three splits, and the difference matters:
-
-- **train** (1,200) is what the model learns from,
-- **validation** (300) is what you tune against, as often as you like,
-- **test** (500) is scored **once**, at the end, by everyone at the same time.
-
-Choosing a model by looking at the test set is how you fool yourself into
-reporting a number that will not survive contact with real data. That is why the
-last cell exists and why you only run it when time is called.
+The last part is a race. Work in your team, and do not read the answers cell
+until your instructor calls time.

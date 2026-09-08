@@ -1,37 +1,41 @@
-# W9C2 Lab: Teaching a Model What People Prefer
+# W9C2 Activity: Spend the Compute Budget
 
-Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
+Teams of four, whiteboards, no laptops. Nothing to install and nothing to
+submit. Write your numbers on the board with units.
 
-## Getting started
+## What you have
 
-Once, from the repository root on your own machine:
+A training budget of **1.2 x 10^22 FLOPs**, and two relationships:
 
-```
-uv sync
-```
-
-Then open `weeks/week-09/class-02/exercise/lab.ipynb` in your editor, select the project's
-**`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
-nothing else to install.
-
-## What you will do
-
-1. Turn pairwise human preferences into a reward model.
-2. Watch it learn to score answers nobody labelled.
-3. See it get gamed by the thing it was not told to measure.
-
-## What is in this folder
-
-| File | What it is |
+| | |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
+| cost of a training run | `C = 6ND` |
+| compute-optimal split | `D = 20N` |
 
-## How this lab works
+`N` is parameters, `D` is training tokens, `C` is FLOPs.
 
-Everything already runs the moment you open it. Nothing raises, and there is no
-test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
-you should see when it is right, in real numbers, and the answers are in the
-last cell of the notebook.
+## Round 1 (5 min), everybody
 
-Read the output and judge whether it looks right. That is the skill.
+Spend the whole budget with no other constraints. What are `N` and `D`?
+
+## Round 2 (15 min), your team's constraint
+
+Your team has one of these. The budget does not change.
+
+**Team A, the data runs out.** You hold 80B tokens of licensed text and may not
+repeat any of it.
+
+**Team B, it has to be served.** Inference must run on one 16GB GPU in bf16
+(2 bytes per parameter), with 4GB kept for activations and the KV cache.
+
+**Team C, inference dwarfs training.** The model will serve 5 x 10^12 tokens
+over its life, at roughly `2N` FLOPs per token. Training cost and inference cost
+come out of the same account.
+
+Report three things: your `N`, your `D`, and the tokens-per-parameter ratio
+`D/N`. Then say in one sentence what your constraint did to the Round 1 answer.
+
+## Round 3 (10 min), all together
+
+One number from each team on the board, then we argue about which of them a
+real lab would actually ship.

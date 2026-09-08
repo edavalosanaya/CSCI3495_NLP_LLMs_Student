@@ -1,249 +1,121 @@
-# W9C1 Walkthrough: BPE from scratch, step by step
+# W9C1 Walkthrough: Decoding strategies, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `bpe.py` in this folder. Every code block below is taken
-from it, and every printed value was produced by running it on the demo corpus
-`["low low low low low", "lower lower", "newest newest newest", "widest"]`.
+The lab is `exercise/lab.ipynb`. Everything below was produced by running it, so
+the numbers are what you will actually see. `decoding.py` in this folder is a
+separate thing: a from-scratch implementation of the same maths in plain Python
+with no model, for the student who wants to see under `top_p`.
 
 ---
 
-## Given, `build_vocab`
+## Part 1, the model scores words
 
-```python
-def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
-    vocab: Counter = Counter()
-    for line in corpus:
-        for word in line.lower().split():
-            symbols = tuple(word) + (END,)
-            vocab[symbols] += 1
-    return dict(vocab)
+One forward pass, one score per word in the vocabulary. The prompt is
+`"The best thing about living in a small town is"` and distilgpt2's ten
+favourite continuations are:
+
+```
+that   0.496     to     0.032     its    0.011
+you    0.099     it     0.032     your   0.011
+the    0.093     not    0.019
+how    0.034     being  0.014
 ```
 
-**Why a tuple of symbols rather than a string.** The whole algorithm is symbols
-merging into bigger symbols. After one merge a word is `("l","o","w","er","</w>")`,
-where `"er"` occupies one slot. A string cannot express "these two characters are
-now one unit", and the pair-counting step would then find pairs that straddle a
-merged symbol. Tuples are also hashable, so they work as dict keys.
-
-**Why `</w>` exists.** It marks word ends, which does two jobs. It distinguishes
-`er` inside a word from `er` that ends one (English suffixes are a real
-distinction). And it lets the tokenizer reconstruct spacing, since without it
-`["low", "est"]` and `["lowest"]` would be indistinguishable after decoding.
-
-**Frequency, not a set.** The counts are what makes BPE *statistical*. A pair in a
-word that appears 1000 times should be merged before a pair in a word that
-appears twice, and that only works if the frequency rides along.
-
-```python
->>> build_vocab(["low low"])
-{('l', 'o', 'w', '</w>'): 2}
-```
+**TRY IT 1.** Those ten hold **0.841** of the probability between them. That
+leaves **0.159** spread across the other **50,247** words. About a sixth of
+every draw comes out of a tail you never see on the chart, which is the whole
+reason top-k and top-p exist.
 
 ---
 
-## Step 1, `count_pairs`
+## Part 2, greedy and beam
 
-```python
-def count_pairs(vocab: dict[tuple[str, ...], int]) -> Counter:
-    pairs: Counter = Counter()
-    for symbols, freq in vocab.items():
-        for a, b in zip(symbols, symbols[1:]):
-            pairs[(a, b)] += freq
-    return pairs
-```
+Greedy takes the argmax at every step. Beam keeps several partial sequences
+alive and scores each as a whole.
 
-**`zip(symbols, symbols[1:])`** is the standard adjacent-pairs idiom: pair each
-element with the one after it, stopping naturally at the end.
+**TRY IT 2.** Widening the beam does not monotonically improve anything:
 
-**`+= freq`, not `+= 1`.** This is the single most common bug in this step.
-Counting occurrences of pairs *in the vocab* rather than *in the corpus* makes
-every distinct word contribute equally regardless of how often it appears, and
-BPE stops being frequency-driven. The test uses a word with frequency 2 to catch
-exactly this.
+| width | score | what it produces |
+|---|---|---|
+| 2 | -0.541 | loops on "It's a place where you can live." |
+| 4 | -0.681 | the only one that does not loop |
+| 8 | -0.475 | loops again, on a different phrase |
 
----
+A wider beam searches harder for a high-scoring sequence, and **a repeated
+phrase is high-scoring**. Beam search is not a fix for repetition; at width 8 it
+is worse than at width 4. That is the setup for Part 4.
 
-## Step 2, `merge_pair`
-
-```python
-    a, b = pair
-    merged = a + b
-    new_vocab: dict[tuple[str, ...], int] = {}
-    for symbols, freq in vocab.items():
-        out: list[str] = []
-        i = 0
-        n = len(symbols)
-        while i < n:
-            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
-                out.append(merged)
-                i += 2
-            else:
-                out.append(symbols[i])
-                i += 1
-        new_vocab[tuple(out)] = new_vocab.get(tuple(out), 0) + freq
-    return new_vocab
-```
-
-**The manual index walk is deliberate.** The tempting shortcut is
-`" ".join(symbols).replace(a + " " + b, merged)`, which is what the original BPE
-paper's reference code does with a regex. It works, but it hides the mechanics
-and breaks in interesting ways once symbols contain spaces or regex
-metacharacters. The explicit walk is clearer for teaching and has no such
-failure modes.
-
-**`i += 2` after a match** prevents overlapping merges. Merging `("a","a")` in
-`("a","a","a")` gives `("aa","a")`, not `("aa","aa")`. That is the correct
-behavior: each symbol is consumed once.
-
-**`new_vocab.get(tuple(out), 0) + freq`** rather than plain assignment, because
-two distinct words can collapse to the same tuple after a merge, and their
-frequencies must add. Overwriting silently loses counts, which then quietly
-distorts every later merge decision.
-
-**Returns a new dict** rather than mutating in place, so `train_bpe` can reason
-about each round independently.
-
-```python
->>> merge_pair(('e', 'r'), {('l', 'o', 'w', 'e', 'r', '</w>'): 1})
-{('l', 'o', 'w', 'er', '</w>'): 1}
-```
+(The score is a length-normalised mean log probability, which is why the
+ordering by score does not match the ordering by width. Do not go deeper than
+that in class.)
 
 ---
 
-## Step 3, `train_bpe`
+## Part 3, the three knobs
 
-```python
-def train_bpe(corpus: list[str], num_merges: int) -> list[tuple[str, str]]:
-    vocab = build_vocab(corpus)
-    merges: list[tuple[str, str]] = []
-    for _ in range(num_merges):
-        pairs = count_pairs(vocab)
-        if not pairs:
-            break
-        # Most frequent pair. When two pairs tie, the larger pair wins, so
-        # two runs on the same corpus always learn the same merges.
-        best = None
-        best_count = -1
-        for pair, count in pairs.items():
-            if count > best_count or (count == best_count and pair > best):
-                best = pair
-                best_count = count
-        vocab = merge_pair(best, vocab)
-        merges.append(best)
-    return merges
+`reshape()` applies temperature, then top-k, then top-p to the same logits:
+
+```
+plain softmax     top word 0.496   words with any chance: 39,616
+temperature 0.5   top word 0.915   words with any chance:    576
+temperature 1.5   top word 0.139   words with any chance: 50,178
+top-k 10          top word 0.590   words with any chance:     10
+top-p 0.9         top word 0.551   words with any chance:     20
 ```
 
-**The tie-break is not cosmetic.** On a small corpus, ties are the common case,
-not the exception. `key=lambda kv: (kv[1], kv[0])` sorts by count and then by the
-pair itself, so equal counts resolve alphabetically instead of by dict insertion
-order. There is a dedicated test (`test_step4_train_is_deterministic`) because a
-tokenizer that changes between runs would make every downstream model
-irreproducible.
+Temperature changes the shape and leaves everything on the table. Top-k and
+top-p take words off the table.
 
-**`if not pairs: break`** handles the case where everything has merged into
-single symbols and there is nothing adjacent left. Without it, `max` on an empty
-Counter raises.
+**TRY IT 3.** Top-p survivors on this distribution:
 
-**What is returned is the merge list, not a vocabulary.** This surprises students,
-and it is worth dwelling on: the *model* of a BPE tokenizer is an ordered
-sequence of rewrite rules. The vocabulary is derivable from it, but the order is
-the thing that must be preserved, because merge 9 can only fire on symbols that
-merges 1 to 8 created.
+| p | words kept |
+|---|---|
+| 0.50 | 2 |
+| 0.90 | 20 |
+| 0.99 | 1,168 |
 
-```python
->>> train_bpe(demo, num_merges=3)
-[('o', 'w'), ('l', 'ow'), ('low', '</w>')]
-```
-
-Merge 2 consumes merge 1's output; merge 3 consumes merge 2's. The compounding is
-the algorithm.
+Ship 0.9. At 0.5 the nucleus is two words wide, so on a step where the model is
+genuinely unsure you have thrown its uncertainty away and the text goes generic.
+At 0.99 you have kept most of the junk tail back.
 
 ---
 
-## Given, `encode_word`
+## Part 4, after the break
+
+The prompt changes to `"In my opinion, the most important part of learning to
+code is"` and greedy derails:
+
+```
+... I am not a programmer. I am not a programmer. I am not a programmer. ...
+
+repeated words: 41 out of 62
+```
+
+**YOUR TURN 1**, get it under 5. Measured:
+
+| setting | repeats |
+|---|---|
+| greedy, unchanged | 41 / 62 |
+| `do_sample=True, temperature=0.7` | 44 / 65 |
+| `do_sample=True, top_k=10` | 27 / 64 |
+| `do_sample=True, top_p=0.9` | 12 / 59 |
+| `do_sample=True, temperature=1.5` | 2 / 54 |
+| `do_sample=False, repetition_penalty=1.2` | 3 / 64 |
+
+Two things worth saying out loud. Sampling at 0.7 is **worse than greedy**, so
+"add some randomness" is not automatically the fix. And temperature 1.5 gets the
+count down by making the text bad, which is not the same as solving the problem.
+
+**YOUR TURN 2**, do it without sampling:
 
 ```python
-def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
-    symbols: list[str] = list(word.lower()) + [END]
-    for a, b in merges:
-        merged = a + b
-        out: list[str] = []
-        i = 0
-        n = len(symbols)
-        while i < n:
-            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
-                out.append(merged)
-                i += 2
-            else:
-                out.append(symbols[i])
-                i += 1
-        symbols = out
-    return symbols
+text = generate(do_sample=False, repetition_penalty=1.2)   #  3 / 64
+text = generate(do_sample=False, repetition_penalty=1.5)   #  0 / 42
 ```
 
-**Encoding replays training.** Start from characters, then apply every learned
-merge **in training order**. Applying them in a different order, or applying only
-the ones that "fit", gives a different and generally worse segmentation.
-
-**No vocabulary lookup, and no unknown-token branch.** Any string can be encoded,
-because the worst case is that no merge fires and you get characters back. That
-is why subword tokenizers eliminated the `<UNK>` token that plagued word-level
-models.
-
-```python
->>> encode_word("lowest", merges)
-['low', 'est</w>']
-```
-
-**"lowest" is not in the training corpus.** It is assembled from `low` (learned
-from "low" and "lower") and `est</w>` (learned from "newest" and "widest"). This
-one line is the payoff of the entire session; make sure students run it and
-notice.
-
----
-
-## Running it
-
-```
-Learned merges (in order):
-   1. 'o' + 'w'
-   2. 'l' + 'ow'
-   3. 'low' + '</w>'
-   4. 't' + '</w>'
-   5. 's' + 't</w>'
-   6. 'e' + 'st</w>'
-   7. 'w' + 'est</w>'
-   8. 'n' + 'e'
-   9. 'ne' + 'west</w>'
-  10. 'r' + '</w>'
-
-Encoding 'lowest': ['low', 'est</w>']
-```
-
-**Read the merge list aloud as a narrative.** Merges 1 to 3 build the word "low"
-because it is the most frequent thing in the corpus. Merges 4 to 6 build
-`est</w>` from the end backwards, which is the English superlative suffix,
-discovered with no linguistic input whatsoever. Merge 7 then makes `west</w>`,
-and merge 9 makes `newest</w>` a single token because it appears three times.
-
-Three points to draw out:
-
-1. **Morphology emerges from frequency.** Nobody encoded that *-est* is a suffix.
-   It is a suffix *because* it recurs across different stems, and BPE finds
-   exactly the recurring pieces.
-2. **Vocabulary size is a dial, not a fact.** `num_merges` decides how coarse the
-   tokens are. Few merges means near-character tokens (long sequences, small
-   vocab); many merges means whole words (short sequences, large vocab). Real
-   models pick a point on that trade-off, typically 32k to 128k merges.
-3. **The corpus decides the tokenizer.** This one learned "low" and "est" because
-   that is what it saw. A tokenizer trained mostly on English fragments other
-   languages into many more tokens, which means those users pay more per word in
-   context length and in API cost. That is the fertility issue from lecture, and
-   the third stretch goal makes it concrete in about a minute.
-
-**Connecting forward:** every model in the rest of the course sits on top of a
-tokenizer built exactly this way. When W10C2 discusses why a model cannot count
-the letters in a word, or why it is bad at arithmetic on long numbers, the answer
-is usually visible in the token boundaries students just learned to compute.
+The penalty divides the score of every word already generated, so the argmax
+stops being a fixed point. The decoding is still deterministic: run it twice and
+you get the same sentence, which sampling can never promise. That is why code
+and structured output are generated this way.

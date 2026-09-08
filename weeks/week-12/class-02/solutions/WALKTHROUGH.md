@@ -1,115 +1,117 @@
-# W12C2 Walkthrough: Mini RAG, step by step
+# W12C2 Walkthrough: Chain-of-thought, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `rag.py` in this folder. Every printed value was produced by
-running it against `qwen2.5:0.5b`.
+The complete file is `cot_lab.py` in this folder. Every printed value was
+produced by running it against `qwen2.5:0.5b`.
 
 ---
 
-## Given, `chunk_documents`
+## Orientation
 
-Split on blank lines, assign **globally sequential** ids across the whole corpus.
+The two prompt builders differ by one clause:
 
-**The id scheme is not incidental.** Citations in Step 4 refer to these numbers,
-so restarting them per document would make citation `[1]` ambiguous. There is a
-dedicated test (`test_step1_chunking_full_corpus_ids_sequential`).
+```python
+def direct_prompt(question: str) -> str:
+    return f"Answer with only the final number.\n\nQ: {question}\nA:"
+```
 
-**Chunking is the most under-appreciated decision in RAG.** Too large and each
-retrieved chunk carries mostly irrelevant text that dilutes the prompt and
-crowds the context window. Too small and a fact gets separated from the sentence
-that qualifies it. Blank-line splitting is the crudest reasonable rule; real
-systems chunk by tokens with overlap, or by document structure. Worth asking the
-class what would break if a chunk cut a definition in half.
+That is the entire intervention. No weights change, no extra data, no examples.
+One instruction.
 
----
-
-## Step 1, `TfidfRetriever.retrieve`
-
-Transform the query with the **already-fitted** vectorizer (`transform`, not
-`fit_transform`, or you refit on one query and destroy the vocabulary), cosine
-against the chunk matrix, take the top `k` descending.
-
-**This is W4C1's search engine with sklearn doing the TF-IDF.** Point that out:
-students built this by hand in Week 4, including the cosine and the tie-break.
-Retrieval in a production RAG system swaps TF-IDF for dense embeddings and an
-approximate-nearest-neighbour index, but the shape is identical.
+**`StubModel` deserves a word of honesty.** It computes the right answer from a
+lookup table and reveals it only when the prompt says "step by step", returning
+`correct + 1` otherwise. It *simulates* the CoT effect rather than exhibiting it,
+so the offline pipeline is testable without a network. It is a fixture, not
+evidence. Make sure students know the real result comes from the Ollama run.
 
 ---
 
-## Step 2, `build_prompt`
+## Given, `extract_answer`
 
-Numbered context, then the question, plus two instructions: answer **only** from
-the context, and say "I don't know" if the context does not support an answer.
+`re.findall(r"-?\d+", text)` then `[-1]`.
 
-**The abstention clause is the whole architecture.** Without it, a model handed
-three chunks will use them regardless of relevance, because that is what the
-prompt appears to ask for. With it, the model has a licensed way to decline. This
-is the same instinct as the unanswerable item in W10C2's dataset: you have to make
-"no answer" a legitimate output or you will never get one.
+**The last integer, not the first**, and this is the whole reason the function
+exists. A CoT reply is full of intermediate numbers:
+
+> "23 minus 17 is 6, then 6 plus 12 is 18. The answer is 18."
+
+Taking the first match grades the model on `23`. Taking the last grades it on its
+conclusion. This is a genuine design decision in every CoT evaluation harness,
+and it is fragile: a model that appends "(that took 3 steps)" would be graded on
+`3`. Production harnesses use a stricter answer format for exactly this reason,
+which is why `cot_prompt` asks for "The answer is N." at the end.
 
 ---
 
-## Given, `verify_citations`
+## Step 1, `majority_vote`
 
-Return the set of cited ids that actually appear among the retrieved chunks.
+Most common value, ties to the smallest, ignoring `None`.
 
-**An invented citation is worse than none**, because it carries the appearance of
-evidence. Models cite fluently and inaccurately, and checking mechanically costs
-a few lines. Most RAG demos skip this step, which is exactly why it is here.
+**This is self-consistency** (Wang et al. 2022), and the intuition is worth
+stating: sample several chains at temperature above 0, and take the answer they
+agree on. It works because **wrong reasoning goes wrong in many different ways
+while correct reasoning converges**. Three chains that each make a different
+arithmetic slip produce three different wrong answers; three correct chains
+produce the same right one. The vote exploits that asymmetry.
 
-Note the verification is shallow: it checks that a cited chunk *was retrieved*,
-not that it *supports the claim*. The deeper check (does chunk 2 actually entail
-this sentence?) is an open problem, and it is worth saying so rather than
-implying the citation check makes the answer true.
+The tie-break to the smallest value is arbitrary but must be deterministic, the
+same discipline as everywhere else in the course.
+
+---
+
+## Step 2, `evaluate`
+
+Build a prompt per item, query, extract, compare, average.
+
+**It grades the final number and never the prose.** That is a deliberate and
+slightly uncomfortable choice: a chain full of nonsense that happens to end on
+the right number scores the same as a flawless derivation. It is also the honest
+one, because grading reasoning automatically is an unsolved problem. The lecture's
+"plausible is not correct" slide is this point, and students should be able to
+say why the harness cannot check it.
 
 ---
 
 ## Running it
 
 ```
-Q: How does RAG reduce hallucination?
-  retrieved: ['week11-rag.md', 'week11-rag.md', 'week10-prompting.md']
-  answer: RAG (Retrieval-Augmented Generation) reduces hallucination by allowing a model
-          to use fresh or private knowledge without retraining...
-  valid citations: [1, 2, 3]
+[model] using Ollama model 'qwen2.5:0.5b'
 
-Q: What does temperature do during decoding?
-  retrieved: ['week07-decoding.md', 'week11-rag.md', 'week11-rag.md']
-  answer: I don't know.
-  valid citations: []
+prompt style      accuracy
+--------------------------
+direct                33%
+chain-of-thought     100%
 ```
 
-**Teach the third query, not the second.** The retriever found the *correct*
-document (`week07-decoding.md`) and the model still said "I don't know". Students
-will read that as a failure. It is the system working:
+**2 of 6 to 6 of 6, from one clause in the prompt.** No training, no examples, no
+change to the model at all. This is the most striking single result in the
+prompting weeks and it lands best if students have already committed to a
+prediction on the whiteboard.
 
-- The retrieved chunk did not contain enough to answer the question.
-- The grounding instruction told the model to abstain rather than fill the gap
-  from its parameters.
-- So it abstained.
+**Then immediately qualify it**, or students over-generalize:
 
-**The trade RAG makes** is converting "confidently wrong" into "honestly
-unhelpful". That is usually the better failure mode, and it moves the bottleneck:
-answer quality is now capped by **retrieval** quality. If you want a better
-answer to that question, you improve the chunking or the retriever, not the
-prompt.
+1. **Six problems.** This is a demo, not a measurement. One item is 17
+   percentage points.
+2. **Arithmetic word problems are CoT's best case.** They decompose into
+   sequential steps with intermediate values worth writing down. The lecture's
+   "when NOT to use CoT" slide covers the cases where it adds latency and noise
+   for nothing.
+3. **Wei et al. found the benefit is scale-dependent.** Their Fig. 4 shows CoT
+   helping only at each family's largest models, and *hurting* small ones. That
+   this 0.5B model benefits at all is partly because these problems are easy
+   enough for it once the steps are separated.
 
-**Two other things visible in the output.**
+**The mechanism, in one sentence for the board:** a direct prompt asks the model
+to produce the answer in a single forward pass through a fixed number of layers;
+a CoT prompt lets it write intermediate results into the context and read them
+back, effectively buying more computation per problem. That framing is what makes
+W10's "scale inference, not just parameters" slide and the reasoning-model
+material click.
 
-The third retrieved chunk is frequently irrelevant, because `k=3` always returns
-three chunks whether or not three are relevant. Same fixed-`k` problem students
-met in W4C1 and W4C2. Real systems apply a score threshold.
-
-The first query retrieves `week10-prompting.md` for a CoT question and answers
-correctly with citation `[1]`. Retrieval that spans documents is the normal case,
-and it is why chunk ids are global.
-
-**Connecting to the CTF next door.** W12C1's lesson was that model output must be
-validated before anything downstream trusts it. `verify_citations` is that same
-control applied to a claim of evidence. And the stretch goal in W12C1 (indirect
-injection via a retrieved record) is precisely an attack on *this* pipeline: if a
-chunk in your corpus contains "ignore previous instructions", RAG hands it to the
-model as trusted context. Worth mentioning here so students see the two halves of
-the week connect.
+**Running the activity.** The whiteboard step matters more than the code here.
+Problem B (the nests: 4 x 3 = 12 eggs, 2 hatch, so 10 unhatched) is the one to
+spend time on, because both 12 and 2 appear in the problem as tempting one-step
+answers. Students who predicted "direct will answer 12" and then watch it do
+exactly that have learned something no amount of explanation delivers.

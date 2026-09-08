@@ -11,7 +11,7 @@ import sys
 
 NLTK_SETS = ["punkt", "punkt_tab", "stopwords", "wordnet",
              # 2000 labelled film reviews (Pang & Lee 2004), the corpus the
-             # W5C1 competition is scored on. Distributed with NLTK by
+             # W6C1 competition is scored on. Distributed with NLTK by
              # permission, so we fetch it rather than redistribute it.
              "movie_reviews"]
 
@@ -19,9 +19,9 @@ NLTK_SETS = ["punkt", "punkt_tab", "stopwords", "wordnet",
 # ~/.cache/huggingface. Together they are well under 500 MB; the course never
 # uses a model big enough to need a GPU.
 HF_MODELS = [
-    ("sentence-transformers/all-MiniLM-L6-v2", "sentence embeddings, W12C2"),
-    ("distilbert-base-uncased", "masked language modelling, W6C1 and W7C2"),
-    ("distilgpt2", "text generation and decoding, W8C1"),
+    ("sentence-transformers/all-MiniLM-L6-v2", "sentence embeddings, W13C2"),
+    ("distilbert-base-uncased", "masked language modelling, W7C1 and W8C2"),
+    ("distilgpt2", "text generation and decoding, W9C1"),
 ]
 
 

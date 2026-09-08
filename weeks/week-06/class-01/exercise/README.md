@@ -1,8 +1,8 @@
-# W6C1: Taking a transformer apart with your hands
+# W6C1: A neural classifier, and a competition to improve it
 
-Everything for this session is in **`lab.ipynb`**. We work through it together
-before the break. After the break you experiment on two real language models, in
-teams.
+Everything for this session is in **`lab.ipynb`**. We build the classifier
+together before the break, cell by cell, and it will not be very good. After the
+break it is yours to improve, in teams, against a public scoreboard.
 
 ## Getting started
 
@@ -13,8 +13,9 @@ uv sync
 uv run python scripts/setup_data.py
 ```
 
-The second command downloads the two models this lab uses. Do it **before
-class**, not during it.
+The second command downloads the 2,000 film reviews this lab is scored on. It
+takes a few seconds and only has to happen once, so **do it before class**, not
+during it.
 
 Then open `weeks/week-06/class-01/exercise/lab.ipynb` in your editor, select the
 project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
@@ -23,21 +24,21 @@ project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | Tokens to vectors, the attention weights drawn as a heatmap, the same word in two sentences, then the experiments. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
-| `images/` | The figure from the lecture, so the notebook stands on its own. |
+| `lab.ipynb` | Pooling word embeddings, an MLP, training, F1, then the competition. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `data/glove-50d-20k.npz` | Real GloVe vectors, for the `pretrained` setting. |
+| `images/` | The figures from the lecture, so the notebook stands on its own. |
 
-The models are **DistilBERT** (an encoder, 66M parameters) and **DistilGPT-2** (a
-decoder). Neither has been fine-tuned or filtered, which is exactly why their raw
-behaviour is worth looking at.
+The corpus is the **movie review polarity dataset** (Pang & Lee, ACL 2004), 2,000
+labelled reviews, fetched through NLTK rather than shipped here.
 
-## What we are not doing
+## How the competition works
 
-We are not implementing attention. We are loading a trained transformer and
-taking it apart: reading its attention weights, watching a word's vector change
-with its sentence, and finding out what it does and does not know.
+Three splits, and the difference matters:
 
-## The rule for the second half
+- **train** (1,200) is what the model learns from,
+- **validation** (300) is what you tune against, as often as you like,
+- **test** (500) is scored **once**, at the end, by everyone at the same time.
 
-A claim about a model comes with the prompt that produced it and the numbers it
-returned. "It is biased" is not a finding. "`the doctor finished [MASK] shift`
-gives *his* 0.44 and *her* 0.10" is a finding.
+Choosing a model by looking at the test set is how you fool yourself into
+reporting a number that will not survive contact with real data. That is why the
+last cell exists and why you only run it when time is called.

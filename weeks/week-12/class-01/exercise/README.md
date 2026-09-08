@@ -1,7 +1,7 @@
-# W12C1 Lab: Prompt Injection and Structured Output
+# W12C1 Lab: Prompting, Measured Instead of Guessed
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 3 `YOUR TURN` cells are the parts you edit.
+class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
 
 ## Getting started
 
@@ -17,15 +17,15 @@ nothing else to install.
 
 ## What you will do
 
-1. Break an assistant that trusts its input.
-2. Add guards and check your own attacks against them.
-3. Get reliable JSON out of a model that would rather chat.
+1. Score a zero-shot prompt on a real task, so you have a baseline.
+2. Add examples and measure whether they actually helped.
+3. Find the part of a prompt that matters most.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 3 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
 
 ## How this lab works
 

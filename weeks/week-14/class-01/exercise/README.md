@@ -1,4 +1,4 @@
-# W14C1 Lab: Wiring Workflows Instead of Agents
+# W14C1 Lab: An Agent That Uses Tools
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
@@ -17,9 +17,9 @@ nothing else to install.
 
 ## What you will do
 
-1. Route each request to the right handler, and measure the saving.
-2. Chain two steps so the second sees the first one's output.
-3. Find the case where a workflow beats an agent, and the case where it does not.
+1. Watch a language model fail at something a calculator finds trivial.
+2. Give it tools and run the ReAct loop, one step at a time.
+3. Break the agent by writing a bad tool description.
 
 ## What is in this folder
 

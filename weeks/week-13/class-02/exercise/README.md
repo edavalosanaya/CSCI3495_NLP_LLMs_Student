@@ -1,7 +1,7 @@
-# W13C2 Lab: Memory, Reflection and Knowing If It Worked
+# W13C2 Lab: Retrieval-Augmented Generation
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
+class, cell by cell. The 3 `YOUR TURN` cells are the parts you edit.
 
 ## Getting started
 
@@ -17,15 +17,15 @@ nothing else to install.
 
 ## What you will do
 
-1. Give an agent memory and see what it can suddenly do.
-2. Let it fail, reflect, and retry, then measure whether reflection helped.
-3. Score a set of agents and see why one number is not enough.
+1. Build a RAG pipeline end to end with real embeddings.
+2. Watch retrieval fail and see the answer fail with it.
+3. Poison the knowledge base and see the model repeat the lie.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The session: notes, working code, 3 `YOUR TURN` tasks, and the answers. |
 
 ## How this lab works
 

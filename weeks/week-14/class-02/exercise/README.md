@@ -1,4 +1,4 @@
-# W14C2 Lab: Making Your Project Reproducible
+# W14C2 Lab: Wiring Workflows Instead of Agents
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
@@ -17,9 +17,9 @@ nothing else to install.
 
 ## What you will do
 
-1. Run the same code twice and get two different answers.
-2. Fix it, and prove the fix worked.
-3. Write the environment record your final report needs.
+1. Route each request to the right handler, and measure the saving.
+2. Chain two steps so the second sees the first one's output.
+3. Find the case where a workflow beats an agent, and the case where it does not.
 
 ## What is in this folder
 

@@ -1,4 +1,4 @@
-# W10C2 Lab: Building an Evaluation Harness
+# W10C2 Lab: Teaching a Model What People Prefer
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
@@ -17,9 +17,9 @@ nothing else to install.
 
 ## What you will do
 
-1. Score four systems on the same questions and rank them.
-2. Separate being WRONG from making things up.
-3. Watch an LLM judge prefer the answer it should not.
+1. Turn pairwise human preferences into a reward model.
+2. Watch it learn to score answers nobody labelled.
+3. See it get gamed by the thing it was not told to measure.
 
 ## What is in this folder
 

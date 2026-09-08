@@ -1,159 +1,249 @@
-# W10C1 Walkthrough: LoRA and quantization, step by step
+# W10C1 Walkthrough: BPE from scratch, step by step
 
 Instructor reference and student rescue hatch. **Read only the step you are
 stuck on.**
 
-The complete file is `lora_lab.py` in this folder. Every code block below is
-taken from it, and every printed value was produced by running it.
+The complete file is `bpe.py` in this folder. Every code block below is taken
+from it, and every printed value was produced by running it on the demo corpus
+`["low low low low low", "lower lower", "newest newest newest", "widest"]`.
 
 ---
 
-## Step 1, `LoRALinear.__init__`
+## Given, `build_vocab`
 
 ```python
-    def __init__(self, in_features: int, out_features: int, r: int = 4, alpha: int = 8):
-        super().__init__()
-        self.linear = nn.Linear(in_features, out_features, bias=False)
-        self.linear.weight.requires_grad = False  # freeze the base weight
-        self.A = nn.Parameter(torch.randn(r, in_features) * 0.01)
-        self.B = nn.Parameter(torch.zeros(out_features, r))
-        self.scaling = alpha / r
+def build_vocab(corpus: list[str]) -> dict[tuple[str, ...], int]:
+    vocab: Counter = Counter()
+    for line in corpus:
+        for word in line.lower().split():
+            symbols = tuple(word) + (END,)
+            vocab[symbols] += 1
+    return dict(vocab)
 ```
 
-**Step 1, the freeze.** One line, and it is the premise of the entire
-parameter-efficient fine-tuning literature. Note it is set on
-`self.linear.weight`, not on the module: PyTorch tracks `requires_grad`
-per-tensor. `train_lora` then filters with
-`[p for p in model.parameters() if p.requires_grad]`, so the frozen weight never
-even reaches the optimizer.
+**Why a tuple of symbols rather than a string.** The whole algorithm is symbols
+merging into bigger symbols. After one merge a word is `("l","o","w","er","</w>")`,
+where `"er"` occupies one slot. A string cannot express "these two characters are
+now one unit", and the pair-counting step would then find pairs that straddle a
+merged symbol. Tuples are also hashable, so they work as dict keys.
 
-**Step 2, the asymmetric initialization.** `A` small random, `B` exactly zero.
-Students reliably ask why not the reverse, and the answer is a nice bit of
-calculus:
+**Why `</w>` exists.** It marks word ends, which does two jobs. It distinguishes
+`er` inside a word from `er` that ends one (English suffixes are a real
+distinction). And it lets the tokenizer reconstruct spacing, since without it
+`["low", "est"]` and `["lowest"]` would be indistinguishable after decoding.
 
-$$\frac{\partial}{\partial B}\big[(BA)x\big] \propto Ax$$
+**Frequency, not a set.** The counts are what makes BPE *statistical*. A pair in a
+word that appears 1000 times should be merged before a pair in a word that
+appears twice, and that only works if the frequency rides along.
 
-With `A = 0` that gradient is zero, so `B` could never leave zero and the adapter
-would be permanently dead. With `B = 0` and `A` nonzero, the *product* is still
-zero (so the model starts at the base) but the gradient reaching `B` is not. Only
-one of the two orderings works. This is Hu et al.'s choice and the reason is
+```python
+>>> build_vocab(["low low"])
+{('l', 'o', 'w', '</w>'): 2}
+```
+
+---
+
+## Step 1, `count_pairs`
+
+```python
+def count_pairs(vocab: dict[tuple[str, ...], int]) -> Counter:
+    pairs: Counter = Counter()
+    for symbols, freq in vocab.items():
+        for a, b in zip(symbols, symbols[1:]):
+            pairs[(a, b)] += freq
+    return pairs
+```
+
+**`zip(symbols, symbols[1:])`** is the standard adjacent-pairs idiom: pair each
+element with the one after it, stopping naturally at the end.
+
+**`+= freq`, not `+= 1`.** This is the single most common bug in this step.
+Counting occurrences of pairs *in the vocab* rather than *in the corpus* makes
+every distinct word contribute equally regardless of how often it appears, and
+BPE stops being frequency-driven. The test uses a word with frequency 2 to catch
 exactly this.
 
-**Step 3, the scaling.** `alpha / r` decouples the update's magnitude from the
-rank. Without it, doubling `r` roughly doubles the size of the update (more terms
-in the sum), and every hyperparameter would need retuning whenever the rank
-changed. With it, `alpha` controls strength and `r` controls capacity, which is
-why papers report them as separate knobs.
+---
+
+## Step 2, `merge_pair`
+
+```python
+    a, b = pair
+    merged = a + b
+    new_vocab: dict[tuple[str, ...], int] = {}
+    for symbols, freq in vocab.items():
+        out: list[str] = []
+        i = 0
+        n = len(symbols)
+        while i < n:
+            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
+                out.append(merged)
+                i += 2
+            else:
+                out.append(symbols[i])
+                i += 1
+        new_vocab[tuple(out)] = new_vocab.get(tuple(out), 0) + freq
+    return new_vocab
+```
+
+**The manual index walk is deliberate.** The tempting shortcut is
+`" ".join(symbols).replace(a + " " + b, merged)`, which is what the original BPE
+paper's reference code does with a regex. It works, but it hides the mechanics
+and breaks in interesting ways once symbols contain spaces or regex
+metacharacters. The explicit walk is clearer for teaching and has no such
+failure modes.
+
+**`i += 2` after a match** prevents overlapping merges. Merging `("a","a")` in
+`("a","a","a")` gives `("aa","a")`, not `("aa","aa")`. That is the correct
+behavior: each symbol is consumed once.
+
+**`new_vocab.get(tuple(out), 0) + freq`** rather than plain assignment, because
+two distinct words can collapse to the same tuple after a merge, and their
+frequencies must add. Overwriting silently loses counts, which then quietly
+distorts every later merge decision.
+
+**Returns a new dict** rather than mutating in place, so `train_bpe` can reason
+about each round independently.
+
+```python
+>>> merge_pair(('e', 'r'), {('l', 'o', 'w', 'e', 'r', '</w>'): 1})
+{('l', 'o', 'w', 'er', '</w>'): 1}
+```
 
 ---
 
-## Step 2, `LoRALinear.forward`
+## Step 3, `train_bpe`
 
 ```python
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        base = self.linear(x)
-        update = (x @ self.A.T) @ self.B.T
-        return base + self.scaling * update
+def train_bpe(corpus: list[str], num_merges: int) -> list[tuple[str, str]]:
+    vocab = build_vocab(corpus)
+    merges: list[tuple[str, str]] = []
+    for _ in range(num_merges):
+        pairs = count_pairs(vocab)
+        if not pairs:
+            break
+        # Most frequent pair. When two pairs tie, the larger pair wins, so
+        # two runs on the same corpus always learn the same merges.
+        best = None
+        best_count = -1
+        for pair, count in pairs.items():
+            if count > best_count or (count == best_count and pair > best):
+                best = pair
+                best_count = count
+        vocab = merge_pair(best, vocab)
+        merges.append(best)
+    return merges
 ```
 
-**The bracketing is the performance story.** Both of these compute the same
-thing:
+**The tie-break is not cosmetic.** On a small corpus, ties are the common case,
+not the exception. `key=lambda kv: (kv[1], kv[0])` sorts by count and then by the
+pair itself, so equal counts resolve alphabetically instead of by dict insertion
+order. There is a dedicated test (`test_step4_train_is_deterministic`) because a
+tokenizer that changes between runs would make every downstream model
+irreproducible.
 
-- `(x @ A.T) @ B.T`: project into rank `r`, then back out. Cost `O(n·d·r)`.
-- `x @ (B @ A)`: build the full `d_out × d_in` update first. Cost dominated by
-  materializing a matrix as big as the frozen weight.
+**`if not pairs: break`** handles the case where everything has merged into
+single symbols and there is nothing adjacent left. Without it, `max` on an empty
+Counter raises.
 
-The second defeats the point of LoRA. On this toy layer neither is measurable,
-but the habit matters, and it is worth showing the class the shapes to make it
-concrete.
-
-**What you should see:**
+**What is returned is the merge list, not a vocabulary.** This surprises students,
+and it is worth dwelling on: the *model* of a BPE tokenizer is an ordered
+sequence of rewrite rules. The vocabulary is derivable from it, but the order is
+the thing that must be preserved, because merge 9 can only fire on symbols that
+merges 1 to 8 created.
 
 ```python
->>> torch.manual_seed(0)
->>> m = LoRALinear(8, 4, r=4, alpha=8)
->>> x = torch.randn(2, 8)
->>> torch.allclose(m(x), m.linear(x))
-True
+>>> train_bpe(demo, num_merges=3)
+[('o', 'w'), ('l', 'ow'), ('low', '</w>')]
 ```
 
-**A fresh LoRA layer is a no-op.** That `True` is the practical consequence of
-`B = 0` and it is a genuinely useful property: you can wrap every Linear in a
-pretrained model with LoRA adapters and the model's behavior is bit-identical
-until you train. No risk of degrading the base model by attaching adapters.
+Merge 2 consumes merge 1's output; merge 3 consumes merge 2's. The compounding is
+the algorithm.
 
 ---
 
-## Given, `quantize`
+## Given, `encode_word`
 
 ```python
-def quantize(w: torch.Tensor, bits: int) -> torch.Tensor:
-    qmax = 2 ** (bits - 1) - 1
-    scale = w.abs().max() / qmax
-    if scale == 0:
-        return w.clone()
-    q = torch.round(w / scale).clamp(-qmax, qmax)
-    return q * scale
+def encode_word(word: str, merges: list[tuple[str, str]]) -> list[str]:
+    symbols: list[str] = list(word.lower()) + [END]
+    for a, b in merges:
+        merged = a + b
+        out: list[str] = []
+        i = 0
+        n = len(symbols)
+        while i < n:
+            if i < n - 1 and symbols[i] == a and symbols[i + 1] == b:
+                out.append(merged)
+                i += 2
+            else:
+                out.append(symbols[i])
+                i += 1
+        symbols = out
+    return symbols
 ```
 
-**"Symmetric per-tensor" unpacks into three choices**, each worth naming:
+**Encoding replays training.** Start from characters, then apply every learned
+merge **in training order**. Applying them in a different order, or applying only
+the ones that "fit", gives a different and generally worse segmentation.
 
-- **Symmetric**: the grid is centered on zero, running `-qmax` to `+qmax`. Simpler
-  than asymmetric (which also learns a zero-point offset) and a good fit for
-  weights, which are roughly zero-centered. Activations often are not, which is
-  why activation quantization usually is asymmetric.
-- **Per-tensor**: one `scale` for the whole tensor. Per-channel scales fit better
-  and are standard in practice; per-tensor is simpler to read.
-- **Quantize-dequantize**: it returns floats snapped to the representable grid,
-  not integers. This is *simulated* quantization, which is how the error is
-  measured without changing any downstream code. The real memory saving comes
-  from storing `q` as int4/int8 plus one float scale, which this toy does not do.
+**No vocabulary lookup, and no unknown-token branch.** Any string can be encoded,
+because the worst case is that no merge fires and you get characters back. That
+is why subword tokenizers eliminated the `<UNK>` token that plagued word-level
+models.
 
-**`if scale == 0`** handles an all-zero tensor, where the division would produce
-`nan` and silently poison everything after it.
+```python
+>>> encode_word("lowest", merges)
+['low', 'est</w>']
+```
+
+**"lowest" is not in the training corpus.** It is assembled from `low` (learned
+from "low" and "lower") and `est</w>` (learned from "newest" and "widest"). This
+one line is the payoff of the entire session; make sure students run it and
+notice.
 
 ---
 
 ## Running it
 
 ```
-LoRA loss: 9.744 -> 0.000
-Trainable params: 48  |  Frozen params: 32
+Learned merges (in order):
+   1. 'o' + 'w'
+   2. 'l' + 'ow'
+   3. 'low' + '</w>'
+   4. 't' + '</w>'
+   5. 's' + 't</w>'
+   6. 'e' + 'st</w>'
+   7. 'w' + 'est</w>'
+   8. 'n' + 'e'
+   9. 'ne' + 'west</w>'
+  10. 'r' + '</w>'
 
-Quantization bake-off (mean abs error vs original):
-  8-bit: error = 0.0072
-  4-bit: error = 0.1316
-  2-bit: error = 0.7530
+Encoding 'lowest': ['low', 'est</w>']
 ```
 
-**The error curve is the lesson, and it is geometric, not linear.** 8 to 4 bits
-multiplies the error by roughly 18; 4 to 2 by roughly another 6. Each bit removed
-halves the number of representable levels, so the spacing of the grid doubles and
-the rounding error with it. (The exact ratios are not clean powers of two because
-`qmax = 2^(k-1) - 1`: 127, 7, 1. Going from 7 levels to 1 is proportionally far
-worse than 127 to 7.)
+**Read the merge list aloud as a narrative.** Merges 1 to 3 build the word "low"
+because it is the most frequent thing in the corpus. Merges 4 to 6 build
+`est</w>` from the end backwards, which is the English superlative suffix,
+discovered with no linguistic input whatsoever. Merge 7 then makes `west</w>`,
+and merge 9 makes `newest</w>` a single token because it appears three times.
 
-Draw the practical conclusion: **4-bit sits at the knee.** You get 8x memory
-reduction versus fp32 for an error most models tolerate after fine-tuning, which
-is why QLoRA (Dettmers et al. 2023) is built on 4-bit and why 2-bit remains a
-research problem rather than a default.
+Three points to draw out:
 
-**The trainable-parameter count needs an explicit caveat**, or students will draw
-the wrong conclusion. This toy reports 48 trainable versus 32 frozen: LoRA
-appears to have *increased* the parameter count. That is real, and it is an
-artifact of the scale. With `in=8, out=4, r=4`, the factors `A` (4x8 = 32) and
-`B` (4x4 = 16) total 48, while the base weight is only 32. Low-rank
-approximation only saves anything when `r ≪ min(d_in, d_out)`, and here `r` is as
-large as the output dimension.
+1. **Morphology emerges from frequency.** Nobody encoded that *-est* is a suffix.
+   It is a suffix *because* it recurs across different stems, and BPE finds
+   exactly the recurring pieces.
+2. **Vocabulary size is a dial, not a fact.** `num_merges` decides how coarse the
+   tokens are. Few merges means near-character tokens (long sequences, small
+   vocab); many merges means whole words (short sequences, large vocab). Real
+   models pick a point on that trade-off, typically 32k to 128k merges.
+3. **The corpus decides the tokenizer.** This one learned "low" and "est" because
+   that is what it saw. A tokenizer trained mostly on English fragments other
+   languages into many more tokens, which means those users pay more per word in
+   context length and in API cost. That is the fertility issue from lecture, and
+   the third stretch goal makes it concrete in about a minute.
 
-Say the real numbers out loud for contrast: for GPT-3 175B with `r = 4` on the
-attention projections, LoRA trains about 10,000x fewer parameters than full
-fine-tuning (Hu et al. 2021, and the lecture's Fig. 2). The mechanism is what
-this lab teaches; the ratio needs a real model to appear.
-
-**The merge stretch goal is the one worth doing in class if there is time.**
-Compute `W + scaling * (B @ A)`, load it into a plain `nn.Linear`, and confirm
-identical outputs. That is why LoRA adds **zero** inference latency: once
-training is done, the adapter folds into the weight and disappears. It is also
-why you can ship many task-specific adapters against one base model and swap them
-per request, which is the deployment story behind the whole technique.
+**Connecting forward:** every model in the rest of the course sits on top of a
+tokenizer built exactly this way. When W11C2 discusses why a model cannot count
+the letters in a word, or why it is bad at arithmetic on long numbers, the answer
+is usually visible in the token boundaries students just learned to compute.

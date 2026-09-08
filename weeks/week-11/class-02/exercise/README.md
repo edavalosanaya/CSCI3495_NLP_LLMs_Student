@@ -1,4 +1,4 @@
-# W11C2 Lab: Chain-of-Thought and Self-Consistency
+# W11C2 Lab: Building an Evaluation Harness
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
@@ -17,9 +17,9 @@ nothing else to install.
 
 ## What you will do
 
-1. Watch a small model fail arithmetic, then fix it with one sentence.
-2. Sample the same question many times and take a vote.
-3. Find where chain-of-thought does NOT help.
+1. Score four systems on the same questions and rank them.
+2. Separate being WRONG from making things up.
+3. Watch an LLM judge prefer the answer it should not.
 
 ## What is in this folder
 

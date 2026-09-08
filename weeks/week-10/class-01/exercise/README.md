@@ -1,4 +1,4 @@
-# W10C1 Lab: LoRA and Quantization, Measured
+# W10C1 Lab: Byte Pair Encoding, by Hand and for Real
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
@@ -17,9 +17,9 @@ nothing else to install.
 
 ## What you will do
 
-1. Count how many numbers a full fine-tune has to change.
-2. Write LoRA yourself, in five lines, and count again.
-3. Squeeze a model to 8 bits and measure exactly what you lose.
+1. See how a real tokenizer splits words you have never seen.
+2. Run BPE merges yourself and watch the vocabulary build itself.
+3. Find out what tokenization costs you on unusual text.
 
 ## What is in this folder
 

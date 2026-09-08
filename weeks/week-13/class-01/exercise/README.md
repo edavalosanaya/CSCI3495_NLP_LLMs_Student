@@ -1,7 +1,7 @@
-# W13C1 Lab: An Agent That Uses Tools
+# W13C1 Lab: Prompt Injection and Structured Output
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
+class, cell by cell. The 3 `YOUR TURN` cells are the parts you edit.
 
 ## Getting started
 
@@ -17,15 +17,15 @@ nothing else to install.
 
 ## What you will do
 
-1. Watch a language model fail at something a calculator finds trivial.
-2. Give it tools and run the ReAct loop, one step at a time.
-3. Break the agent by writing a bad tool description.
+1. Break an assistant that trusts its input.
+2. Add guards and check your own attacks against them.
+3. Get reliable JSON out of a model that would rather chat.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The session: notes, working code, 3 `YOUR TURN` tasks, and the answers. |
 
 ## How this lab works
 

@@ -1,8 +1,8 @@
-# W5C2: One LSTM, three jobs
+# W5C2: Word embeddings, and the arithmetic that made them famous
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
 class, cell by cell. Each part ends with a `TRY IT`: one question, one empty
-cell. After the break you train a sarcasm detector, in teams.
+cell. After the break you plan a strategy on a budget, in teams.
 
 ## Getting started
 
@@ -14,35 +14,23 @@ uv sync
 
 Then open `weeks/week-05/class-02/exercise/lab.ipynb` in your editor, select the
 project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
-Everything you need is in this folder, so there is nothing to download.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | What `nn.LSTM` returns, then the same layer doing three different jobs, then your own sarcasm detector. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
-| `data/headlines.csv` | 26,602 news headlines, half of them satirical. |
-| `data/generator.pt` | A trained word-level language model (job 1). |
-| `data/tagger.pt` | A trained part-of-speech tagger (job 2). |
-| `data/classifier.pt` | A trained sarcasm classifier (job 3). |
+| `lab.ipynb` | A word as 50 numbers, nearest neighbours, `king - man + woman`, and the same line with `doctor` in it. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
+| `data/glove-50d-20k.npz` | Real GloVe vectors: the 20,000 most frequent words, 50 dimensions each. |
 | `images/` | The figures from the lecture, so the notebook stands on its own. |
 
-We are **using** LSTMs today, not building one. The three models are already
-trained, so every cell in the walkthrough runs in about a second.
+The vectors are **GloVe 6B 50d** (Pennington, Socher & Manning, EMNLP 2014),
+trained on Wikipedia 2014 and Gigaword 5 and released under the Public Domain
+Dedication and License. Nobody labelled them, and nobody chose what the 50
+numbers mean, which is the whole point of the class.
 
-## The data
+## How this lab works
 
-The headlines are the **News Headlines Dataset for Sarcasm Detection** (Misra &
-Arora): sarcastic headlines from *The Onion*, genuine ones from *HuffPost*. Real
-published writing, so it is occasionally rude; the generator is stopped from
-producing the worst of it.
-
-The tagger was trained on the Penn Treebank sample distributed with NLTK.
-
-## How the competition works
-
-You get a working LSTM that is barely better than guessing, and about
-twenty-five minutes. One training run takes roughly a second, so try a lot of
-things. What you change is the **model**, not a settings file: make it wider,
-read the sentence backwards as well as forwards, stack another layer, take a
-different vector out of the LSTM.
+Everything already runs the moment you open it. Nothing raises, and there is no
+test to run and nothing to submit. Every `YOUR TURN` says in a comment what you
+should see when it is right, in real numbers, and the answers to everything are
+in the last cell of the notebook.

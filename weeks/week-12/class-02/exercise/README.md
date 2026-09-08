@@ -1,7 +1,7 @@
-# W12C2 Lab: Retrieval-Augmented Generation
+# W12C2 Lab: Chain-of-Thought and Self-Consistency
 
 Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 3 `YOUR TURN` cells are the parts you edit.
+class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
 
 ## Getting started
 
@@ -17,15 +17,15 @@ nothing else to install.
 
 ## What you will do
 
-1. Build a RAG pipeline end to end with real embeddings.
-2. Watch retrieval fail and see the answer fail with it.
-3. Poison the knowledge base and see the model repeat the lie.
+1. Watch a small model fail arithmetic, then fix it with one sentence.
+2. Sample the same question many times and take a vote.
+3. Find where chain-of-thought does NOT help.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 3 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
 
 ## How this lab works
 
