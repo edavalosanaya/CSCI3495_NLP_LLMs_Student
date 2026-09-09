@@ -8,7 +8,7 @@
 #   docker compose -f docker/docker-compose.yml stop ollama     # stop it
 #
 # Already have the old course image? Reclaim the space:
-#   bash scripts/cleanup_course_docker.sh
+#   uv run python scripts/cleanup_course_docker.py
 services:
   # Local, free, open-source LLM inference. No API keys, no account, runs on CPU.
   ollama:

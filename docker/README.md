@@ -62,7 +62,7 @@ That image is no longer used and is three to five gigabytes of dead weight. To
 reclaim the space, from the repository root:
 
 ```bash
-bash scripts/cleanup_course_docker.sh
+uv run python scripts/cleanup_course_docker.py
 ```
 
 It shows you exactly what it will remove and asks before doing anything. It
