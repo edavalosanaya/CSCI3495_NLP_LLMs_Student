@@ -1,6 +1,6 @@
 # HW6: Building an Agent With Tools
 
-**Out:** Week 13, Class 1 · **Due:** Week 14, Class 1 · **100 points** · individual work
+**Out:** Wed Nov 18 · **Due:** Mon Dec 7 · **100 points** · individual work
 
 Everything is in **`hw6.ipynb`**. There are 6 `YOUR TURN` cells,
 each worth the points marked in its banner.
@@ -27,6 +27,9 @@ run the cells from the top.
 Submit the `.ipynb` with **every cell run and its output visible**. A notebook
 submitted with empty outputs cannot be marked, because the output is the
 evidence that your code ran.
+
+Submit **`ANSWERS.md`** with it. That is where your written answers go, along
+with the AI-use disclosure the course policy requires.
 
 There is no test suite. You are marked on the code working and on the short
 written answers, which are worth a large share of the points: several questions
