@@ -1,7 +1,7 @@
-# W10C1 Lab: Byte Pair Encoding, by Hand and for Real
+# W10C1 Lab: Byte Pair Encoding, and What It Costs
 
-Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
+Everything for this session is in **`lab.ipynb`**. Parts 1 to 3 we work through
+together during the lecture; Part 4 is the team bake-off after the break.
 
 ## Getting started
 
@@ -17,15 +17,17 @@ nothing else to install.
 
 ## What you will do
 
-1. See how a real tokenizer splits words you have never seen.
-2. Run BPE merges yourself and watch the vocabulary build itself.
-3. Find out what tokenization costs you on unusual text.
+1. Watch a real tokenizer break your own words apart.
+2. Run the merge loop that builds a vocabulary from nothing.
+3. See what an instruction-tuned model adds to that vocabulary.
+4. With your team: train a tokenizer on one corpus and score it on everyone else's.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The session: notes, working code, 3 `TRY IT` checkpoints, 3 `YOUR TURN` tasks, and the answers. |
+| `data/corpora.py` | The five bake-off corpora, each with a training text and a held-out test text. |
 
 ## How this lab works
 

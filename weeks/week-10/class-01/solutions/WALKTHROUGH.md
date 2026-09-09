@@ -1,7 +1,7 @@
 # W10C1 Walkthrough: BPE from scratch, step by step
 
-Instructor reference and student rescue hatch. **Read only the step you are
-stuck on.**
+Instructor reference for the BPE code the lab hands students in Part 4. They do
+not implement it, but they will ask how it works. **Read only the part you need.**
 
 The complete file is `bpe.py` in this folder. Every code block below is taken
 from it, and every printed value was produced by running it on the demo corpus
