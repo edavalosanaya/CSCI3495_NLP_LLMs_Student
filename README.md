@@ -13,8 +13,14 @@ Course materials for CSCI 3495. Everything you need for the semester lives here.
 > of both is saved in `.backups/` every time. Same command on Windows, macOS,
 > and Linux. See [Getting updates](#getting-updates).
 >
-> Don't have that file yet? Get it with
-> `git fetch origin && git checkout origin/main -- scripts/update_course.py`
+> **First time, or that file isn't there yet?** Get it with:
+>
+> ```
+> git fetch origin && git checkout origin/main -- scripts/
+> ```
+>
+> That works even if `git pull` is already stuck mid-conflict. Then run the
+> command above.
 
 ## What's in here
 
@@ -80,6 +86,18 @@ That works right up until you have edited a lab that also changed upstream, and
 then git refuses to pull and starts talking about conflicts. This happens a lot:
 you run cells in a notebook during class, and the same notebook gets corrected
 that evening. You do not need to resolve any of it.
+
+### First time: getting the script
+
+If you have never pulled since the script was added — or `git pull` is already
+stuck complaining about conflicts — grab it directly:
+
+```bash
+git fetch origin && git checkout origin/main -- scripts/
+```
+
+This overwrites just the `scripts/` folder and works from any state, including a
+half-finished merge. Everything else in your folder is left alone.
 
 ### The update script
 
