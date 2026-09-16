@@ -53,9 +53,9 @@ do as well. Judge it against the do-nothing baseline, never against `0.2055`.
 > every time. Four times better than doing nothing, and four times worse than the
 > horror model. Both of those facts are worth a sentence.
 
-**Stuck?** `../solutions/horror_scariness.py` is the complete horror code, and
-`../solutions/WALKTHROUGH.md` takes it one step at a time. Read the one step you
-are stuck on, close it, and type the comedy version yourself. Copying the file
+**Stuck?** `../solutions/instructor-lab.ipynb` is the complete horror
+walkthrough, one stage at a time, and every cell runs. Open the one stage you are
+stuck on, close it, and type the comedy version yourself. Copying the notebook
 across teaches you nothing and takes about as long.
 
 ## Getting started
