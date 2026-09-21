@@ -6,8 +6,10 @@
 | Clear, well-motivated problem & question | 1 |
 | Relevant background / paper grounding | 1 |
 | Concrete, feasible plan (data, models, eval) | 2 |
-| Risks & feasibility (CPU/Docker) addressed | 1 |
+| Risks, backup plan & per-member responsibilities | 1 |
 | **Total** | **5** |
+
+*The responsibilities table names every member against a specific deliverable, not a role. It is what the confidential peer evaluation at the final milestone is checked against, which is why it is scored here rather than taken on trust. There is no separate feasibility-check section (removed 2026-09-20): CPU/Docker feasibility is raised as a question during the Week 5 working session and judged as part of the plan line above.*
 
 *Scope check (not scored separately):* the proposed scope should match team size (solo = baseline + one comparison; 2 = a second axis; 3 = ~2-3x a solo project). The instructor calibrates scope here so the final peer evaluation is about effort share, not scope mismatch.
 
