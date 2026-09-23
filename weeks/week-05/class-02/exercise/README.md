@@ -1,84 +1,78 @@
-# W5C2: Flip the translator
+# W5C2: Build a translator
 
-Before the break you built an English-to-Spanish translator by typing it out
-together. Now you turn it around and use it to read Spanish.
+An English-to-Spanish translator, built together in class.
 
-## The task
+## Files
 
-Train the same model to go Spanish to English, then translate five phrases.
+| file | what |
+|---|---|
+| `lab.ipynb` | Mostly written already. **Stages 4 and 7 are empty**: we type those two together. |
+| `data/eng-spa.tsv` | 10,949 real sentence pairs, split into train, develop and test. |
+| `data/DATA-SOURCE.md` | Where the data comes from, and its licence. |
 
-You do not need a new model, a new loop, or a new idea. The encoder does not
-know or care which language it is reading. Two columns change.
+## Getting started
 
-Work in your team. Copy the cells you need into new ones and edit them.
-
-## Step 1. Swap the direction
-
-Everywhere English is the input and Spanish the output, make it the other way
-round. Two places matter:
-
-- the vocabularies: which column builds `src_stoi` and which builds `tgt_stoi`
-- the tensors: which column fills `X` and which fills `Y`
-
-`SRC_LEN` and `TGT_LEN` swap with them.
-
-## Step 2. Check it works
-
-Retrain, then run stage 8 again. It should print Spanish going in and English
-coming out, and get roughly one of the five exactly right.
-
-This direction is the easier one. English has one article where Spanish has
-four, no gender on adjectives, and one verb form where Spanish has five. Going
-this way the model throws information away; going the other way it has to
-invent it.
-
-## Step 3. Read the five phrases
-
-Translate these. All five are held-out sentences your model has never trained
-on.
+Once, from the repository root: `uv sync`. Then from this folder:
 
 ```
-1.  ella me hace feliz
-2.  no puedo hacer nada
-3.  hace mucho frío
-4.  llama a tu hermano
-5.  él empezó a cantar
+uv run jupyter lab
 ```
 
-Write down the five English sentences. That is the deliverable.
+Open `lab.ipynb` and run the cells from the top. Stages 4 and 7 are blank and
+will fail until we write them.
 
-Two of them are worth a second look:
+## The two stages you write
 
-- one is **idiomatic**: a word-for-word reading gives you nonsense, and Spanish
-  says it a completely different way from English
-- one contains a word that English has no equivalent for at all
+**Stage 4, the model.** An encoder LSTM reads the English and keeps its final
+state. A decoder LSTM starts from that state and writes Spanish. That shared
+state is the only connection between the two halves.
 
-Say which, and why.
+**Stage 7, greedy decoding.** Generating is not the training loop. There is no
+correct answer to feed in, so the decoder runs one step at a time, and each
+step's output becomes the next step's input.
 
-## Hand in at the end of the period
+## The data
 
-One message per team:
+Real sentences from Tatoeba, written and translated by volunteers. Four tokens
+at most on each side, drawn from the most frequent 964 English and 1496 Spanish
+words.
 
-```
-team:        names
-phrases:     1. ...   2. ...   3. ...   4. ...   5. ...
-the odd ones: <which two, and what is going on>
-```
+Two columns hold the right answers. A sentence often has several correct
+translations, so `accepted_es` lists every Spanish translation of an English
+row and `accepted_en` every English translation of a Spanish one. Scoring with
+plain `==` would mark correct translations wrong.
 
-## If you get stuck
+## What to expect
 
-- **Shapes disagree.** `SRC_LEN` and `TGT_LEN` are the other way round now.
-- **`KeyError`.** A word is being looked up in the other language's vocabulary.
-  Check which column built which `stoi`.
-- **Output is Spanish.** The tensors swapped but `tgt_itos` did not.
-- **Everything ends immediately.** The `y_in` / `y_out` shift went missing.
+About one held-out sentence in three comes back exactly right. Many of the
+other two thirds are not wrong so much as different: `okay lets go` becomes
+`pues vamonos` where the stored answer is `vale vamonos`. Both are Spanish
+people say.
 
-## Going further
+That is a real result for a model this size trained in thirty seconds, and it
+is why machine translation is not scored by exact match.
 
-- Try your own sentence. Anything outside the 964-word English vocabulary comes
-  back as `<no id for: ...>`.
-- Score yourself. Write a loop that translates every test row and counts how
-  many land in `accepted_en`. Expect about 0.45.
-- Count how many of your wrong answers are actually correct English that simply
-  differs from the stored translation. That number is why translation is not
-  scored with exact match.
+## After the break: the semester project
+
+We stop working on the translator and turn to the project. Bring up
+`project/proposal/CSCI3495_Project_Proposal_Template.docx` and keep filling it
+in with your team.
+
+The proposal is due **Wednesday October 7**, one page, submission only.
+
+The two things worth having before you leave:
+
+- **A question with a question mark in it.** If it does not fit in one
+  sentence, it is not a project yet.
+- **A metric and a baseline.** "We will see if it works" is not a metric. Name
+  the number and name what you compare it against.
+
+## If you want more of the translator
+
+Not assigned, and nothing to hand in:
+
+- Flip it. Train Spanish to English instead, which is two columns changed, and
+  score against `accepted_en`. It comes out better than this direction; work
+  out why.
+- Translate a sentence of your own. Anything outside the 964-word English
+  vocabulary comes back as `<no id for: ...>`.
