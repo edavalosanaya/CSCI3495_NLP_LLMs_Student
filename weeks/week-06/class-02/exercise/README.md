@@ -1,48 +1,15 @@
-# W6C2: One LSTM, three jobs
+# W6C2: Chain-of-thought prompting
 
-Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. Each part ends with a `TRY IT`: one question, one empty
-cell. After the break you train a sarcasm detector, in teams.
+Open **`lab.ipynb`**, select the project's **`.venv`** kernel, and run the cells
+from the top. It talks to the course LLM server at `spark.cs.trinity.edu`, so you
+need to be on the campus network. Paste your own key into the connect cell.
 
-## Getting started
+## What is in the notebook
 
-Once, from the repository root on your own machine:
-
-```
-uv sync
-```
-
-Then open `weeks/week-06/class-02/exercise/lab.ipynb` in your editor, select the
-project's **`.venv`** kernel, and run the cells from the top with Shift + Enter.
-Everything you need is in this folder, so there is nothing to download.
-
-## What is in this folder
-
-| File | What it is |
+| Part | What it does |
 |---|---|
-| `lab.ipynb` | What `nn.LSTM` returns, then the same layer doing three different jobs, then your own sarcasm detector. Three `TRY IT` checkpoints, two `YOUR TURN` tasks, and the answers. |
-| `data/headlines.csv` | 26,602 news headlines, half of them satirical. |
-| `data/generator.pt` | A trained word-level language model (job 1). |
-| `data/tagger.pt` | A trained part-of-speech tagger (job 2). |
-| `data/classifier.pt` | A trained sarcasm classifier (job 3). |
-| `images/` | The figures from the lecture, so the notebook stands on its own. |
-
-We are **using** LSTMs today, not building one. The three models are already
-trained, so every cell in the walkthrough runs in about a second.
-
-## The data
-
-The headlines are the **News Headlines Dataset for Sarcasm Detection** (Misra &
-Arora): sarcastic headlines from *The Onion*, genuine ones from *HuffPost*. Real
-published writing, so it is occasionally rude; the generator is stopped from
-producing the worst of it.
-
-The tagger was trained on the Penn Treebank sample distributed with NLTK.
-
-## How the competition works
-
-You get a working LSTM that is barely better than guessing, and about
-twenty-five minutes. One training run takes roughly a second, so try a lot of
-things. What you change is the **model**, not a settings file: make it wider,
-read the sentence backwards as well as forwards, stack another layer, take a
-different vector out of the LSTM.
+| Connect | Sends one prompt to `qwen2.5-3b` through the OpenAI client. |
+| Zero-shot | Asks for the sum of five 3-digit numbers, answer only. |
+| Few-shot | The same question, after two worked examples that show only the answer. |
+| Chain-of-thought | The same examples, but each one shows its reasoning. |
+| **Exercise** | Two agents, each knowing half the facts, work out a trip's cost per student. You write the conversation, run it 3 times, and improve the result by adding to the shared prompt. |
