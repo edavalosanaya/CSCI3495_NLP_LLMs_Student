@@ -15,14 +15,11 @@ dependencies = [
     "scikit-learn==1.9.0",
     "matplotlib==3.10.7",
     "seaborn==0.13.2",
-
     # Classical NLP
     "nltk==3.9.2",
     "regex==2025.11.3",
-
     # Deep learning, CPU only (see the index pin below)
     "torch==2.12.1",
-
     # Transformers and the Hugging Face ecosystem
     "transformers==5.13.0",
     "datasets==5.0.0",
@@ -31,20 +28,18 @@ dependencies = [
     "evaluate==0.4.6",
     "sentence-transformers==5.6.0",
     "peft==0.19.1",
-
     # Local LLM inference. The server itself still runs in Docker; this is the
     # Python client that talks to it.
     "ollama==0.6.2",
-
     # Retrieval and RAG
     "faiss-cpu==1.14.3",
-
     # Notebooks. ipykernel is what makes the project's own venv the one and only
     # kernel Jupyter offers, which is the whole point of moving off Docker.
     "jupyterlab==4.5.0",
     "ipykernel>=7.0",
     "ipywidgets==8.1.7",
     "tqdm==4.67.1",
+    "ruff>=0.17.0",
 ]
 
 [dependency-groups]
