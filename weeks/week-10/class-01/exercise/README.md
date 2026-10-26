@@ -1,7 +1,6 @@
-# W10C1 Lab: Byte Pair Encoding, and What It Costs
+# W10C1 Lab: Teaching a Tiny Assistant Manners
 
-Everything for this session is in **`lab.ipynb`**. Parts 1 to 3 we work through
-together during the lecture; Part 4 is the team bake-off after the break.
+Everything for this session is in **`lab.ipynb`**. SFT imitates. DPO compares.
 
 ## Getting started
 
@@ -13,27 +12,32 @@ uv sync
 
 Then open `weeks/week-10/class-01/exercise/lab.ipynb` in your editor, select the project's
 **`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
-nothing else to install.
+nothing else to install, and everything runs on a laptop CPU in about two minutes.
 
 ## What you will do
 
-1. Watch a real tokenizer break your own words apart.
-2. Run the merge loop that builds a vocabulary from nothing.
-3. See what an instruction-tuned model adds to that vocabulary.
-4. With your team: train a tokenizer on one corpus and score it on everyone else's.
+1. Ask a pretrained model (distilgpt2) a question, and see that it does not answer.
+2. Fine-tune it on demonstrations, half of which are rude. The SFT training cell is
+   empty: write it as we go.
+3. Train it with DPO on pairs of a polite (chosen) and a rude (rejected) answer.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 3 `TRY IT` checkpoints, 3 `YOUR TURN` tasks, and the answers. |
-| `data/corpora.py` | The five bake-off corpora, each with a training text and a held-out test text. |
+| `lab.ipynb` | The session. |
+| `data/sft.csv` | 80 demonstrations: 40 questions, each answered once politely and once rudely. |
+| `data/prefs.csv` | 40 preference pairs: the same questions, a polite `chosen` and a rude `rejected` answer. |
+| `data/test_prompts.txt` | 10 questions that appear in neither file. Every score is measured on these. |
 
-## How this lab works
+## What you should see
 
-Everything already runs the moment you open it. Nothing raises, and there is no
-test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
-you should see when it is right, in real numbers, and the answers are in the
-last cell of the notebook.
+`rude_rate` is the share of 100 sampled answers (10 per test question) that open with "Ugh".
 
-Read the output and judge whether it looks right. That is the skill.
+| After | `rude_rate` |
+|---|---|
+| nothing (the base model) | 0.0, because it never answers at all |
+| SFT | 0.36 |
+| DPO | 0.0 |
+
+The facts can still be wrong after DPO ("A duck says gobble."). DPO taught the model manners, not knowledge.

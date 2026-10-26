@@ -23,14 +23,14 @@ Individuals or teams of up to **3**. Scope scales with team size (a 3-person tea
 | Milestone | Week | Weight | Deliverable |
 |-----------|------|-------:|-------------|
 | **Proposal** | 5 | 5% | **1-page** written plan, submission only (`proposal/`) |
-| **Mid-semester checkpoint** | 10 | 10% | 1-page summary (abstract, method, preliminary results) + in-class peer-review round (`checkpoint/`) |
+| **Mid-semester checkpoint** | 12 | 10% | 1-page summary (abstract, method, preliminary findings, conclusion) + in-class peer-review round (`checkpoint/`) |
 | **Final report & presentation** | 15 / finals | 20% | 6-8 page NeurIPS-format report + **5-8 min** talk/demo + **2 min** Q&A (`final/`) |
 
 A **work + instructor-feedback session** is provided in **Week 14, Class 2** before final presentations; project work/feedback time is also built into **Week 10**.
 
-### How the checkpoint runs (Week 11, Class 1, 30 min)
+### How the checkpoint runs (Week 12, Class 1: Mon Nov 9, 30 min)
 There are no whole-class presentations. Instead:
-- **Before class:** each project writes **one page** (one side) covering **abstract, method, and preliminary results**. Bring a copy for yourself; you hand it in at the end.
+- **Before class:** each project writes **one page** (one side) covering **abstract, method, preliminary findings, and conclusion**, using `checkpoint/CSCI3495_Project_Checkpoint_Template.docx`. Preliminary findings means real results from a real run, not just code that works. Bring a copy for yourself; you hand it in at the end.
 - **In class:** you sit in a **review group of four**, drawn from **different projects** so you get outside eyes.
 - **Four rounds of ~7 minutes:** one person presents their page for **3 minutes**, the other three respond for **4 minutes**. Rotate until everyone has presented once.
 - **Feedback the group owes each presenter:** what is the actual claim and does the page support it, what is the biggest risk to finishing by Week 15, and one concrete experiment to run next.
