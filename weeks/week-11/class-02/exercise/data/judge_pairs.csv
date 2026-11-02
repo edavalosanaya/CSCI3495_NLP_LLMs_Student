@@ -1,0 +1,9 @@
+question,good,bad
+Why do we split data into a training set and a test set?,"So we can measure how well the model does on examples it never saw during training, which is how it will be used.",Because that is how it is usually done.
+What does a learning rate control?,How big a step the optimizer takes when it updates the weights after each batch.,It controls how fast you learn things in class.
+Why might a model score well on a benchmark but still be bad in practice?,"The benchmark may not match real use, or its questions may have leaked into the training data, so a high score does not mean the skill transfers.","Benchmarks are always right, so it cannot happen."
+What is overfitting?,"When a model memorizes its training data, including the noise, and does worse on new data as a result.",When the model is too big to fit in memory.
+Why is accuracy a poor metric on very imbalanced data?,A model that always predicts the majority class can score high accuracy while never finding the rare class you care about.,Accuracy is always the best metric.
+What does a tokenizer do?,"It splits text into tokens, the units the model reads, and maps each one to an integer id.",It counts how many words are in a sentence.
+Why do we use a validation set?,"To tune choices like hyperparameters on data that is not the test set, so the test score stays an honest estimate.",To validate that the code runs.
+What is the difference between precision and recall?,Precision is how many predicted positives are right; recall is how many real positives were found.,They are the same thing with different names.

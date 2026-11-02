@@ -31,6 +31,8 @@ dependencies = [
     # Local LLM inference. The server itself still runs in Docker; this is the
     # Python client that talks to it.
     "ollama==0.6.2",
+    # Client for the course LLM server (OpenAI-compatible): chat, tools, structured outputs.
+    "openai==3.42.0",
     # Retrieval and RAG
     "faiss-cpu==1.14.3",
     # Notebooks. ipykernel is what makes the project's own venv the one and only

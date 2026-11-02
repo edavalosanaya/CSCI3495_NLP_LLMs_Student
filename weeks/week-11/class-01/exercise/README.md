@@ -1,7 +1,6 @@
-# W11C1 Lab: LoRA and Quantization, Measured
+# W11C1 Lab: LoRA on a GPT
 
-Everything for this session is in **`lab.ipynb`**. We work through it together in
-class, cell by cell. The 2 `YOUR TURN` cells are the parts you edit.
+Everything for this session is in **`lab.ipynb`**. Freeze the GPT, train two skinny matrices.
 
 ## Getting started
 
@@ -13,25 +12,28 @@ uv sync
 
 Then open `weeks/week-11/class-01/exercise/lab.ipynb` in your editor, select the project's
 **`.venv`** kernel, and run the cells from the top with Shift + Enter. There is
-nothing else to install.
+nothing else to install, and everything runs on a laptop CPU in under two minutes.
 
 ## What you will do
 
-1. Count how many numbers a full fine-tune has to change.
-2. Write LoRA yourself, in five lines, and count again.
-3. Squeeze a model to 8 bits and measure exactly what you lose.
+1. Ask a pretrained GPT (distilgpt2) to label a movie review, and see that it cannot.
+2. Add LoRA to its attention layers. The `LoRA` class cell is empty: write it as we go.
+3. Train a sentiment adapter, save it, train a genre adapter on the same frozen GPT, swap them, and merge one back in.
 
 ## What is in this folder
 
 | File | What it is |
 |---|---|
-| `lab.ipynb` | The session: notes, working code, 2 `YOUR TURN` tasks, and the answers. |
+| `lab.ipynb` | The session. |
+| `data/sentiment.csv` | 240 movie reviews labeled `positive` or `negative`, with a train/test split. |
+| `data/genre.csv` | 260 movie reviews labeled `horror` or `comedy`, with a train/test split. |
 
-## How this lab works
+## What you should see
 
-Everything already runs the moment you open it. Nothing raises, and there is no
-test to run and nothing to submit. Every `YOUR TURN` cell says in a comment what
-you should see when it is right, in real numbers, and the answers are in the
-last cell of the notebook.
-
-Read the output and judge whether it looks right. That is the skill.
+| | Result |
+|---|---|
+| distilgpt2 | 81,912,576 weights, 328 MB |
+| LoRA, r = 8 | 147,456 trainable weights, 0.18% |
+| before training | 0% on the sentiment test set |
+| sentiment adapter | 98% on test, a 0.59 MB file |
+| genre adapter | 98% on test |

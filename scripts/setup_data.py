@@ -16,12 +16,12 @@ NLTK_SETS = ["punkt", "punkt_tab", "stopwords", "wordnet",
              "movie_reviews"]
 
 # Small Hugging Face models used from Week 7 on. Fetched once, then cached in
-# ~/.cache/huggingface. Together they are well under 500 MB; the course never
+# ~/.cache/huggingface. Together they are about 1.5 GB; the course never
 # uses a model big enough to need a GPU.
 HF_MODELS = [
     ("sentence-transformers/all-MiniLM-L6-v2", "sentence embeddings, W13C2"),
     ("distilbert-base-uncased", "masked language modelling, W7C1 and W8C2"),
-    ("distilgpt2", "text generation and decoding, W9C1"),
+    ("distilgpt2", "text generation and decoding, W9C1; LoRA fine-tuning, W11C1"),
 ]
 
 
