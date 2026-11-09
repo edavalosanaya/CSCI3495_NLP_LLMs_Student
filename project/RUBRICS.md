@@ -19,10 +19,10 @@
 | Demonstrated progress since proposal | 3 |
 | A working baseline with a real result | 3 |
 | Clear remaining plan (and risks named) | 2 |
-| Quality of the feedback you give your review group | 2 |
+| Quality of the feedback you give your partners | 2 |
 | **Total** | **10** |
 
-*The deliverable is a **one-page** summary (abstract, method, preliminary findings, conclusion; template in `checkpoint/`) presented in a four-person review group in Week 12, Class 1 (Mon Nov 9). The last 2 points are for being a useful reviewer, not for polish on your own slides: specific, actionable criticism of the three projects you hear.*
+*The deliverable is a **one-page** summary (abstract, method, preliminary findings, conclusion; template in `checkpoint/`) presented in pairs in Week 12, Class 1 (Mon Nov 9). The last 2 points are for being a useful reviewer, not for polish on your own page: specific, actionable feedback on the three projects you hear, judged from what you write in the feedback form.*
 
 ## Final report & presentation (20%)
 | Criterion | Pts |

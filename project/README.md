@@ -28,15 +28,13 @@ Individuals or teams of up to **3**. Scope scales with team size (a 3-person tea
 
 A **work + instructor-feedback session** is provided in **Week 14, Class 2** before final presentations; project work/feedback time is also built into **Week 10**.
 
-### How the checkpoint runs (Week 12, Class 1: Mon Nov 9, 30 min)
+### How the checkpoint runs (Week 12, Class 1: Mon Nov 9)
 There are no whole-class presentations. Instead:
-- **Before class:** each project writes **one page** (one side) covering **abstract, method, preliminary findings, and conclusion**, using `checkpoint/CSCI3495_Project_Checkpoint_Template.docx`. Preliminary findings means real results from a real run, not just code that works. Bring a copy for yourself; you hand it in at the end.
-- **In class:** you sit in a **review group of four**, drawn from **different projects** so you get outside eyes.
-- **Four rounds of ~7 minutes:** one person presents their page for **3 minutes**, the other three respond for **4 minutes**. Rotate until everyone has presented once.
-- **Feedback the group owes each presenter:** what is the actual claim and does the page support it, what is the biggest risk to finishing by Week 15, and one concrete experiment to run next.
-- **The instructor sits in with one group per round** and joins the critique; every page is collected and returned with written comments.
-
-This scales to a full class and gets every student critiqued by three peers plus the instructor, which a round of 5-minute talks at the front of the room does not.
+- **Before class:** each project writes **one page** (one side) covering **abstract, method, preliminary findings, and conclusion**, using `checkpoint/CSCI3495_Project_Checkpoint_Template.docx`. Preliminary findings means real results from a real run, not just code that works. Bring a copy; you hand it in at the end.
+- **In class:** projects meet **in pairs**. One project presents its page for **4 minutes**, the other asks questions for **4 minutes**, and the listener spends **2 minutes** on a short Google Form. Then the pair switches.
+- **New partners:** after both have presented, one row of tables stays and the other moves one table over. Three rounds fit in the period, so every project meets **three** other projects. With an odd number of projects, the one left over pairs with the instructor.
+- **The questions to ask:** what is the claim, what number backs it and which baseline does it beat, which data, model and metric, what did not work, what could stop you finishing by Dec 7, and what one experiment you would run next.
+- Every page is collected and returned with written comments, and each team receives the feedback its listeners wrote in the form.
 
 ## Deliverable formats
 - **Reports:** PDF written like a scientific paper, in **LaTeX** using the **NeurIPS** template
